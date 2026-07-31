@@ -1,0 +1,19 @@
+{
+  "hypothesis": "H5",
+  "supports": false,
+  "circuit_size_dense": 0,
+  "circuit_size_sparse": 0,
+  "faithfulness_dense": 0.0,
+  "faithfulness_sparse": 0.0,
+  "accuracy_dense": 0.0,
+  "accuracy_sparse": 0.0,
+  "best_sparse_q": 0.2,
+  "sparsity_levels": [
+    0.2
+  ],
+  "final_loss_dense": 1.8887451243400575,
+  "leak_budget": 1.0,
+  "config_hash": "69fe56e3c35a",
+  "runtime_s": 2.4,
+  "device": "cpu"
+}
