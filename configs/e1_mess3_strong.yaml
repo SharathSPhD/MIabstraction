@@ -1,0 +1,22 @@
+name: e1_mess3
+hypothesis: H1
+seed: 0
+device: cuda
+model:
+  d_model: 64
+  n_layers: 4
+  n_heads: 4
+  max_len: 64
+data:
+  n_seq: 60000
+  seq_len: 32
+  mess3: {x: 0.05, a: 0.85}
+train:
+  steps: 60000
+  batch_size: 256
+  lr: 0.0005
+analysis:
+  n_probe_seq: 3000
+  burn_in: 4
+  window_k: 8
+out_dir: results/strong
