@@ -72,7 +72,7 @@ def run(cfg: ExperimentConfig) -> dict:
     # Train dense model
     print("Training dense model...")
     model_dense = TinyTransformer(vocab=vocab_size, **cfg.model)
-    losses_dense = _train_model(model_dense, train_seqs, cfg, dev)
+    losses_dense = _train_model(model_dense, train_seqs, cfg, dev, dataset=ds_train)
 
     # Train sparse models for each target q
     sparse_results = {}
@@ -80,7 +80,7 @@ def run(cfg: ExperimentConfig) -> dict:
         print(f"Training sparse model (q={target_q})...")
         model_sparse = TinyTransformer(vocab=vocab_size, **cfg.model)
         losses_sparse, sparsity_obj = _train_model_sparse(
-            model_sparse, train_seqs, cfg, dev, target_q=target_q
+            model_sparse, train_seqs, cfg, dev, target_q=target_q, dataset=ds_train
         )
         sparse_results[target_q] = (model_sparse, losses_sparse, sparsity_obj)
 
@@ -181,9 +181,17 @@ def run(cfg: ExperimentConfig) -> dict:
 
 
 def _train_model(
-    model: TinyTransformer, tokens: torch.Tensor, cfg: ExperimentConfig, dev: str
+    model: TinyTransformer,
+    tokens: torch.Tensor,
+    cfg: ExperimentConfig,
+    dev: str,
+    dataset: BracketMatchingDataset = None,
 ) -> list[float]:
-    """Train dense model."""
+    """Train dense model.
+
+    If dataset provided, uses task-specific loss at answer positions
+    (50/50 mix with next-token loss) to accelerate learning.
+    """
     model.to(dev).train()
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.train["lr"])
     g = torch.Generator().manual_seed(0)
@@ -197,9 +205,35 @@ def _train_model(
         idx = torch.randint(0, tokens.shape[0], (batch_size,), generator=g)
         batch = tokens[idx].to(dev)
         logits = model(batch[:, :-1])
-        loss = torch.nn.functional.cross_entropy(
+
+        # Next-token prediction loss
+        ntp_loss = torch.nn.functional.cross_entropy(
             logits.reshape(-1, logits.shape[-1]), batch[:, 1:].reshape(-1)
         )
+
+        # Add task-specific loss if dataset available
+        if dataset is not None:
+            ans_losses = []
+            for b, seq_idx in enumerate(idx.tolist()):
+                _, mask, correct = dataset.get_with_mask(seq_idx)
+                ans_pos = mask.nonzero(as_tuple=True)[0].item()
+                if ans_pos < logits.shape[1]:
+                    pred_logits = logits[b, ans_pos, :]
+                    task_loss = torch.nn.functional.cross_entropy(
+                        pred_logits.unsqueeze(0),
+                        torch.tensor([correct], device=dev),
+                    )
+                    ans_losses.append(task_loss)
+
+            if ans_losses:
+                task_loss = torch.stack(ans_losses).mean()
+                # Mix: 50% task-specific, 50% next-token
+                loss = 0.5 * ntp_loss + 0.5 * task_loss
+            else:
+                loss = ntp_loss
+        else:
+            loss = ntp_loss
+
         opt.zero_grad()
         loss.backward()
         opt.step()
@@ -217,8 +251,9 @@ def _train_model_sparse(
     cfg: ExperimentConfig,
     dev: str,
     target_q: float = 0.1,
+    dataset: BracketMatchingDataset = None,
 ) -> tuple[list[float], WeightSparsity]:
-    """Train sparse model with weight sparsity."""
+    """Train sparse model with weight sparsity and task-specific loss."""
     model.to(dev).train()
     sparsity = WeightSparsity(
         model, target_q=target_q, anneal_steps=cfg.train["steps"] // 2
@@ -239,9 +274,34 @@ def _train_model_sparse(
         idx = torch.randint(0, tokens.shape[0], (batch_size,), generator=g)
         batch = tokens[idx].to(dev)
         logits = model(batch[:, :-1])
-        loss = torch.nn.functional.cross_entropy(
+
+        # Next-token prediction loss
+        ntp_loss = torch.nn.functional.cross_entropy(
             logits.reshape(-1, logits.shape[-1]), batch[:, 1:].reshape(-1)
         )
+
+        # Add task-specific loss if dataset available
+        if dataset is not None:
+            ans_losses = []
+            for b, seq_idx in enumerate(idx.tolist()):
+                _, mask, correct = dataset.get_with_mask(seq_idx)
+                ans_pos = mask.nonzero(as_tuple=True)[0].item()
+                if ans_pos < logits.shape[1]:
+                    pred_logits = logits[b, ans_pos, :]
+                    task_loss = torch.nn.functional.cross_entropy(
+                        pred_logits.unsqueeze(0),
+                        torch.tensor([correct], device=dev),
+                    )
+                    ans_losses.append(task_loss)
+
+            if ans_losses:
+                task_loss = torch.stack(ans_losses).mean()
+                loss = 0.5 * ntp_loss + 0.5 * task_loss
+            else:
+                loss = ntp_loss
+        else:
+            loss = ntp_loss
+
         opt.zero_grad()
         loss.backward()
 

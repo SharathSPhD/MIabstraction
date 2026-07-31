@@ -49,6 +49,9 @@ class BracketMatchingDataset:
     def _generate_one_sequence(self) -> tuple[np.ndarray, np.ndarray, int]:
         """Generate a single valid bracket sequence.
 
+        CRITICAL: Ensures at least one unmatched opener at answer position.
+        This prevents ill-defined samples where model has no correct answer.
+
         Returns:
             seq: (seq_len,) array with tokens
             mask: (seq_len,) boolean mask with single True at answer position
@@ -56,53 +59,62 @@ class BracketMatchingDataset:
         """
         seq = np.zeros(self.seq_len, dtype=np.int64)
 
-        # Reserve last few positions for answer
-        max_bracket_pos = self.seq_len - 4
-        min_brackets = 2
-        n_brackets = self.rng.integers(min_brackets, (max_bracket_pos - 2) // 2 + 1)
-
-        # Generate bracket sequence with balanced structure
+        # Generate bracket sequence that GUARANTEES unmatched opener at query
         stack = []
         bracket_pos = 0
 
-        for _ in range(n_brackets):
-            # Randomly choose: open or close (biased toward open in first half)
-            if not stack or self.rng.random() < 0.6:
-                # Open
+        # Phase 1: Generate some opening brackets to build stack
+        n_opens = self.rng.integers(1, 3)  # 1-2 initial opens
+        for _ in range(n_opens):
+            opener_type = self.rng.integers(0, 2)
+            seq[bracket_pos] = opener_type
+            stack.append(opener_type)
+            bracket_pos += 1
+
+        # Phase 2: Add more brackets (mix of opens/closes) for complexity
+        max_bracket_pos = self.seq_len - 3  # Leave room for answer
+        while bracket_pos < max_bracket_pos:
+            if not stack or self.rng.random() < 0.4:
+                # Open: grow stack
                 opener_type = self.rng.integers(0, 2)
                 seq[bracket_pos] = opener_type
                 stack.append(opener_type)
             else:
-                # Close
+                # Close: shrink stack
                 opener_type = stack.pop()
-                seq[bracket_pos] = opener_type + 2  # convert to closer
+                seq[bracket_pos] = opener_type + 2
             bracket_pos += 1
 
-            if bracket_pos >= max_bracket_pos:
-                break
+            # CRITICAL: If stack becomes empty, add an opener immediately
+            if not stack and bracket_pos < max_bracket_pos:
+                opener_type = self.rng.integers(0, 2)
+                seq[bracket_pos] = opener_type
+                stack.append(opener_type)
+                bracket_pos += 1
 
-        # Ensure we have at least one unmatched opener for the query
-        if not stack:
-            # Open one more
-            opener_type = self.rng.integers(0, 2)
-            seq[bracket_pos] = opener_type
-            stack.append(opener_type)
+        # CRITICAL: Verify stack is non-empty (should never fail)
+        assert len(stack) > 0, "Stack must have at least one unmatched opener"
 
-        # Fill remaining positions before answer with distractors
-        answer_pos = self.rng.integers(bracket_pos + 2, self.seq_len - 1)
+        # Phase 3: Add distractors before answer position
+        min_ans_pos = bracket_pos + 1
+        if min_ans_pos >= self.seq_len - 1:
+            # No room for distractors; answer immediately follows brackets
+            answer_pos = bracket_pos
+        else:
+            answer_pos = self.rng.integers(min_ans_pos, self.seq_len - 1)
+
         for i in range(bracket_pos, answer_pos):
-            seq[i] = self.rng.integers(4, self.vocab_size)  # distractor
+            seq[i] = self.rng.integers(4, self.vocab_size)
 
-        # Set answer position
-        correct_closer = stack[-1] + 2  # convert most recent opener to closer
-        seq[answer_pos] = correct_closer  # put correct answer at query position
-        # (This is for reference; model must predict it)
+        # Phase 4: Set answer position and get correct label
+        correct_closer = stack[-1] + 2
+        seq[answer_pos] = correct_closer
 
-        # Fill any remaining positions with distractors
+        # Phase 5: Fill remaining positions with distractors
         for i in range(answer_pos + 1, self.seq_len):
             seq[i] = self.rng.integers(4, self.vocab_size)
 
-        # Create answer mask: single True at answer_pos
+        # Create answer mask
         mask = np.zeros(self.seq_len, dtype=bool)
         mask[answer_pos] = True
 

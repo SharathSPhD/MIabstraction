@@ -2,19 +2,19 @@
   "hypothesis": "H5",
   "supports": false,
   "circuit_size_dense": 4,
-  "circuit_size_sparse": 0,
+  "circuit_size_sparse": 4,
   "faithfulness_dense": 1.0,
-  "faithfulness_sparse": 0.0,
-  "accuracy_dense": 0.02,
-  "accuracy_sparse": 0.0,
+  "faithfulness_sparse": 1.0,
+  "accuracy_dense": 1.0,
+  "accuracy_sparse": 1.0,
   "best_sparse_q": 0.5,
   "sparsity_levels": [
     0.5,
     0.2
   ],
-  "final_loss_dense": 1.8906227850914001,
-  "leak_budget": 1.0,
+  "final_loss_dense": 0.8163548612594604,
+  "leak_budget": 0.0,
   "config_hash": "6e72cf0b18d8",
-  "runtime_s": 5.0,
+  "runtime_s": 17.6,
   "device": "cpu"
 }

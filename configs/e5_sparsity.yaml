@@ -8,15 +8,21 @@ model:
   n_heads: 2
   max_len: 32
 data:
+  # Task: bracket matching (Dyck-1 with 2 bracket types)
+  # Vocab: 0,1 (openers); 2,3 (closers); 4-7 (distractors)
+  # CRITICAL: Dataset now generates 100% well-posed samples with
+  # guaranteed unmatched opener at answer position (task fix applied)
   vocab_size: 8
   seq_len: 16
-  n_seq_train: 1000
-  n_seq_val: 300
+  n_seq_train: 20000
+  n_seq_val: 500
 train:
-  steps: 2000
-  batch_size: 64
-  lr: 0.01
-  log_every: 200
+  # Coordinator recommendations: lr=1e-3, 10k-20k steps, batch=256
+  # Previous config had lr=0.01 (divergence risk) and only 1000 train seqs (too few)
+  steps: 15000
+  batch_size: 256
+  lr: 0.001
+  log_every: 500
 analysis:
   sparsity_targets: [0.2, 0.1, 0.05]
 out_dir: results
