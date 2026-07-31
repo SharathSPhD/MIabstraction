@@ -1,0 +1,28 @@
+name: e3_sae_control
+hypothesis: H3
+seed: 0
+device: cuda
+model:
+  d_model: 64
+  n_layers: 4
+  n_heads: 4
+  max_len: 64
+data:
+  n_seq: 20000
+  seq_len: 32
+  mess3: {x: 0.05, a: 0.85}
+train:
+  steps: 4000
+  batch_size: 256
+  lr: 0.001
+analysis:
+  n_probe_seq: 2000
+  burn_in: 8
+  resid_layer: 1
+  sae_dict_size: 256
+  sae_k: 32
+  sae_lr: 0.01
+  sae_steps: 1000
+  n_sae_seeds: 5
+  selectivity_top_k: 64
+out_dir: results
