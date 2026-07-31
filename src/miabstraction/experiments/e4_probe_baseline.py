@@ -66,12 +66,18 @@ def run(cfg: ExperimentConfig) -> dict:
 
     # Flatten and get belief states
     burn = cfg.analysis.get("burn_in", 8)
-    belief_data = belief_states(T, eval_seqs)
+    belief_data = belief_states(T, eval_seqs)  # (n_eval, L, 3)
+
+    # CRITICAL ALIGNMENT:
+    # resid_raw from model(tokens[:, :-1]) has shape (n_eval, L-1, d_model)
+    # resid_raw[:, t] encodes prefix tokens[0..t], corresponding to beliefs[:, t]
+    # Since resid_raw has L-1 positions, align with beliefs[:, :-1] (drop last belief)
+    resid_aligned = resid_raw[:, burn:, :]  # (n_eval, L-1-burn, d_model)
+    beliefs_aligned = belief_data[:, burn:-1, :]  # (n_eval, L-1-burn, 3) — note :-1 to match resid
 
     # Flatten activations and beliefs to (samples, d_model/dict_size)
-    # Only use positions >= burn_in
-    resid_flat = resid_raw[:, burn:, :].reshape(-1, d_model)
-    beliefs_flat = belief_data[:, burn:, :].reshape(-1, 3)  # 3 states for Mess3
+    resid_flat = resid_aligned.reshape(-1, d_model)
+    beliefs_flat = beliefs_aligned.reshape(-1, 3)  # 3 states for Mess3
 
     # Concept 1: Belief-state argmax (3-class)
     y_belief_class = beliefs_flat.argmax(axis=1)
@@ -85,7 +91,9 @@ def run(cfg: ExperimentConfig) -> dict:
     train_seqs = sample_sequences(T, n_seq, L, rng)
     train_tokens = torch.from_numpy(train_seqs)
     resid_train = collect_resid(model, train_tokens[:, :-1], resid_layer, dev)
-    resid_train_flat = resid_train[:, burn:, :].reshape(-1, d_model)
+    # Apply same alignment to training data
+    resid_train_aligned = resid_train[:, burn:, :]
+    resid_train_flat = resid_train_aligned.reshape(-1, d_model)
 
     dict_size = cfg.analysis.get("sae_dict_size", 256)
     k = cfg.analysis.get("sae_k", 32)
@@ -109,17 +117,26 @@ def run(cfg: ExperimentConfig) -> dict:
         _, latents_sae = sae_model(resid_eval_tensor, return_latents=True)
         latents_sae = latents_sae.cpu().numpy()
 
-    # Test probes
+    # Test probes with StandardScaler to handle unstandardized activations
+    from sklearn.preprocessing import StandardScaler
+
+    # Standardize activations for better probe convergence
+    scaler_raw = StandardScaler()
+    resid_flat_scaled = scaler_raw.fit_transform(resid_flat)
+
+    scaler_sae = StandardScaler()
+    latents_sae_scaled = scaler_sae.fit_transform(latents_sae)
+
     # Concept 1: Belief-state argmax (3-class)
-    raw_probe_belief = classification_probe(resid_flat, y_belief_class, seed=cfg.seed, C=1.0)
-    sae_probe_belief = classification_probe(latents_sae, y_belief_class, seed=cfg.seed, C=1.0)
+    raw_probe_belief = classification_probe(resid_flat_scaled, y_belief_class, seed=cfg.seed, C=1.0)
+    sae_probe_belief = classification_probe(latents_sae_scaled, y_belief_class, seed=cfg.seed, C=1.0)
 
     raw_acc_belief = raw_probe_belief["acc_val"]
     sae_acc_belief = sae_probe_belief["acc_val"]
 
     # Concept 2: Entropy above/below median (2-class)
-    raw_probe_entropy = classification_probe(resid_flat, y_entropy_class, seed=cfg.seed, C=1.0)
-    sae_probe_entropy = classification_probe(latents_sae, y_entropy_class, seed=cfg.seed, C=1.0)
+    raw_probe_entropy = classification_probe(resid_flat_scaled, y_entropy_class, seed=cfg.seed, C=1.0)
+    sae_probe_entropy = classification_probe(latents_sae_scaled, y_entropy_class, seed=cfg.seed, C=1.0)
 
     raw_acc_entropy = raw_probe_entropy["acc_val"]
     sae_acc_entropy = sae_probe_entropy["acc_val"]
