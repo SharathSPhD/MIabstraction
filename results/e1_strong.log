@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/sharaths/projects/MIabstraction/src/miabstraction/runner.py", line 33, in <module>
+    main(sys.argv[1])
+  File "/home/sharaths/projects/MIabstraction/src/miabstraction/runner.py", line 24, in main
+    result = mod.run(cfg)
+             ^^^^^^^^^^^^
+  File "/home/sharaths/projects/MIabstraction/src/miabstraction/experiments/e1_mess3.py", line 110, in run
+    _plot_geometry(model, pt, beliefs, burn, dev, int(np.argmax(layer_r2)), d)
+  File "/home/sharaths/projects/MIabstraction/src/miabstraction/experiments/e1_mess3.py", line 135, in _plot_geometry
+    ax.scatter(xy[:, 0], xy[:, 1], s=0.3, alpha=0.25,
+  File "/home/sharaths/projects/MIabstraction/.venv/lib/python3.12/site-packages/matplotlib/_api/deprecation.py", line 477, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/MIabstraction/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 1528, in inner
+    return func(
+           ^^^^^
+  File "/home/sharaths/projects/MIabstraction/.venv/lib/python3.12/site-packages/matplotlib/axes/_axes.py", line 5347, in scatter
+    self._parse_scatter_color_args(
+  File "/home/sharaths/projects/MIabstraction/.venv/lib/python3.12/site-packages/matplotlib/axes/_axes.py", line 5154, in _parse_scatter_color_args
+    colors = mcolors.to_rgba_array(c)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/MIabstraction/.venv/lib/python3.12/site-packages/matplotlib/colors.py", line 506, in to_rgba_array
+    raise ValueError("RGBA values should be within 0-1 range")
+ValueError: RGBA values should be within 0-1 range

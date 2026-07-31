@@ -1,0 +1,17 @@
+{
+  "hypothesis": "H1",
+  "supports": false,
+  "final_loss": 0.7019782018661499,
+  "best_r2": 0.9013114625707227,
+  "best_r2_control": 0.8872563820307947,
+  "r2_window_baseline": 0.9673049467197471,
+  "window_k": 8,
+  "best_incremental_r2": 0.004075252328334722,
+  "best_incremental_r2_control": 0.0004093898566468468,
+  "entropy_rate_nats": 0.7960270354161134,
+  "leak_budget": 0.0986885374292773,
+  "config_hash": "df567bfe952a",
+  "runtime_s": 1184.4,
+  "device": "cuda",
+  "git_sha": "6a0af31"
+}

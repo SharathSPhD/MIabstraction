@@ -86,9 +86,37 @@ def run(cfg: ExperimentConfig) -> dict:
         Xw.reshape(-1, Xw.shape[-1]), Yw, seed=cfg.seed
     )["r2_val"]
 
+    # Incremental R²: what the residual stream adds beyond the window features.
+    # This is the decisive test — a recent-token reservoir adds ~nothing.
+    t_start = max(burn, k - 1)
+    Wfeat = np.stack(
+        [onehot[:, t - k + 1 : t + 1].reshape(n, -1) for t in range(t_start, Lm1)],
+        axis=1,
+    ).reshape(-1, 3 * k)
+    inc_r2, inc_r2_control = [], []
+    for m, store in ((model, inc_r2), (control, inc_r2_control)):
+        m.to(dev)
+        resid = collect_resid(m, pt[:, :-1], dev)
+        for r in resid:
+            X = r[:, t_start:, :].reshape(-1, r.shape[-1])
+            joint = regression_probe(
+                np.concatenate([Wfeat, X], axis=1), Yw, seed=cfg.seed
+            )["r2_val"]
+            store.append(joint - window_r2)
+
+    # entropy rate of the process (optimal loss): E_b[H(next symbol | b)]
+    p_next = np.einsum("nt,ats->na", beliefs.reshape(-1, 3), T)
+    h_rate = float(-(p_next * np.log(np.clip(p_next, 1e-12, 1))).sum(1).mean())
+
     best = float(max(layer_r2))
     best_control = float(max(control_r2))
-    supports = best >= 0.7 and best > best_control and best > window_r2
+    best_inc = float(max(inc_r2))
+    best_inc_control = float(max(inc_r2_control))
+    supports = (
+        best >= 0.7
+        and best_inc >= 0.01
+        and best_inc >= 2 * max(best_inc_control, 1e-9)
+    )
     result = {
         "hypothesis": cfg.hypothesis,
         "supports": supports,
@@ -99,6 +127,11 @@ def run(cfg: ExperimentConfig) -> dict:
         "best_r2_control": best_control,
         "r2_window_baseline": float(window_r2),
         "window_k": k,
+        "incremental_r2_by_layer": [float(v) for v in inc_r2],
+        "incremental_r2_by_layer_control": [float(v) for v in inc_r2_control],
+        "best_incremental_r2": best_inc,
+        "best_incremental_r2_control": best_inc_control,
+        "entropy_rate_nats": h_rate,
         "leak_budget": float(1 - best),
         "config_hash": cfg.hash(),
         "runtime_s": round(time.time() - t0, 1),
@@ -133,7 +166,7 @@ def _plot_geometry(model, pt, beliefs, burn, dev, best_layer, d):
                          (axes[1], pred, "linear readout of residual stream")):
         xy = simplex_xy(B)
         ax.scatter(xy[:, 0], xy[:, 1], s=0.3, alpha=0.25,
-                   c=B, edgecolors="none")
+                   c=np.clip(B, 0, 1), edgecolors="none")
         ax.set_title(title)
         ax.set_aspect("equal")
         ax.axis("off")
