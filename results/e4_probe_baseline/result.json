@@ -1,0 +1,15 @@
+{
+  "hypothesis": "H4",
+  "supports": false,
+  "final_loss": 0.5049016624689102,
+  "raw_probe_acc_belief": 0.9,
+  "sae_probe_acc_belief": 0.8571428571428571,
+  "raw_probe_acc_entropy": 0.6857142857142857,
+  "sae_probe_acc_entropy": 0.7,
+  "raw_vs_sae_delta_belief": 0.04285714285714293,
+  "raw_vs_sae_delta_entropy": -0.014285714285714235,
+  "entropy_median": 0.09575288051526887,
+  "config_hash": "a704aefa85d7",
+  "runtime_s": 10.3,
+  "device": "cuda"
+}
