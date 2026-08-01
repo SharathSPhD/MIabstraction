@@ -71,21 +71,40 @@
     }
   },
   "L2_composition": {
+    "budget": 1.25,
     "linked": false,
     "gains": {
-      "induction": 0.0,
-      "token_bias": 0.0
+      "induction": 0.06628908034679974,
+      "token_bias": 0.3999999999999999
     },
     "gates": {
       "induction": {
-        "passed": false
+        "passed": true,
+        "icl_acc": 0.587890625,
+        "joint": {
+          "passed": false,
+          "icl_acc": 0.447265625
+        }
       },
       "token_bias": {
-        "passed": false
+        "passed": true,
+        "favored_mass": 0.6397614479064941,
+        "joint": {
+          "passed": true,
+          "favored_mass": 0.5803656578063965
+        }
       }
     },
-    "host_delta": 0.0,
-    "diagnosis": "Link refused: no write gain lets ['induction', 'token_bias'] meet their gates without costing the host more than 0.05 nats. The unit works alone but cannot be heard over this host \u2014 check the envelope (vocab/length) matches what the unit was verified on."
+    "host_delta": 0.9774972796440125,
+    "interference": {
+      "a_alone": 0.587890625,
+      "a_with_b": 0.447265625,
+      "a_shift": -0.140625,
+      "b_alone": 0.9809991717338562,
+      "b_with_a": 0.5803656578063965,
+      "b_shift": -0.4006335139274597
+    },
+    "diagnosis": "Link refused: ['induction'] met their gates alone but fail once linked alongside the other units. Units write to the same output and interfere; raising one unit's gain to compensate costs the host more. Link them separately, or re-verify the set as a whole after adjusting gains."
   },
   "L3_capacity": {
     "out_of_band_host_delta": 0.0,
@@ -97,6 +116,6 @@
     "out_of_band_dims_taken": 0,
     "verdict": "out-of-band cheaper"
   },
-  "wall_clock_s": 110.4,
+  "wall_clock_s": 109.9,
   "device": "cuda"
 }

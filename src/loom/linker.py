@@ -240,19 +240,38 @@ def link(
     lm = LinkedModel(host, units, device=device)
     after = host_loss(lm, host_tokens, device)
     delta = after - base
-    all_gates = all(gates[u.name].get("passed") for u in units)
+
+    # Gates must hold in the COMPOSED model, not merely in each unit's solo trial.
+    # Units write to a shared output and interfere: measured here, a unit that scored
+    # 0.588 alone dropped to 0.447 once a second unit was linked alongside it. Verifying
+    # only the solo trials would certify a composition that does not work.
+    joint_gates = {}
+    for u in units:
+        joint_gates[u.name] = unit_gate_fns[u.name](lm)
+        gates[u.name]["joint"] = {
+            k: v for k, v in joint_gates[u.name].items() if k != "trace"}
+    all_gates = all(joint_gates[u.name].get("passed") for u in units)
     ok = all_gates and delta <= budget and math.isfinite(delta)
 
     if ok:
         diagnosis = ""
     elif not all_gates:
-        failed = [n for n, g in gates.items() if not g.get("passed")]
-        diagnosis = (
-            f"Link refused: no write gain lets {failed} meet their gates without "
-            f"costing the host more than {budget:.3g} nats. The unit works alone but "
-            "cannot be heard over this host — check the envelope (vocab/length) matches "
-            "what the unit was verified on."
-        )
+        failed = [n for n, g in joint_gates.items() if not g.get("passed")]
+        solo_ok = [n for n in failed if gates[n].get("passed")]
+        if solo_ok:
+            diagnosis = (
+                f"Link refused: {solo_ok} met their gates alone but fail once linked "
+                "alongside the other units. Units write to the same output and interfere; "
+                "raising one unit's gain to compensate costs the host more. Link them "
+                "separately, or re-verify the set as a whole after adjusting gains."
+            )
+        else:
+            diagnosis = (
+                f"Link refused: no write gain lets {failed} meet their gates without "
+                f"costing the host more than {budget:.3g} nats. The unit works alone but "
+                "cannot be heard over this host — check the envelope (vocab/length) "
+                "matches what the unit was verified on."
+            )
     else:
         diagnosis = (
             f"Link refused: the host's loss rose by {delta:.4g} nats, over its "

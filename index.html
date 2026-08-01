@@ -124,7 +124,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 59afd9d · 60 commits · regenerated 2026-08-01 15:22 UTC</div>
+    <div class="eyebrow">build 73d41e0 · 61 commits · regenerated 2026-08-01 15:34 UTC</div>
     <h1>Programming the transformer</h1>
     <p class="lede">Today you build a language model by collecting data, running gradient
     descent, and hoping. There is no layer in between where you state what the model must
@@ -141,7 +141,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
     <h4>Where the project stands</h4>
     <div class="statusRow"><span>Experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
 <div class="statusRow"><span>Backends compiling</span><b><span class="chip pass">3 of 4 verified</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip warn">27 of 30</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip warn">29 of 32</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
 <div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pend">running on RTX 5090</span></b></div>
 <div class="statusRow"><span>Test suite</span><b><span class="chip pass">215 passing</span></b></div>
@@ -550,6 +550,8 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>…after linking a separately compiled unit it never trained with</td><td class='num'>0.588</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…at a write gain the linker solved for automatically</td><td class='num'>0.0663</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…and this is what the host paid for it</td><td class='num'>0.335 nats</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Composition: a unit's own score drops when a second independently compiled unit is linked beside it</td><td class='num'>-0.141</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…and the second unit is disturbed more</td><td class='num'>-0.401</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr class="pend"><td>Foundation model pretrained from scratch on real text: held-out loss</td><td class='num'>—</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pend">not yet measured</span></td></tr>
 <tr class="pend"><td>…held-out perplexity</td><td class='num'>—</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pend">not yet measured</span></td></tr>
 <tr class="pend"><td>…tokens of real English seen</td><td class='num'>—</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pend">not yet measured</span></td></tr>
@@ -586,7 +588,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 59afd9d · 2026-08-01 15:22 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 73d41e0 · 2026-08-01 15:34 UTC</p>
 </div></footer>
 </body>
 </html>

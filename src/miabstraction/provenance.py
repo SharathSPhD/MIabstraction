@@ -116,6 +116,11 @@ CLAIMS = [
     Claim("L1c", "…and this is what the host paid for it",
           "results/loom_link_demo.json", "L1_no_clobber.at_relaxed_budget.host_delta",
           "{:.3f} nats"),
+    Claim("L2a", "Composition: a unit's own score drops when a second independently "
+          "compiled unit is linked beside it",
+          "results/loom_link_demo.json", "L2_composition.interference.a_shift", "{:+.3f}"),
+    Claim("L2b", "…and the second unit is disturbed more",
+          "results/loom_link_demo.json", "L2_composition.interference.b_shift", "{:+.3f}"),
     Claim("F1", "Foundation model pretrained from scratch on real text: held-out loss",
           "results/loom_foundation_demo.json", "val_loss", "{:.3f}"),
     Claim("F2", "…held-out perplexity",

@@ -184,11 +184,39 @@ def run(device: str = "cuda", out: str = "results/loom_link_demo.json") -> dict:
     lm1b, rep1b = link(host, [unit_a], held, {"induction": gate_a}, device=dev,
                        budget=lax)
 
-    # ---- L2: compose two independently compiled units
-    unit_a2 = Unit(**{**unit_a.__dict__, "gain": 1.0})
+    # ---- L2: composition. The question separate compilation actually turns on is
+    # INTERFERENCE: does adding a second, independently compiled unit change what the
+    # first one does? Run at the budget where a single link is feasible, then compare
+    # each unit's score alone against its score alongside the other.
+    unit_a2 = Unit(**{**unit_a.__dict__})
+    unit_b.gain = 1.0
+    lm_b_only = LinkedModel(host, [unit_b], device=dev)
+    b_alone = gate_b(lm_b_only)
+
+    # Linking costs ADD: each unit's write perturbs the host independently, so a
+    # composed link needs a budget covering the sum of its parts. Refusing a composition
+    # under a single-unit budget is arithmetic, not interference — the interesting
+    # question only becomes visible once the budget admits both.
+    compose_budget = 1.25
     lm2, rep2 = link(host, [unit_a2, unit_b], held,
                      {"induction": gate_a, "token_bias": gate_b},
-                     device=dev, budget=budget)
+                     device=dev, budget=compose_budget)
+
+    # Measure interference whether or not the link is accepted — a refusal is only
+    # informative if it says by how much the units disturbed each other.
+    from ..linker import LinkedModel as _LM
+    lm_pair = _LM(host, [unit_a2, unit_b], device=dev)
+    interference = None
+    if True:
+        a_with_b = induction_gate(lm_pair, ind_tokens, gaps)["icl_acc"]
+        b_with_a = gate_b(lm_pair)["favored_mass"]
+        a_alone = rep1b.unit_gates["induction"].get("icl_acc")
+        interference = {
+            "a_alone": a_alone, "a_with_b": a_with_b,
+            "a_shift": (a_with_b - a_alone) if a_alone is not None else None,
+            "b_alone": b_alone["favored_mass"], "b_with_a": b_with_a,
+            "b_shift": b_with_a - b_alone["favored_mass"],
+        }
 
     # ---- L3: capacity — what the in-band alternative would have cost
     width = host.tok.embedding_dim
@@ -222,10 +250,12 @@ def run(device: str = "cuda", out: str = "results/loom_link_demo.json") -> dict:
             },
         },
         "L2_composition": {
+            "budget": compose_budget,
             "linked": rep2.linked,
             "gains": rep2.gains,
             "gates": rep2.unit_gates,
             "host_delta": rep2.host_delta,
+            "interference": interference,
             "diagnosis": rep2.diagnosis,
         },
         "L3_capacity": {

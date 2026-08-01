@@ -133,3 +133,27 @@ def test_link_succeeds_and_reports_evidence(host_and_data):
     assert report.gains["u"] > 0
     assert report.capacity_cost["u"] == 0
     assert report.host_loss_before > 0
+
+
+def test_gates_are_verified_in_the_composed_model(host_and_data):
+    """A unit that passes alone but fails alongside another must not be certified.
+
+    Units write to a shared output and interfere — measured at -0.14 accuracy for one
+    unit when a second was linked beside it. Verifying only the solo trials would
+    certify a composition that does not work.
+    """
+    host, toks = host_and_data
+    a, b = _unit("a"), _unit("b")
+    calls = {"n": 0}
+
+    def gate_a(m):
+        # passes while solving alone, fails once both units are installed
+        calls["n"] += 1
+        composed = len(getattr(m, "units", [])) > 1
+        return {"passed": not composed, "score": 0.4 if composed else 0.9}
+
+    lm, report = link(host, [a, b], toks,
+                      {"a": gate_a, "b": lambda m: {"passed": True}},
+                      device="cpu", budget=50.0)
+    assert lm is None and not report.linked
+    assert "interfere" in report.diagnosis
