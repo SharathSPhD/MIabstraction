@@ -1,0 +1,44 @@
+{
+  "model": "gpt2",
+  "device": "cuda",
+  "cuda_available": true,
+  "base_model_params": 124439808,
+  "stages": {
+    "sft": {
+      "final_loss": 3.029540538787842,
+      "eval_loss": 1.5378424651431342,
+      "response_only_loss": 3.029540538787842,
+      "num_examples": 100,
+      "num_steps": 13,
+      "elapsed_seconds": 2.170959949493408,
+      "data_size_estimate": 100,
+      "config": {
+        "learning_rate": 2e-05,
+        "batch_size": 8,
+        "num_epochs": 1,
+        "max_steps": 20
+      },
+      "perplexity": 173.08055114746094
+    },
+    "dpo": {
+      "final_loss": 0.6027467761720929,
+      "final_accuracy": 0.44642857142857145,
+      "final_margin": 2.9702792848859514,
+      "eval_loss": 0.2962026000022888,
+      "eval_accuracy": 0.699999988079071,
+      "num_examples": 50,
+      "num_steps": 7,
+      "elapsed_seconds": 3.9757132530212402,
+      "data_size_estimate": 50,
+      "config": {
+        "beta": 0.1,
+        "learning_rate": 1e-05,
+        "batch_size": 8,
+        "num_epochs": 1,
+        "max_steps": 10
+      },
+      "perplexity": 174.77056884765625
+    }
+  },
+  "base_perplexity": 268.5346374511719
+}
