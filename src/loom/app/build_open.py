@@ -379,30 +379,64 @@ REFUSAL_DEMOS = [
 ]
 
 
+@torch.no_grad()
+def _refusal_margin(model, tok, device, off_probes: list[str],
+                    on_probes: list[str], max_new: int = 24) -> tuple[float, dict]:
+    """Fraction of off-domain probes refused minus fraction of in-domain probes
+    refused, on greedy generations. This is the acceptance test's own measure taken on
+    different probes — and the subtraction is the guard against the degenerate win,
+    a model that refuses everything."""
+    from .verify_app import _looks_like_refusal
+
+    def rate(prompts: list[str]) -> float:
+        if not prompts:
+            return 0.0
+        n = 0
+        for p_ in prompts:
+            ids = tok(p_, return_tensors="pt").to(device)
+            out = model.generate(**ids, max_new_tokens=max_new, do_sample=False,
+                                 pad_token_id=getattr(tok, "eos_token_id", None))
+            text = tok.decode(out[0][ids["input_ids"].shape[1]:],
+                              skip_special_tokens=True)
+            n += int(_looks_like_refusal(text))
+        return n / len(prompts)
+
+    off, on = rate(off_probes[:6]), rate(on_probes[:4])
+    return off - on, {"refused_off_domain": round(off, 4),
+                      "refused_in_domain": round(on, 4)}
+
+
 def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]],
-                        adaptation_grid: dict[str, list], gapinfo: dict,
-                        target: float, save_adapter_to: str | None = None,
+                        adaptation_grid: dict[str, list],
+                        off_probes: list[str], on_probes: list[str],
+                        target_margin: float,
+                        save_adapter_to: str | None = None,
                         base_name: str = "") -> dict:
     """Search the adaptation levers when steering cannot reach the target.
 
-    The escalation used to be one fixed configuration — 30 steps at 5e-6 — which is a
-    guess wearing a strategy's name, and it measurably could not close a 0.41-nat gap.
-    It is now the same kind of search as everything else in this compiler: the levers
-    come from the declared adaptation space, the objective is the same instructed-answer
-    measure the steering search was judged by, and the trials stop as soon as the target
-    is met — so the training budget is spent in proportion to the measured gap rather
-    than fixed in advance.
+    The escalation used to be one fixed configuration — 30 steps at 5e-6 — a guess
+    wearing a strategy's name, and it measurably could not close a 0.41-nat gap. It is
+    now the same kind of search as everything else in this compiler: the levers come
+    from the declared adaptation space, and the trials stop as soon as the target is
+    met, so the training budget is spent in proportion to the demand.
+
+    The objective is behavioural, not string-likelihood. The first version scored the
+    loss of the exact answers the instructed model had generated, and training toward
+    any OTHER phrasing of refusal raised that loss — every trial scored negative while
+    the behaviour itself improved. Training is judged by what the acceptance test will
+    judge: does the model refuse what it should and answer what it should, measured on
+    generations against probes the verifier does not use.
     """
-    answers, neg = gapinfo["target_answers"], gapinfo["neg"]
-    if not answers:
+    if not off_probes:
         return {"ran": False,
-                "reason": "no measured gap to close — the instruction produced no "
-                          "target answers, so there is nothing to score training by"}
+                "reason": "no out-of-domain probes to score refusal on — the app "
+                          "declared no corpus to derive them from"}
 
     def objective() -> float:
-        return _answer_cost(model, tok, device, neg, answers)
+        return _refusal_margin(model, tok, device, off_probes, on_probes)[0]
 
-    base_obj = objective()
+    base_margin, base_rates = _refusal_margin(model, tok, device,
+                                              off_probes, on_probes)
 
     def run(cfg: dict):
         out = finetune_behaviour(model, tok, cap, device, examples,
@@ -411,14 +445,15 @@ def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]]
                                  objective=objective)
         if not out.get("ran"):
             return -1e9, out, out.get("reason", "did not run")
-        delivered = base_obj - out["objective_after"]
-        out["delivered_nats"] = round(delivered, 4)
-        if delivered <= 0:
-            return delivered, out, "training moved the model away from the behaviour"
-        return delivered, out, ""
+        margin = out["objective_after"]
+        out["refusal_margin"] = margin
+        if margin <= base_margin:
+            return margin, out, ("training did not move refusal beyond the "
+                                 f"untrained margin of {base_margin:.2f}")
+        return margin, out, ""
 
     res = search(levers=escalation_levers(adaptation_grid), run=run,
-                 target=target, maximize=True, stop_early=True)
+                 target=target_margin, maximize=True, stop_early=True)
 
     applied: dict = {}
     if res.best is not None:
@@ -430,15 +465,19 @@ def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]]
             steps=int(res.best.config["steps"]), lr=float(res.best.config["lr"]),
             rank=int(res.best.config["rank"]), keep=True,
             save_adapter_to=save_adapter_to, base_name=base_name)
+    final_margin, final_rates = ((_refusal_margin(model, tok, device,
+                                                  off_probes, on_probes))
+                                 if applied.get("ran") else (base_margin, base_rates))
     torch.cuda.empty_cache()
     return {"ran": bool(applied.get("ran")), "autotune": res.to_dict(),
             "applied": applied or None,
-            "base_objective": round(base_obj, 4),
-            "target_nats": round(target, 4),
-            "delivered_nats": (round(res.best.score, 4) if res.best else None),
+            "margin_before": round(base_margin, 4), "rates_before": base_rates,
+            "margin_after": round(final_margin, 4), "rates_after": final_rates,
+            "target_margin": round(target_margin, 4),
+            "target_met": bool(final_margin >= target_margin),
             "reason": "" if res.best else
-                      "no configuration in the declared adaptation space moved the "
-                      "behaviour without damaging the model"}
+                      "no configuration in the declared adaptation space moved "
+                      "refusal beyond the untrained margin without damaging the model"}
 
 
 def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
@@ -778,9 +817,16 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             # way the decision cites a measurement, and the training that follows is a
             # search whose cost scales with the gap.
             if not tuning.get("target_met") and nxt is not None:
+                # The nats gap chose the strategy; the training itself is judged the
+                # way the acceptance test will judge it — refusal on generations,
+                # with in-domain probes as the guard against refusing everything.
+                # `insistence` keeps its meaning: how much of the behaviour must
+                # actually be achieved, here as a net refusal margin.
                 esc = autotune_escalation(
                     model, tok, cap, device, REFUSAL_DEMOS,
-                    grids("adaptation", search_budget), gapinfo, target=target_nats,
+                    grids("adaptation", search_budget),
+                    off_probes=out_of_domain, on_probes=probes,
+                    target_margin=recover,
                     save_adapter_to=str(Path(out_dir)
                                         / f"adapter_{cap.kind.value}.pt"),
                     base_name=target)
