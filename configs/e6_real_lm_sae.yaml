@@ -1,0 +1,22 @@
+name: e6_real_lm_sae
+hypothesis: H3
+seed: 0
+device: cuda
+model:
+  name: Qwen/Qwen2.5-0.5B-Instruct
+  resid_layer: 12          # of 24; hidden_states index, 0 = embedding
+data:
+  dataset: wikitext
+  config: wikitext-103-raw-v1
+  split: "train[:1%]"
+  n_seq: 1500
+  seq_len: 64
+analysis:
+  burn_in: 4
+  sae_dict_size: 4096      # d_model 896 x ~4.6 expansion
+  sae_k: 32
+  sae_lr: 0.001
+  sae_steps: 1000
+  sae_batch: 1024
+  n_sae_seeds: 3
+out_dir: results
