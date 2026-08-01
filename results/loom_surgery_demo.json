@@ -1,0 +1,31 @@
+{
+  "note": "every number uses the model's own tokenizer",
+  "ops": {
+    "merge": {
+      "models": [
+        "meta-llama/Llama-3.2-1B",
+        "meta-llama/Llama-3.2-1B-Instruct"
+      ],
+      "method": "linear",
+      "ppl_base": 15.83,
+      "ppl_instruct": 18.315,
+      "ppl_by_alpha": {
+        "0.25": 14.853,
+        "0.5": 14.687,
+        "0.75": 15.899
+      }
+    },
+    "prune_layers": {
+      "model": "meta-llama/Llama-3.2-1B",
+      "n_layers": 16,
+      "ppl_full": 15.83,
+      "ppl_by_kept_fraction": {
+        "90pct": 134.608,
+        "75pct": 3129.16,
+        "50pct": 136768.688
+      }
+    }
+  },
+  "wall_clock_s": 35.9,
+  "gpu": "NVIDIA GB10"
+}
