@@ -1,0 +1,23 @@
+name: e7_causal_size
+hypothesis: H5
+seed: 0
+device: cuda
+model:
+  d_model: 64
+  n_layers: 4
+  n_heads: 4
+  max_len: 64
+data:
+  vocab_size: 10
+  seq_len: 16
+  n_seq_train: 500
+  n_seq_val: 200
+train:
+  steps: 4000
+  batch_size: 128
+  lr: 0.001
+analysis:
+  seeds: [0, 1, 2]
+  epsilon: 0.05
+  target_q: 0.2
+out_dir: results
