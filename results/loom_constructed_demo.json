@@ -1,0 +1,38 @@
+{
+  "construction_pure": true,
+  "model_config": {
+    "vocab": 20,
+    "d_model": 256,
+    "n_layers": 2,
+    "n_heads": 2,
+    "attn_only": true,
+    "max_len": 64
+  },
+  "verification": {
+    "sequence_config": {
+      "copy_len": 24,
+      "max_gap": 12,
+      "spurious_matches_expected": 1.2
+    },
+    "prefix_score": 0.048548705875873566,
+    "icl_loss": 40.053951263427734,
+    "icl_argmax_accuracy": 0.044921875,
+    "first_copy_loss": 38.37429428100586,
+    "uniform_baseline": 2.995732273553991,
+    "per_layer_scores": [
+      0.024034144863004148,
+      0.015665000922087093
+    ]
+  },
+  "gates": {
+    "prefix_score_gt_0_5": {
+      "value": 0.048548705875873566,
+      "passes": false
+    },
+    "icl_argmax_accuracy_gt_0_9": {
+      "value": 0.044921875,
+      "passes": false
+    }
+  },
+  "polish_steps": 0
+}
