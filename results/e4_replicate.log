@@ -1,0 +1,28 @@
+{
+  "metric_invariant_across_seeds": false,
+  "invariance_warning": null,
+  "hypothesis": "H4",
+  "config": "configs/e4_probe_baseline.yaml",
+  "seeds": [
+    1,
+    2
+  ],
+  "metric": "raw_vs_sae_delta_belief",
+  "metric_mean": 0.0013586956521739468,
+  "metric_std": 0.001921485818441753,
+  "n_supporting": 2,
+  "n_seeds": 2,
+  "runs": [
+    {
+      "seed": 1,
+      "supports": true,
+      "raw_vs_sae_delta_belief": 0.0
+    },
+    {
+      "seed": 2,
+      "supports": true,
+      "raw_vs_sae_delta_belief": 0.0027173913043478937
+    }
+  ],
+  "replicates": true
+}

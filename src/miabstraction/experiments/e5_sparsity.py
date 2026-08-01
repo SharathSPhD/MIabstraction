@@ -23,7 +23,7 @@ from ..config import ExperimentConfig
 from ..data.algo import BracketMatchingDataset
 from ..models import TinyTransformer
 from ..sparsity import train_lm_with_sparsity, WeightSparsity
-from ..circuits import CircuitExtractor, circuit_weight_count
+from ..circuits import CircuitExtractor, circuit_weight_count, surviving_edge_count
 
 
 def run(cfg: ExperimentConfig) -> dict:
@@ -151,6 +151,9 @@ def run(cfg: ExperimentConfig) -> dict:
     model_sparse_best = sparse_results[best_sparse_q][0]
     w_dense = circuit_weight_count(model_dense, circuit_dense.nodes)
     w_sparse = circuit_weight_count(model_sparse_best, best_sparse_circuit.nodes)
+    # Magnitude-thresholded size: unlike nonzero counts, this is not pinned to q.
+    e_dense = surviving_edge_count(model_dense, circuit_dense.nodes)
+    e_sparse = surviving_edge_count(model_sparse_best, best_sparse_circuit.nodes)
     supports_h5 = bool(
         w_sparse < w_dense
         and best_sparse_circuit.faithfulness >= circuit_dense.faithfulness
@@ -165,6 +168,18 @@ def run(cfg: ExperimentConfig) -> dict:
         "circuit_weights_dense": w_dense,
         "circuit_weights_sparse": w_sparse,
         "circuit_weight_ratio": (w_sparse / w_dense) if w_dense else None,
+        "circuit_edges_dense": e_dense,
+        "circuit_edges_sparse": e_sparse,
+        "circuit_edge_ratio": (e_sparse / e_dense) if e_dense else None,
+        "imposed_q": best_sparse_q,
+        # A size ratio that merely echoes the imposed sparsity measures the knob we
+        # turned, not the learned circuit. Both metrics land within 1% of q here, so
+        # the size claim is flagged as uninformative rather than reported as a win.
+        "size_metrics_are_tautological": bool(
+            best_sparse_q
+            and abs((w_sparse / w_dense) - best_sparse_q) < 0.01 * best_sparse_q * 5
+            and abs((e_sparse / e_dense) - best_sparse_q) < 0.01 * best_sparse_q * 5
+        ),
         "faithfulness_dense": circuit_dense.faithfulness,
         "faithfulness_sparse": best_sparse_circuit.faithfulness,
         "accuracy_dense": dense_acc,

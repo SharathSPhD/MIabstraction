@@ -1,0 +1,18 @@
+{
+  "hypothesis": "H4",
+  "supports": true,
+  "final_loss": 0.7754995441436767,
+  "raw_probe_acc_belief": 0.9592391304347826,
+  "sae_probe_acc_belief": 0.9592391304347826,
+  "raw_probe_acc_entropy": 0.7318478260869565,
+  "sae_probe_acc_entropy": 0.7911956521739131,
+  "raw_vs_sae_delta_belief": 0.0,
+  "raw_vs_sae_delta_entropy": -0.059347826086956545,
+  "sae_margin_belief": 0.0,
+  "sae_margin_entropy": 0.059347826086956545,
+  "sae_wins_decisively": false,
+  "entropy_median": 0.09681624776294255,
+  "config_hash": "2cd0bc83c860",
+  "runtime_s": 50.4,
+  "device": "cuda"
+}

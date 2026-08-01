@@ -6,20 +6,24 @@
   "circuit_weights_dense": 124224,
   "circuit_weights_sparse": 25914,
   "circuit_weight_ratio": 0.20860703245749615,
+  "circuit_edges_dense": 123597,
+  "circuit_edges_sparse": 25865,
+  "circuit_edge_ratio": 0.2092688333859236,
+  "imposed_q": 0.2,
   "faithfulness_dense": 1.0,
   "faithfulness_sparse": 1.0,
   "accuracy_dense": 1.0,
-  "accuracy_sparse": 0.998,
+  "accuracy_sparse": 1.0,
   "best_sparse_q": 0.2,
   "sparsity_levels": [
     0.2,
     0.1,
     0.05
   ],
-  "final_loss_dense": 0.44945859372615815,
+  "final_loss_dense": 0.44416157484054564,
   "leak_budget": 0.0,
   "config_hash": "7af92acb435f",
-  "runtime_s": 1493.8,
+  "runtime_s": 1726.3,
   "device": "cuda",
-  "git_sha": "e5b4edf"
+  "git_sha": "732108d"
 }

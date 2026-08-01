@@ -42,14 +42,27 @@ weights by construction, and both models retained the same 6 nodes, so the ratio
 *forced by the mask*, not discovered in the learned structure. A metric that returns the
 same value no matter what the model learned is measuring our own hyperparameter.
 
-What survives that deflation is still worth stating, just far more modestly: at 80% of
-weights removed, this task keeps **99.8% accuracy and 1.0 mean-ablation faithfulness**, and
-the circuit's *node* set does not shrink at all (6 vs 6). So the honest claim is not
-"sparsity finds a smaller circuit" but "sparsity can be imposed nearly for free here, and
-the coarse structure is unchanged." Whether sparsity yields genuinely *simpler* mechanisms —
-Gao et al.'s actual claim — needs a size metric that is not a function of q: circuit
-*edges* that survive ablation, or description length of the extracted algorithm. That
-experiment has not been run, and until it is, H5's posterior overstates what was shown.
+We then tried to repair the metric and **failed, informatively**. A magnitude-thresholded
+edge count (weights above 10⁻³ of their layer's max) was added specifically because it is
+not defined in terms of q. It returned a sparse/dense ratio of **0.2093** — against the
+weight ratio's 0.2086 and an imposed q of **0.200**. Three "different" size metrics, one
+number. The reason is structural: AbsTopK prunes every matrix uniformly, the surviving
+weights are by construction the largest, and in the dense model essentially every weight
+clears a 10⁻³ relative bar. Any metric that counts weights will keep recovering q.
+
+So the operational conclusion for H5 is stronger than "unreplicated" and more specific than
+"unproven": **as operationalized here, H5 is undecidable.** The experiment cannot separate
+"sparsity produces simpler mechanisms" from "sparsity sets the weight count", because every
+size metric we have tried is a function of the knob we turned. Deciding it requires a
+measure with no weight-counting in it at all — causal edge pruning (ablate individual
+connections and keep only those the task needs), or description length of the extracted
+algorithm. Neither has been run. **H5's posterior of 0.81 should be read as an artifact of
+a passing-but-uninformative test, not as evidence.**
+
+What does survive, and is worth stating on its own: at 80% of weights removed this task
+keeps **99.8% accuracy and 1.0 mean-ablation faithfulness**, with the node-level circuit
+unchanged (6 vs 6). Sparsity is nearly free here. Whether it buys *interpretability* — Gao
+et al.'s actual claim — this experiment does not establish.
 
 The methodological lesson generalizes past this experiment: **zero variance across seeds is
 a warning, not a triumph.** A result that reproduces perfectly may be reproducing a
@@ -65,7 +78,9 @@ falsification bar is "SAE beats raw by >5 pts *consistently*", and a 4-point win
 two concepts does not clear it. Read plainly: raw activations match SAEs where the concept
 is easy and lose slightly where it is hard, so the honest claim is *parity, not raw
 superiority* — weaker than Kantamneni et al.'s result, and a caution against treating a
-surviving hypothesis as a won argument.
+surviving hypothesis as a won argument. Replication across seeds 1–2 puts a number on the
+parity: the raw-minus-SAE gap on the belief concept is **0.0014 ± 0.0019**, statistically
+indistinguishable from zero.
 
 This verdict moved twice before settling, which is itself worth recording. The first
 implementation used a 1-point rule instead of the registered 5-point rule, and the run was
@@ -86,13 +101,23 @@ reconstructability of the activation distribution, not the presence of learned f
 
 ### The synthesis
 
-The stack that survives contact with evidence is **not a single ISA**. Geometry (H1) and
-imposed weight structure (H5) are the load-bearing layers; circuits (H2) are real but their
-formation is discontinuous and their measurement is shortcut-prone; the activation-feature
-layer (H3/H4) is descriptive rather than canonical, and simple baselines match it wherever
-the concept is already named. That ordering — weights and geometry over activation
-features — is the same conclusion `docs/research1.md` reached from the literature, now with
-measured leak budgets attached rather than asserted.
+The stack that survives contact with evidence is **not a single ISA**, and it is shorter
+than we set out to validate. **Representation geometry (H1) is the one layer that clearly
+held**: predicted in advance from the data process, decodable at R² = 0.998, replicated
+across seeds, and beating every control we could construct. **Circuits (H2) are real and
+form discontinuously**, also replicated — but their measurement is shortcut-prone, and we
+walked into one. The **activation-feature layer (H3/H4) is descriptive rather than
+canonical**: linear baselines tie with SAE probes on the easy concept and lose slightly on
+the hard one, and SAE quality metrics behaved in a way that says more about activation
+dimensionality than about learned features. The **weights layer (H5) is undecided** — not
+because the experiment failed, but because every size metric we built turned out to encode
+the sparsity knob rather than the learned mechanism.
+
+So the ordering `docs/research1.md` argued for from the literature — weights and geometry
+over activation features — is only half-confirmed here. Geometry earned its place. The
+weight layer's claim to be *the* durable ISA candidate remains untested by us, and our
+attempt to test it mostly demonstrated how easy it is to measure your own hyperparameter
+and call it a discovery.
 
 Three methodological findings generalize beyond these five toys:
 

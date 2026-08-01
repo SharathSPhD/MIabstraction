@@ -220,3 +220,37 @@ def circuit_weight_count(model: nn.Module, nodes: set[tuple[int, int]]) -> int:
             attn_nnz = sum(int((p != 0).sum().item()) for p in blk.attn.parameters())
             total += attn_nnz // n_heads
     return total
+
+
+def surviving_edge_count(
+    model: nn.Module, nodes: set[tuple[int, int]], threshold: float = 1e-3
+) -> int:
+    """Count weights in the circuit whose magnitude exceeds `threshold` x the layer's
+    max |weight| — a size metric that does NOT reduce to the imposed sparsity level.
+
+    `circuit_weight_count` counts nonzeros, which under AbsTopK masking is exactly
+    q x total by construction: it reports the hyperparameter, not the learned circuit
+    (E5 measured the same 0.2086 ratio on every seed). Thresholding *relative to each
+    layer's own scale* asks a different question — how many connections carry
+    non-negligible magnitude — which a dense model can also fail or pass, so dense and
+    sparse become comparable on equal terms.
+    """
+    total = 0
+    for layer, head in nodes:
+        blk = model.blocks[layer]
+        if head == -1:
+            if getattr(blk, "attn_only", False):
+                continue
+            params = list(blk.mlp.parameters())
+            share = 1
+        else:
+            params = list(blk.attn.parameters())
+            share = blk.attn.num_heads
+        counted = 0
+        for p in params:
+            scale = p.abs().max()
+            if scale == 0:
+                continue
+            counted += int((p.abs() > threshold * scale).sum().item())
+        total += counted // share
+    return total
