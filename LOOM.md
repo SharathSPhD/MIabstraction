@@ -122,3 +122,23 @@ and a compiler. And because L1 is the mech-interp layer, the compiler can realiz
 by *editing the model's internals* — installing a verified circuit, steering a measured
 feature — not only by throwing data at it. That is the capability no existing tool has,
 and it is why the abstraction layer had to be validated before the language could exist.
+
+## Composition, on both substrates
+
+An abstraction layer that can only ship one skill per model is a library of one book, so
+composition is measured on both substrates rather than assumed:
+
+- **Constructed (scratch)**: trigram induction and a succession rule compiled into one
+  3-layer weight set (`compile_composed`), the second skill living entirely in the 32
+  residual dimensions the induction memory map left unused. Measured
+  (`results/loom_composed_demo.json`): succession exact at 1.0; induction 0.909 alone and
+  0.909 composed; on letter traffic the composed model's logits match the single-skill
+  model's to 7e-13 with identical argmax — in exact arithmetic they are equal, since the
+  only thing LayerNorm adds to an untouched block is a scalar shift and a zero-mean read
+  code annihilates it; where the two skills disagree, the declared arbitration wins; a
+  random model fails both gates at chance.
+
+- **Open-weight**: a clinic build composes a knowledge adapter, steering controls and an
+  escalated guardrail adapter in one model. Controls are calibrated jointly (three
+  controls each measuring zero side-effect alone destroyed generation once composed), and
+  every expectation is verified on the composed artifact, not on any capability alone.
