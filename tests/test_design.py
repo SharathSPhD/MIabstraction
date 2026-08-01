@@ -23,23 +23,20 @@ class TestHypothesisRegistry:
     """Test hypothesis registry initialization, updates, and persistence."""
 
     def test_init_default_priors(self):
-        """Registry should initialize with uniform prior over 5 hypotheses."""
+        """Each hypothesis is an independent binary claim at maximum entropy."""
         registry = HypothesisRegistry()
         assert len(registry.hypotheses) == 5
         for h_id in ["H1", "H2", "H3", "H4", "H5"]:
             assert h_id in registry.hypotheses
-            assert math.isclose(registry.hypotheses[h_id]["prior"], 0.2)
-            assert math.isclose(registry.hypotheses[h_id]["posterior"], 0.2)
+            assert math.isclose(registry.hypotheses[h_id]["prior"], 0.5)
+            assert math.isclose(registry.hypotheses[h_id]["posterior"], 0.5)
 
     def test_init_custom_priors(self):
-        """Registry should accept custom prior specification and normalize them."""
+        """Custom priors are used verbatim — they are not cross-normalized."""
         custom_priors = {"H1": 0.6, "H2": 0.4, "H3": 0.5, "H4": 0.5, "H5": 0.5}
         registry = HypothesisRegistry(priors=custom_priors)
-        # Priors should be normalized to sum to 1
-        total_prior = sum(registry.hypotheses[h_id]["prior"] for h_id in ["H1", "H2", "H3", "H4", "H5"])
-        assert math.isclose(total_prior, 1.0)
-        # Relative ordering should be preserved
-        assert registry.hypotheses["H1"]["prior"] > registry.hypotheses["H2"]["prior"]
+        assert math.isclose(registry.hypotheses["H1"]["prior"], 0.6)
+        assert math.isclose(registry.hypotheses["H2"]["prior"], 0.4)
 
     def test_hypothesis_description(self):
         """Registry should store and retrieve hypothesis descriptions."""
@@ -59,14 +56,26 @@ class TestHypothesisRegistry:
         posterior_h1 = registry.hypotheses["H1"]["posterior"]
         assert posterior_h1 > prior_h1, "Posterior should increase with likelihood ratio > 1"
 
-    def test_update_normalizes_posteriors(self):
-        """After update, posteriors across all hypotheses should sum to 1.0."""
+    def test_updates_are_independent_across_hypotheses(self):
+        """Updating one hypothesis must not move any other (they are independent)."""
         registry = HypothesisRegistry()
-        registry.update("H1", 2.0)
-        registry.update("H2", 1.5)
+        registry.update("H1", 9.0)
+        assert registry.hypotheses["H1"]["posterior"] > 0.85
+        for h_id in ["H2", "H3", "H4", "H5"]:
+            assert math.isclose(registry.hypotheses[h_id]["posterior"], 0.5)
 
-        total_posterior = sum(h["posterior"] for h in registry.hypotheses.values())
-        assert math.isclose(total_posterior, 1.0, abs_tol=1e-6)
+    def test_repeated_updates_compound(self):
+        """Evidence accumulates: two supporting updates beat one."""
+        one, two = HypothesisRegistry(), HypothesisRegistry()
+        one.update("H1", 3.0)
+        two.update("H1", 3.0)
+        two.update("H1", 3.0)
+        assert two.posteriors()["H1"] > one.posteriors()["H1"]
+
+    def test_refuting_update_lowers_posterior(self):
+        registry = HypothesisRegistry()
+        registry.update("H3", 1 / 9)
+        assert registry.posteriors()["H3"] < 0.15
 
     def test_update_history_recorded(self):
         """Registry should record update history with timestamps."""
@@ -252,10 +261,28 @@ class TestSelectNext:
         ]
         result = select_next(registry, candidates)
 
-        # ExpH1 ranks higher: H1 posterior (0.36) is closer to 0.5 (max entropy)
-        # so it has higher EIG despite lower discriminative power
-        assert result[0]["name"] == "ExpH1"
+        # H1 (0.9) and H2 (0.1) are equally far from max entropy, so discriminative
+        # power decides: ExpH2's 0.99/0.01 likelihoods carry more information.
+        assert result[0]["name"] == "ExpH2"
         assert result[0]["eig"] > result[1]["eig"]
+
+    def test_select_prefers_uncertain_hypothesis_at_equal_discriminability(self):
+        """With identical experiments, test the hypothesis we are least sure about."""
+        registry = HypothesisRegistry(
+            priors={"H1": 0.5, "H2": 0.97, "H3": 0.5, "H4": 0.5, "H5": 0.5}
+        )
+        candidates = [
+            {
+                "name": f"Exp{h}",
+                "hypothesis": h,
+                "p_support_given_true": 0.9,
+                "p_support_given_false": 0.1,
+                "cost_gpu_min": 30,
+            }
+            for h in ("H1", "H2")
+        ]
+        result = select_next(registry, candidates)
+        assert result[0]["name"] == "ExpH1"
 
     def test_select_handles_zero_cost(self):
         """select_next should handle zero or near-zero cost gracefully."""

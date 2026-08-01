@@ -70,20 +70,12 @@ class HypothesisRegistry:
         self.hypotheses: Dict[str, Dict[str, Any]] = {}
         self.update_history: List[Dict[str, Any]] = []
 
-        # Collect prior values
-        prior_values = {}
-        if priors:
-            for h_id in ["H1", "H2", "H3", "H4", "H5"]:
-                prior_values[h_id] = priors.get(h_id, 0.2)
-        else:
-            # Default: uniform prior (1/5 = 0.2 each)
-            for h_id in ["H1", "H2", "H3", "H4", "H5"]:
-                prior_values[h_id] = 0.2
-
-        # Normalize priors to sum to 1
-        total_prior = sum(prior_values.values())
-        for h_id in prior_values:
-            prior_values[h_id] /= total_prior
+        # Independent binary hypotheses: each prior is its own probability in [0, 1],
+        # defaulting to maximum entropy (0.5) per SPEC.md. No cross-normalization.
+        prior_values = {
+            h_id: (priors.get(h_id, 0.5) if priors else 0.5)
+            for h_id in ["H1", "H2", "H3", "H4", "H5"]
+        }
 
         # Initialize all 5 hypotheses
         for h_id in ["H1", "H2", "H3", "H4", "H5"]:
@@ -107,7 +99,10 @@ class HypothesisRegistry:
             posterior_odds = prior_odds * likelihood_ratio
             posterior = posterior_odds / (1 + posterior_odds)
 
-        All posteriors are then normalized so they sum to 1.0 across all hypotheses.
+        H1..H5 are INDEPENDENT binary claims (all five can hold at once), so each
+        posterior lives in [0, 1] on its own and they are deliberately NOT normalized
+        against each other — normalizing would make five supported hypotheses read as
+        0.2 apiece. Repeated updates compound from the running posterior.
 
         Args:
             hypothesis_id: Which hypothesis to update (e.g., "H1")
@@ -121,25 +116,17 @@ class HypothesisRegistry:
 
         # Update single hypothesis using odds form
         h_data = self.hypotheses[hypothesis_id]
-        prior = h_data["prior"]
+        current = h_data["posterior"]  # compound from the running belief
 
-        # Convert prior probability to odds
-        prior_odds = prior / (1.0 - prior) if prior < 1.0 else float("inf")
-
-        # Apply likelihood ratio
-        posterior_odds = prior_odds * likelihood_ratio
-
-        # Convert odds back to probability
-        posterior = posterior_odds / (1.0 + posterior_odds) if posterior_odds != float("inf") else 1.0
-        posterior = min(posterior, 1.0)  # Clamp to [0, 1]
-
-        h_data["posterior"] = posterior
-
-        # Normalize posteriors across all hypotheses so they sum to 1
-        total_posterior = sum(h["posterior"] for h in self.hypotheses.values())
-        if total_posterior > 0:
-            for h in self.hypotheses.values():
-                h["posterior"] /= total_posterior
+        # Odds form of Bayes' rule
+        odds = current / (1.0 - current) if current < 1.0 else float("inf")
+        posterior_odds = odds * likelihood_ratio
+        posterior = (
+            posterior_odds / (1.0 + posterior_odds)
+            if posterior_odds != float("inf")
+            else 1.0
+        )
+        h_data["posterior"] = min(max(posterior, 0.0), 1.0)
 
         # Record update in history
         self.update_history.append({
@@ -148,6 +135,10 @@ class HypothesisRegistry:
             "posterior_after_update": self.hypotheses[hypothesis_id]["posterior"],
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
+
+    def posteriors(self) -> Dict[str, float]:
+        """Current posterior probability per hypothesis (independent, unnormalized)."""
+        return {h: d["posterior"] for h, d in self.hypotheses.items()}
 
     def save(self, path: str) -> None:
         """
