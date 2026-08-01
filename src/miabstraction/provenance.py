@@ -8,6 +8,7 @@ repository can prove.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -31,7 +32,11 @@ class Claim:
             d = json.loads(p.read_text())
         except json.JSONDecodeError:
             return None
-        for k in self.field.split("."):
+        # Keys may themselves contain dots (e.g. a mixing weight "0.5"), so a
+        # bracket-quoted segment addresses one literally: ops.merge.ppl_by_alpha["0.5"]
+        parts = re.findall(r'\["([^"]+)"\]|([^.\[\]]+)', self.field)
+        for br, plain in parts:
+            k = br or plain
             if isinstance(d, list):
                 try:
                     d = d[int(k)]
@@ -127,6 +132,17 @@ CLAIMS = [
           "results/loom_foundation_demo.json", "val_ppl", "{:.1f}"),
     Claim("F3", "…tokens of real English seen",
           "results/loom_foundation_demo.json", "tokens_seen", "{:,.0f}"),
+    Claim("S1", "Supervised fine-tuning on real dialogue: held-out response perplexity "
+          "before", "results/loom_sft_real.json", "heldout_ppl_before", "{:.1f}"),
+    Claim("S2", "…and after, with loss computed on response tokens only",
+          "results/loom_sft_real.json", "heldout_ppl_after", "{:.1f}"),
+    Claim("M1", "Merging a base and instruct checkpoint beats both parents",
+          "results/loom_surgery_demo.json", 'ops.merge.ppl_by_alpha["0.5"]', "{:.2f}"),
+    Claim("M2", "…the better of the two parents it beats",
+          "results/loom_surgery_demo.json", "ops.merge.ppl_base", "{:.2f}"),
+    Claim("M3", "Dropping 25% of a model's layers costs this much perplexity",
+          "results/loom_surgery_demo.json", "ops.prune_layers.ppl_by_kept_fraction.75pct",
+          "{:,.0f}"),
     Claim("P0", "Frozen open-weight model programmed without touching its weights",
           "results/loom_port_demo.json", "params", "{:,.0f} params"),
     Claim("P1", "…a monitor reading a concept off its residual stream (leave-one-out)",

@@ -1,0 +1,18 @@
+{
+  "stage": "sft",
+  "model": "gpt2",
+  "params": 124439808,
+  "data": "BabyLM-2026-Strict switchboard+bnc_spoken consecutive turns (real transcribed dialogue)",
+  "task": "next-turn prediction, loss on response tokens only",
+  "n_train_pairs": 7200,
+  "n_heldout_pairs": 800,
+  "steps": 300,
+  "lr": 2e-05,
+  "heldout_response_loss_before": 4.632,
+  "heldout_response_loss_after": 3.8512,
+  "heldout_ppl_before": 102.72,
+  "heldout_ppl_after": 47.05,
+  "improved": true,
+  "wall_clock_s": 123.4,
+  "gpu": "NVIDIA GB10"
+}

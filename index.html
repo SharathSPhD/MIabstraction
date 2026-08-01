@@ -124,7 +124,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 70dfeb9 · 68 commits · regenerated 2026-08-01 16:24 UTC</div>
+    <div class="eyebrow">build 2d432c9 · 74 commits · regenerated 2026-08-01 16:42 UTC</div>
     <h1>Programming the transformer</h1>
     <p class="lede">Today you build a language model by collecting data, running gradient
     descent, and hoping. There is no layer in between where you state what the model must
@@ -141,7 +141,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
     <h4>Where the project stands</h4>
     <div class="statusRow"><span>Experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
 <div class="statusRow"><span>Backends compiling</span><b><span class="chip pass">3 of 4 verified</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">32 of 32</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">37 of 37</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
 <div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pass">complete</span></b></div>
 <div class="statusRow"><span>Test suite</span><b><span class="chip pass">215 passing</span></b></div>
@@ -585,6 +585,11 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>Foundation model pretrained from scratch on real text: held-out loss</td><td class='num'>4.046</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…held-out perplexity</td><td class='num'>57.2</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…tokens of real English seen</td><td class='num'>737,280,000</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Supervised fine-tuning on real dialogue: held-out response perplexity before</td><td class='num'>102.7</td><td><code>results/loom_sft_real.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…and after, with loss computed on response tokens only</td><td class='num'>47.0</td><td><code>results/loom_sft_real.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Merging a base and instruct checkpoint beats both parents</td><td class='num'>14.69</td><td><code>results/loom_surgery_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…the better of the two parents it beats</td><td class='num'>15.83</td><td><code>results/loom_surgery_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Dropping 25% of a model's layers costs this much perplexity</td><td class='num'>3,129</td><td><code>results/loom_surgery_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>Frozen open-weight model programmed without touching its weights</td><td class='num'>1,235,814,400 params</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…a monitor reading a concept off its residual stream (leave-one-out)</td><td class='num'>1.000</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…control strength at half-maximum effect, measured by dose-response</td><td class='num'>0.650</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
@@ -618,7 +623,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 70dfeb9 · 2026-08-01 16:24 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 2d432c9 · 2026-08-01 16:42 UTC</p>
 </div></footer>
 </body>
 </html>
