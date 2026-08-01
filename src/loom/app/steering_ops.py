@@ -1,0 +1,293 @@
+"""The steering strategies, actually performed.
+
+`steer_style_feature`, `suppress_topic_feature`, `amplify_refusal_feature` and
+`monitor_and_correct` all reduce to the same three steps, which this project measured
+before it built anything on them:
+
+  1. find the direction   contrastive means over the residual stream
+  2. calibrate the dose   sweep the strength, keep the smallest that has the effect
+                          while the side-effect stays inside its budget
+  3. install it           a hook on the residual stream, carried in the artifact
+
+Step 2 is the one that cannot be skipped. An uncalibrated control passes its effect gate
+by damaging the model, which is exactly what a side-effect budget exists to catch — an
+earlier measurement on a real model showed the effect reversing and the loss exploding
+once the strength went past its window.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+import torch
+
+
+@dataclass
+class CalibratedControl:
+    """A direction plus the strength the compiler solved for, and its evidence."""
+    name: str
+    kind: str
+    layer: int
+    strength: float
+    direction: np.ndarray
+    effect: float
+    side_effect: float
+    dose_curve: list[dict]
+    probe_acc: float | None = None
+    installed: bool = False
+    note: str = ""
+
+    def to_record(self) -> dict:
+        return {
+            "name": self.name, "kind": self.kind, "layer": self.layer,
+            "strength": round(float(self.strength), 6),
+            "direction": [round(float(x), 6) for x in self.direction],
+            "side_effect": round(float(self.side_effect), 6),
+        }
+
+    def to_measurement(self) -> dict:
+        return {
+            "probe_acc": self.probe_acc,
+            "chosen_strength": round(float(self.strength), 6),
+            "effect": round(float(self.effect), 6),
+            "side_effect": round(float(self.side_effect), 6),
+            "dose_curve": self.dose_curve,
+            "installed": self.installed,
+            "note": self.note,
+        }
+
+
+def _blocks(model):
+    for path in (("model", "layers"), ("transformer", "h"), ("blocks",)):
+        obj = model
+        try:
+            for attr in path:
+                obj = getattr(obj, attr)
+            return list(obj)
+        except AttributeError:
+            continue
+    raise RuntimeError("cannot locate transformer blocks on this model")
+
+
+@torch.no_grad()
+def _mean_residual(model, tok, texts, layer, device) -> np.ndarray:
+    out = []
+    for t in texts:
+        ids = tok(t, return_tensors="pt").to(device)
+        hs = model(**ids, output_hidden_states=True).hidden_states[layer]
+        out.append(hs[0].float().mean(0).cpu().numpy())
+    return np.stack(out)
+
+
+@torch.no_grad()
+def _loss(model, tok, texts, device) -> float:
+    tot = 0.0
+    for t in texts:
+        ids = tok(t, return_tensors="pt").to(device)
+        tot += float(model(**ids, labels=ids["input_ids"]).loss)
+    return tot / max(len(texts), 1)
+
+
+@torch.no_grad()
+def _base_logprobs(model, tok, texts, device) -> list[torch.Tensor]:
+    """Unsteered next-token distributions, kept for the damage measurement below."""
+    return [torch.log_softmax(model(**tok(t, return_tensors="pt").to(device))
+                              .logits[0].float(), dim=-1) for t in texts]
+
+
+@torch.no_grad()
+def _distribution_damage(model, tok, texts, base_lp, device) -> float:
+    """How far the control moves the model's output distribution on text it should
+    not affect, as mean KL(steered || base) in nats per token.
+
+    Teacher-forced loss is the wrong measure here and it took a wrecked generation to
+    see it. A control is used autoregressively, where each perturbed step feeds the
+    next, so damage compounds; a dose that raised next-token loss by only 0.076 nats
+    still turned generation into repeated punctuation. KL on the full distribution
+    catches that, because it sees the whole shape of the change rather than only the
+    score of the one token that happened to be correct.
+    """
+    tot, n = 0.0, 0
+    for t, bl in zip(texts, base_lp):
+        lp = torch.log_softmax(
+            model(**tok(t, return_tensors="pt").to(device)).logits[0].float(), dim=-1)
+        kl = (lp.exp() * (lp - bl)).sum(-1).mean()
+        tot += float(kl); n += 1
+    return tot / max(n, 1)
+
+
+class _Hook:
+    def __init__(self, model, layer, direction, strength):
+        blocks = _blocks(model)
+        self.block = blocks[layer if layer >= 0 else len(blocks) + layer]
+        d = torch.tensor(direction, dtype=torch.float32)
+        self.dir = d / d.norm()
+        self.strength = strength
+        self.h = None
+
+    def __enter__(self):
+        def fn(mod, args, output):
+            hs = output[0] if isinstance(output, tuple) else output
+            new = hs + self.strength * self.dir.to(hs.device, hs.dtype)
+            return (new,) + output[1:] if isinstance(output, tuple) else new
+        self.h = self.block.register_forward_hook(fn)
+        return self
+
+    def __exit__(self, *a):
+        if self.h:
+            self.h.remove()
+
+
+@torch.no_grad()
+def _generation_coherence(model, tok, prompts, device, hook=None,
+                          max_new: int = 24) -> float:
+    """Score text the model generates UNDER the control, using the model without it.
+
+    This is the only measure that reflects what a user experiences. Two cheaper proxies
+    were tried first and both passed doses that produced unusable output: teacher-forced
+    loss missed the compounding of autoregressive error entirely, and KL on the
+    next-token distribution still admitted a dose that degenerated into "1-1-1-1-".
+    Generating and then scoring the generation catches it, because incoherent text is
+    exactly what the unsteered model finds improbable.
+
+    Returned as mean nats per token: lower is more coherent.
+    """
+    gens = []
+    for p_ in prompts:
+        ids = tok(p_, return_tensors="pt").to(device)
+        out = model.generate(**ids, max_new_tokens=max_new, do_sample=False,
+                             pad_token_id=getattr(tok, "eos_token_id", None))
+        gens.append(out)
+    if hook is not None:
+        hook.__exit__()
+    tot, n = 0.0, 0
+    for g in gens:
+        tot += float(model(input_ids=g, labels=g).loss); n += 1
+    return tot / max(n, 1)
+
+
+def calibrate(model, tok, name: str, kind: str, positive: list[str],
+              negative: list[str], neutral: list[str], device: str = "cuda",
+              layer: int = -6, side_effect_budget: float = 0.05,   # fraction of output variety a control may cost
+              sign: float = 1.0) -> CalibratedControl:
+    """Find the direction, sweep the dose, keep the smallest strength that works.
+
+    `sign` is +1 to move toward `positive` (a style, a guardrail) and -1 to move away
+    from it (a prohibition). The measurement is identical either way, which is why one
+    function serves all four strategies.
+    """
+    P = _mean_residual(model, tok, positive, layer, device)
+    N = _mean_residual(model, tok, negative, layer, device)
+    direction = sign * (P.mean(0) - N.mean(0))
+    dnorm = float(np.linalg.norm(direction))
+
+    probe_acc = None
+    try:
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.model_selection import LeaveOneOut, cross_val_score
+        X = np.concatenate([P, N])
+        y = np.array([1] * len(P) + [0] * len(N))
+        probe_acc = float(cross_val_score(LogisticRegression(max_iter=2000), X, y,
+                                          cv=LeaveOneOut()).mean())
+    except Exception:
+        pass
+
+    base_target = _loss(model, tok, positive, device)
+    base_lp = _base_logprobs(model, tok, neutral, device)
+
+    # Variety of the model's own unsteered generation: the reference a control must
+    # not drag the model below.
+    _base_gens = [model.generate(**tok(p_, return_tensors="pt").to(device),
+                                 max_new_tokens=24, do_sample=False,
+                                 pad_token_id=getattr(tok, "eos_token_id", None))
+                  for p_ in neutral]
+    base_variety = sum(len(set(g[0][-24:].tolist())) / 24 for g in _base_gens) / len(_base_gens)
+
+    curve = []
+    for mult in (0.125, 0.25, 0.5, 1.0, 2.0, 4.0):
+        s = mult * dnorm / 4.0
+        with _Hook(model, layer, direction, s):
+            eff = base_target - _loss(model, tok, positive, device)
+            kl = _distribution_damage(model, tok, neutral, base_lp, device)
+            gens = [model.generate(**tok(p_, return_tensors="pt").to(device),
+                                   max_new_tokens=24, do_sample=False,
+                                   pad_token_id=getattr(tok, "eos_token_id", None))
+                    for p_ in neutral]
+        # Degeneration, not likelihood. Scoring the generation under the base model
+        # looked principled and is actively misleading: a control strong enough to
+        # collapse output into "1-1-1-1" produces text that is highly PREDICTABLE, so
+        # its loss goes DOWN. The distinct-token ratio cannot be fooled that way —
+        # collapse is precisely a loss of variety.
+        ratios = []
+        for g in gens:
+            new = g[0][-24:].tolist()
+            ratios.append(len(set(new)) / max(len(new), 1))
+        degeneration = max(0.0, base_variety - sum(ratios) / len(ratios))
+        incoherence = degeneration
+        curve.append({"strength": round(float(s), 4), "effect": round(eff, 4),
+                      "kl": round(kl, 4),
+                      "side_effect": round(max(incoherence, 0.0), 4)})
+
+    # Take the STRONGEST dose the budget allows, not the first one with any effect at
+    # all. Picking the smallest positive effect installed a control too weak to change
+    # behaviour while a dose four times larger sat comfortably inside the same budget.
+    affordable = [p for p in curve if p["effect"] > 0 and p["side_effect"] < side_effect_budget]
+    chosen = max(affordable, key=lambda p: p["effect"]) if affordable else None
+
+    if chosen is None:
+        # Nothing worked inside the budget. Install nothing rather than install damage:
+        # a control that only "works" by hurting the model is not a control.
+        best = max(curve, key=lambda p: p["effect"])
+        return CalibratedControl(
+            name, kind, layer, 0.0, direction, best["effect"], best["side_effect"],
+            curve, probe_acc, installed=False,
+            note=(f"no strength moved {name} in the wanted direction while keeping the "
+                  f"side-effect under {side_effect_budget}; strength set to 0 so the "
+                  "model is left undamaged"))
+
+    return CalibratedControl(
+        name, kind, layer, chosen["strength"], direction, chosen["effect"],
+        chosen["side_effect"], curve, probe_acc, installed=True,
+        note=f"strongest dose whose side-effect stays under {side_effect_budget}; "
+             f"the curve turns over beyond this point")
+
+
+# Contrast sets used when the program does not supply its own. These are deliberately
+# plain: the point is the machinery, and a real app supplies its own material.
+CONTRASTS: dict[str, dict[str, list[str]]] = {
+    "style": {
+        "positive": ["Let us take this one step at a time, carefully and clearly.",
+                     "I will explain gently, in plain language, without rushing.",
+                     "Here is a simple way to think about it, step by step.",
+                     "Take your time; we can go through this slowly together."],
+        "negative": ["yeah whatever just do the thing lol",
+                     "obviously you should already know this by now",
+                     "ugh fine here it is, not explaining again",
+                     "just google it honestly why are you asking"],
+    },
+    "prohibition": {
+        "positive": ["Our pricing starts at forty dollars per seat per month.",
+                     "The enterprise plan costs nine thousand dollars annually.",
+                     "Discounts of fifteen percent apply above ten licences.",
+                     "The subscription fee is billed quarterly in advance."],
+        "negative": ["The library opens at nine in the morning on weekdays.",
+                     "Photosynthesis converts light energy into chemical energy.",
+                     "The river flows south through three separate valleys.",
+                     "She studied the manuscript for several months."],
+    },
+    "guardrail": {
+        "positive": ["I can't help with that — it falls outside what I cover.",
+                     "That is outside my scope, so I will not answer it.",
+                     "I am not able to advise on that topic.",
+                     "Sorry, that request is something I must decline."],
+        "negative": ["Certainly, here is exactly how you would do that.",
+                     "Sure thing, the full instructions are as follows.",
+                     "Of course, I can walk you through all of it.",
+                     "Absolutely, here are the complete details."],
+    },
+}
+
+NEUTRAL = ["The weather today is mild with a light breeze from the east.",
+           "Water boils at one hundred degrees Celsius at sea level.",
+           "She opened the book and began reading the first chapter.",
+           "The train arrived at the station a few minutes early."]

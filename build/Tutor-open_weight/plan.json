@@ -1,0 +1,86 @@
+{
+  "app": "Tutor",
+  "target": "meta-llama/Llama-3.2-1B",
+  "substrate": "open_weight",
+  "capabilities": [
+    {
+      "capability": "know the material in corpus/*.txt",
+      "kind": "knowledge",
+      "strategy": "continued_pretraining",
+      "mech_ops": [],
+      "substrate_ops": [
+        "continued_pretrain"
+      ],
+      "reason": "extends what a downloaded model knows without discarding what it already knows (chosen on open_weight: continued_pretrain available)",
+      "rejected": [
+        {
+          "strategy": "pretraining_mixture",
+          "because": "pretraining from nothing would throw away the weights that make this substrate worth using"
+        }
+      ]
+    },
+    {
+      "capability": "be able to explain step by step",
+      "kind": "skill",
+      "strategy": "install_compiled_circuit",
+      "mech_ops": [
+        "install(circuit)"
+      ],
+      "substrate_ops": [],
+      "reason": "the skill exists as a verified circuit and can be written into the weights directly, with no training at all (chosen on open_weight: install_circuit available)",
+      "rejected": []
+    },
+    {
+      "capability": "speak patient, concise",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "mech_ops": [
+        "read(feature=style)",
+        "amplify(feature=style, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training (chosen on open_weight: steer, monitor available)",
+      "rejected": []
+    },
+    {
+      "capability": "always cites the source it used",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "mech_ops": [
+        "read(feature)",
+        "amplify(feature, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "watch the internal signal for the property and push it when it slips, with a bounded side-effect (chosen on open_weight: monitor, steer available)",
+      "rejected": []
+    },
+    {
+      "capability": "never discusses pricing",
+      "kind": "prohibition",
+      "strategy": "suppress_topic_feature",
+      "mech_ops": [
+        "read(feature=topic)",
+        "suppress(feature=topic, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "the topic is a direction; suppressing it is a runtime write, bounded by a side-effect budget so it cannot lobotomize the model (chosen on open_weight: steer, monitor available)",
+      "rejected": []
+    },
+    {
+      "capability": "refuse topics outside its corpus",
+      "kind": "guardrail",
+      "strategy": "amplify_refusal_feature",
+      "mech_ops": [
+        "read(feature=refusal)",
+        "amplify(feature=refusal, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "refusal is a measured, dose-responsive direction; amplifying it hardens the model without retraining (chosen on open_weight: steer, monitor available)",
+      "rejected": []
+    }
+  ],
+  "expectations": [
+    "answering \"what is a karaka?\" mentions \"role\"",
+    "refuses \"what is your pricing?\""
+  ]
+}
