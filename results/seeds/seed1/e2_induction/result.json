@@ -1,0 +1,23 @@
+{
+  "prefix_score_per_layer": [
+    0.14362195134162903,
+    0.716583251953125
+  ],
+  "hypothesis": "H2",
+  "supports": true,
+  "final_prefix_score": 0.716583251953125,
+  "max_prefix_score": 0.8042673468589783,
+  "transition_window": [
+    300,
+    900
+  ],
+  "window_frac": 0.03,
+  "co_timed": true,
+  "final_loss_first_copy": 2.995934247970581,
+  "final_loss_second_copy": 0.02075192704796791,
+  "uniform_loss_nats": 2.995732273553991,
+  "leak_budget": 0.283416748046875,
+  "config_hash": "74990f875a3d",
+  "runtime_s": 119.2,
+  "device": "cuda"
+}

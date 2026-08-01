@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 from .config import ExperimentConfig
+from .seeding import set_determinism
 
 
 def git_sha() -> str:
@@ -20,6 +21,7 @@ def git_sha() -> str:
 
 def main(path: str) -> dict:
     cfg = ExperimentConfig.load(path)
+    set_determinism(cfg.seed)
     mod = importlib.import_module(f"miabstraction.experiments.{cfg.name}")
     result = mod.run(cfg)
     result["git_sha"] = git_sha()

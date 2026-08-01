@@ -9,16 +9,18 @@ from miabstraction.experiments.e3_sae_control import run
 from miabstraction.config import ExperimentConfig
 
 
-def test_e3_config_loads():
+def test_e3_config_loads(tmp_path):
     """Test that E3 config loads successfully."""
     cfg = ExperimentConfig.load("configs/e3_sae_control.yaml")
+    cfg.out_dir = str(tmp_path)
     assert cfg.name == "e3_sae_control"
     assert cfg.hypothesis == "H3"
 
 
-def test_e3_run_returns_dict():
+def test_e3_run_returns_dict(tmp_path):
     """Test that E3 run returns proper result dict."""
     cfg = ExperimentConfig.load("configs/e3_sae_control.yaml")
+    cfg.out_dir = str(tmp_path)
     # Use minimal config for fast test
     cfg.data["n_seq"] = 100
     cfg.data["seq_len"] = 16

@@ -20,7 +20,10 @@ before anyone looks inside, which is why it is the most principled candidate in 
 
 **Circuits are real and form discontinuously (H2, posterior 0.86).** The prefix-matching
 score rises from ~0 to 0.61 inside 15.5% of training, co-timed with the in-context loss
-collapsing from 3.00 to 0.08 nats — a phase transition, not a ramp. It sits in layer 2 only
+collapsing from 3.00 to 0.08 nats — a phase transition, not a ramp. Seed 0's final score
+(0.607) clears the 0.6 bar by only 1.2%, so it was replicated: seeds 1 and 2 both support
+H2 at 0.7167 ± 0.0002, comfortably clear. The verdict is robust; the *headline seed* was
+threshold-adjacent. It sits in layer 2 only
 (0.607 vs 0.073 in layer 1), the two-layer previous-token → induction composition the
 literature describes. The route here is itself the finding: our first design ([x; x] at a
 fixed offset) produced *perfect* in-context copying with **zero** induction attention,
@@ -40,19 +43,32 @@ reported at coarse granularity.
 
 ### The layer that leaks
 
-**SAE features are the weak joint, but not for the expected reason (H3 refuted at 0.16,
-H4 supported at 0.82).** On known concepts, the raw-activation logistic probe beat the
-SAE-feature probe on both tasks (0.90 vs 0.84 belief-region; 0.686 vs 0.629 entropy) — H4
-supported, consistent with Kantamneni et al. and with the "discover unknown, don't act on
-known" division. But H3 was **refuted**: SAE reconstruction metrics *did* cleanly separate
-trained from randomly-initialized models (FVU 0.041 vs 0.015, 39σ over 3 seeds). Heap
-et al.'s non-separation did not replicate here. The honest reading is that this is a
-scale/domain disanalogy rather than a rebuttal: on a 3-symbol synthetic process a random
-network's activations are low-dimensional and trivially reconstructable, so *lower* FVU on
-the random model reflects an easier reconstruction target, not better features. That the
-separation runs in the opposite direction from "trained models are more structured" is
-itself the warning — the metric is measuring reconstructability of the activation
-distribution, not the presence of learned features.
+**SAE features are the weak joint, and H4 is the thinnest verdict here (H3 refuted at
+0.16, H4 supported at 0.82).** On the belief-region concept the raw-activation probe and
+the SAE probe are a dead heat (0.9076 vs 0.9071). On the harder entropy concept the **SAE
+probe wins by 4.0 points** (0.720 vs 0.679). H4 survives only because the preregistered
+falsification bar is "SAE beats raw by >5 pts *consistently*", and a 4-point win on one of
+two concepts does not clear it. Read plainly: raw activations match SAEs where the concept
+is easy and lose slightly where it is hard, so the honest claim is *parity, not raw
+superiority* — weaker than Kantamneni et al.'s result, and a caution against treating a
+surviving hypothesis as a won argument.
+
+This verdict moved twice before settling, which is itself worth recording. The first
+implementation used a 1-point rule instead of the registered 5-point rule, and the run was
+non-deterministic — the same config produced SAE accuracies of 0.786, 0.843, and 0.857 on
+different runs. Fixing determinism (pinning the math attention backend; the
+memory-efficient kernel's backward pass is non-deterministic) and restoring the
+preregistered criterion produced the numbers above, which now reproduce bit-for-bit. The
+earlier reported figures were artifacts of that drift, not of the data.
+
+H3 was **refuted**: SAE reconstruction metrics *did* cleanly separate trained from
+randomly-initialized models (FVU 0.0524 vs 0.0052, 22.5σ across 5 SAE seeds). Heap et al.'s
+non-separation did not replicate here. The honest reading is a domain disanalogy rather
+than a rebuttal: on a 3-symbol synthetic process an untrained network's activations are
+low-dimensional and trivially reconstructable, so the random model gets the *lower* FVU —
+an easier reconstruction target, not better features. That the separation runs opposite to
+"trained models are more structured" is the warning itself: the metric is scoring
+reconstructability of the activation distribution, not the presence of learned features.
 
 ### The synthesis
 
@@ -64,7 +80,7 @@ the concept is already named. That ordering — weights and geometry over activa
 features — is the same conclusion `docs/research1.md` reached from the literature, now with
 measured leak budgets attached rather than asserted.
 
-Two methodological findings generalize beyond these five toys, and both are about controls:
+Three methodological findings generalize beyond these five toys:
 
 1. **Every positive result here was one control away from being wrong.** H1 looked
    supported at R² 0.90 until the window baseline showed a *random* network scoring 0.887.
@@ -75,6 +91,14 @@ Two methodological findings generalize beyond these five toys, and both are abou
    H2 leaks 39% of attention mass off the induction target while still solving the task
    perfectly. A layer can be useful and leaky at once; what makes it engineering rather than
    storytelling is that the leak is measured.
+3. **Non-determinism silently manufactures findings.** Before the attention backend was
+   pinned, E4's headline number varied by 7 points across identical runs — enough to flip
+   a verdict, and enough that any of the three values could have been reported in good
+   faith. GPU non-determinism is not a rounding concern in interpretability work; it is
+   large compared to the effects being claimed. Equally: the support rule in code must be
+   the rule that was preregistered. E4's implementation had silently drifted to a stricter
+   bar than SPEC.md's, which is how a hypothesis gets "confirmed" against a target nobody
+   registered.
 
 ### Limits of this evidence
 

@@ -6,16 +6,18 @@ from miabstraction.experiments.e4_probe_baseline import run
 from miabstraction.config import ExperimentConfig
 
 
-def test_e4_config_loads():
+def test_e4_config_loads(tmp_path):
     """Test that E4 config loads successfully."""
     cfg = ExperimentConfig.load("configs/e4_probe_baseline.yaml")
+    cfg.out_dir = str(tmp_path)
     assert cfg.name == "e4_probe_baseline"
     assert cfg.hypothesis == "H4"
 
 
-def test_e4_run_returns_dict():
+def test_e4_run_returns_dict(tmp_path):
     """Test that E4 run returns proper result dict."""
     cfg = ExperimentConfig.load("configs/e4_probe_baseline.yaml")
+    cfg.out_dir = str(tmp_path)
     # Use minimal config for fast test
     cfg.data["n_seq"] = 100
     cfg.data["seq_len"] = 16

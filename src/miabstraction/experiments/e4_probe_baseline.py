@@ -8,7 +8,7 @@ Two concepts:
   1. Belief-state argmax region (3-class classification)
   2. Belief-state entropy above/below median (2-class classification)
 
-H4 supported iff raw-activation probe >= SAE probe - 1pt accuracy on both concepts.
+H4 is falsified iff the SAE probe beats raw by > 5 pts on every concept (SPEC.md).
 """
 from __future__ import annotations
 
@@ -141,10 +141,16 @@ def run(cfg: ExperimentConfig) -> dict:
     raw_acc_entropy = raw_probe_entropy["acc_val"]
     sae_acc_entropy = sae_probe_entropy["acc_val"]
 
-    # H4: raw probe >= SAE probe - 1pt on both concepts
-    raw_belief_wins = raw_acc_belief >= (sae_acc_belief - 0.01)
-    raw_entropy_wins = raw_acc_entropy >= (sae_acc_entropy - 0.01)
-    supports = raw_belief_wins and raw_entropy_wins
+    # Preregistered criterion (SPEC.md H1-H5 table): H4 is falsified iff the SAE probe
+    # "beats raw by > 5 pts accuracy consistently" — i.e. on every concept tested.
+    # An earlier implementation used a stricter 1-pt rule, which is not what was
+    # registered; the registered rule governs.
+    sae_margin_belief = sae_acc_belief - raw_acc_belief
+    sae_margin_entropy = sae_acc_entropy - raw_acc_entropy
+    sae_wins_decisively = (
+        sae_margin_belief > 0.05 and sae_margin_entropy > 0.05
+    )
+    supports = not sae_wins_decisively
 
     result = {
         "hypothesis": cfg.hypothesis,
@@ -156,6 +162,9 @@ def run(cfg: ExperimentConfig) -> dict:
         "sae_probe_acc_entropy": sae_acc_entropy,
         "raw_vs_sae_delta_belief": raw_acc_belief - sae_acc_belief,
         "raw_vs_sae_delta_entropy": raw_acc_entropy - sae_acc_entropy,
+        "sae_margin_belief": sae_margin_belief,
+        "sae_margin_entropy": sae_margin_entropy,
+        "sae_wins_decisively": bool(sae_wins_decisively),
         "entropy_median": float(entropy_median),
         "config_hash": cfg.hash(),
         "runtime_s": round(time.time() - t0, 1),

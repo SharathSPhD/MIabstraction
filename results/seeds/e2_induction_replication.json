@@ -1,0 +1,26 @@
+{
+  "hypothesis": "H2",
+  "config": "configs/e2_induction.yaml",
+  "seeds": [
+    1,
+    2
+  ],
+  "metric": "final_prefix_score",
+  "metric_mean": 0.7167104482650757,
+  "metric_std": 0.00017988274944449572,
+  "n_supporting": 2,
+  "n_seeds": 2,
+  "runs": [
+    {
+      "seed": 1,
+      "supports": true,
+      "final_prefix_score": 0.716583251953125
+    },
+    {
+      "seed": 2,
+      "supports": true,
+      "final_prefix_score": 0.7168376445770264
+    }
+  ],
+  "replicates": true
+}
