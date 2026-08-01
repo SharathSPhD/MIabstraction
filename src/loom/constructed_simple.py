@@ -70,29 +70,20 @@ def compile_induction(vocab: int, d_model: int = 256, max_len: int = 48,
 
     tokens_train = torch.from_numpy(seqs)
 
-    # Train
+    # Train using the same infrastructure as e2_induction
+    from miabstraction.models import train_lm
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device).train()
-    tokens_train = tokens_train.to(device)
 
-    opt = torch.optim.AdamW(model.parameters(), lr=polish_lr)
-
-    for step in range(polish_steps):
-        idx = torch.randint(0, tokens_train.shape[0], (64,))  # CPU index
-        batch = tokens_train[idx.to(device)]
-
-        logits = model(batch[:, :-1])  # (B, L-1, vocab)
-        # Standard next-token prediction loss
-        loss = F.cross_entropy(
-            logits.reshape(-1, logits.shape[-1]), batch[:, 1:].reshape(-1)
-        )
-
-        opt.zero_grad()
-        loss.backward()
-        opt.step()
-
-        if (step + 1) % 500 == 0:
-            print(f"  Step {step + 1}: loss = {loss.item():.4f}")
+    # Use train_lm which has proven convergence
+    train_lm(
+        model,
+        tokens_train,
+        steps=polish_steps,
+        batch_size=64,
+        lr=polish_lr,
+        device=device,
+        log_every=500
+    )
 
     model.eval()
     return model
