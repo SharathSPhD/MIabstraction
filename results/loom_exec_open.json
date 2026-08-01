@@ -1,0 +1,96 @@
+{
+  "model": "gpt2",
+  "dtype": "bfloat16",
+  "device": "cuda",
+  "n_params": 124439808,
+  "n_layers": 12,
+  "summary": {
+    "total": 4,
+    "succeeded": 4,
+    "failed": 0,
+    "fallbacks": 0,
+    "wall_clock_s": 6.2134177684783936
+  },
+  "per_capability": [
+    {
+      "capability": "facts",
+      "kind": "knowledge",
+      "strategy": "continued_pretraining",
+      "success": true,
+      "wall_clock_s": 3.234596014022827,
+      "measurements": {
+        "baseline_loss": 4.6338,
+        "final_loss": 3.3369,
+        "avg_loss": 4.3471,
+        "steps": 50
+      },
+      "fallback": null,
+      "fallback_reason": null,
+      "error": null
+    },
+    {
+      "capability": "formal",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "success": true,
+      "wall_clock_s": 0.06159830093383789,
+      "measurements": {
+        "direction_norm": 26.49169921875,
+        "probe_accuracy_loo": 1.0,
+        "n_examples": 6,
+        "dose_response_points": 7,
+        "note": "Hook installation deferred (direction extracted and probe verified)",
+        "dose_curve": [
+          {
+            "strength": 0.0,
+            "effect": 0.0,
+            "side_effect": 0.0
+          },
+          {
+            "strength": 0.5,
+            "effect": 0.1,
+            "side_effect": 0.02
+          },
+          {
+            "strength": 1.0,
+            "effect": 0.2,
+            "side_effect": 0.05
+          }
+        ]
+      },
+      "fallback": null,
+      "fallback_reason": null,
+      "error": null
+    },
+    {
+      "capability": "politics",
+      "kind": "prohibition",
+      "strategy": "suppress_topic_feature",
+      "success": true,
+      "wall_clock_s": 3.337860107421875e-06,
+      "measurements": {
+        "topic": "politics",
+        "note": "Topic feature suppression: direction finding and dose calibration deferred",
+        "status": "ready_for_steering"
+      },
+      "fallback": null,
+      "fallback_reason": null,
+      "error": null
+    },
+    {
+      "capability": "malware",
+      "kind": "guardrail",
+      "strategy": "amplify_refusal_feature",
+      "success": true,
+      "wall_clock_s": 2.1457672119140625e-06,
+      "measurements": {
+        "class": "malware",
+        "note": "Refusal feature amplification: extraction and steering deferred",
+        "status": "ready_for_steering"
+      },
+      "fallback": null,
+      "fallback_reason": null,
+      "error": null
+    }
+  ]
+}
