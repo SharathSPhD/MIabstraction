@@ -1,0 +1,42 @@
+{
+  "spec_name": "loom_runtime_demo",
+  "passed": false,
+  "gates": [
+    {
+      "target": "induction_skill",
+      "metric": "prefix_score",
+      "op": ">",
+      "threshold": 0.0,
+      "measured": 0.5,
+      "passed": true,
+      "diagnosis": ""
+    },
+    {
+      "target": "suppress_token_2",
+      "metric": "suppression_ratio",
+      "op": ">",
+      "threshold": 0.0,
+      "measured": 0.0,
+      "passed": false,
+      "diagnosis": "The suppress(suppress_token_2) control is too weak: the model still emits the token 0.0% of the time (need 0.0%+). Try increasing strength or the number of calibration examples."
+    },
+    {
+      "target": "suppress_token_2",
+      "metric": "side_effect",
+      "op": "<",
+      "threshold": 1.0,
+      "measured": -0.0015254020690917969,
+      "passed": true,
+      "diagnosis": ""
+    },
+    {
+      "target": "belief_state_monitor",
+      "metric": "probe_r2",
+      "op": ">",
+      "threshold": 0.0,
+      "measured": -0.017889269949377562,
+      "passed": false,
+      "diagnosis": "Monitor belief_state_monitor probe R\u00b2 is -1.8% (need 0.0%+). The residual stream is not encoding the monitored state well enough."
+    }
+  ]
+}

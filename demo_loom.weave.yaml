@@ -1,0 +1,28 @@
+name: loom_runtime_demo
+
+model:
+  size: small
+
+skills:
+  - name: induction_skill
+    kind: induction
+
+controls:
+  - name: suppress_token_2
+    kind: suppress
+    token: 2
+    strength: 1.0
+
+monitors:
+  - name: belief_state_monitor
+    kind: probe
+    concept: belief_state
+
+gates:
+  induction_skill:
+    prefix_score: ">0.0"
+  suppress_token_2:
+    suppression_ratio: ">0.0"
+    side_effect: "<1.0"
+  belief_state_monitor:
+    probe_r2: ">0.0"

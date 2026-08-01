@@ -1,0 +1,67 @@
+{
+  "spec_name": "loom_mess3_demo",
+  "passed": false,
+  "gates": [
+    {
+      "target": "mess3_dynamics",
+      "metric": "prefix_score",
+      "op": ">",
+      "threshold": 0.1,
+      "measured": 0.4,
+      "passed": true,
+      "diagnosis": ""
+    },
+    {
+      "target": "suppress_token_1",
+      "metric": "suppression_ratio",
+      "op": ">",
+      "threshold": 0.3,
+      "measured": 0.021130263805389404,
+      "passed": false,
+      "diagnosis": "The suppress(suppress_token_1) control is too weak: the model still emits the token 2.1% of the time (need 30.0%+). Try increasing strength or the number of calibration examples."
+    },
+    {
+      "target": "suppress_token_1",
+      "metric": "side_effect",
+      "op": "<",
+      "threshold": 0.2,
+      "measured": -0.00024127960205078125,
+      "passed": true,
+      "diagnosis": ""
+    },
+    {
+      "target": "belief_state_monitor",
+      "metric": "probe_r2",
+      "op": ">",
+      "threshold": -0.5,
+      "measured": -0.00797303604873408,
+      "passed": true,
+      "diagnosis": ""
+    }
+  ],
+  "demo_info": {
+    "model": {
+      "d_model": 64,
+      "n_layers": 4,
+      "n_heads": 4,
+      "max_len": 128
+    },
+    "data": {
+      "mess3_symbols": 3,
+      "train_sequences": 500,
+      "calib_sequences": 100,
+      "test_sequences": 50,
+      "seq_len": 64
+    },
+    "training": {
+      "initial_loss": 5.686944007873535,
+      "final_loss": 1.0967477560043335,
+      "steps": 200
+    },
+    "control": {
+      "name": "suppress_token_1",
+      "target_token": 1,
+      "mechanism": "steering"
+    }
+  }
+}
