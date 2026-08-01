@@ -1,0 +1,13 @@
+name: curriculum_demo
+model: {size: small}
+
+skills:
+  - name: copy_patterns
+    kind: induction
+
+gates:
+  copy_patterns:
+    prefix_score: ">0.12"
+    icl_loss: "<3.0"
+
+seed: 42
