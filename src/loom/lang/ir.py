@@ -225,7 +225,11 @@ class IRGenerator:
         if ident.name in self.symbol_to_node:
             return self.symbol_to_node[ident.name]
         # Handle built-in constants
-        if ident.name in ["dpo", "ppo", "orpo", "slerp", "ties", "linear", "adamw", "cosine"]:
+        if ident.name in ["dpo", "ppo", "orpo", "slerp", "ties", "linear", "adamw",
+                          "cosine",
+                          # calibration modes: a dose given as a symbol means "solve for
+                          # it", which is the point of a calibrated control
+                          "ec50", "max_safe", "threshold"]:
             nid = self._genid()
             node = IRNode(
                 id=nid,
@@ -252,7 +256,29 @@ class IRGenerator:
         self.graph.add_node(node)
         return nid
 
+    @staticmethod
+    def _member_path(expr) -> str | None:
+        """Flatten a dotted expression to a path, or None if it is not one."""
+        parts = []
+        cur = expr
+        while isinstance(cur, ast.Member):
+            parts.append(cur.name if hasattr(cur, "name") else cur.member)
+            cur = cur.object
+        if isinstance(cur, ast.Ident):
+            parts.append(cur.name)
+            return ".".join(reversed(parts))
+        return None
+
     def _lower_member(self, member: ast.Member) -> str:
+        # A standard-library reference (std.circuits.induction) is one symbol, not a
+        # chain of attribute lookups on a variable called `std`.
+        path = self._member_path(member)
+        if path and path.startswith("std."):
+            nid = self._genid()
+            self.graph.add_node(IRNode(id=nid, op="stdlib.ref",
+                                       args={"path": path}, typ="unit"))
+            return nid
+
         """Lower member access (e.g., corpus.heldout)."""
         obj_id = self._lower_expr(member.object)
 
@@ -302,7 +328,6 @@ class IRGenerator:
                 if isinstance(val, ast.Literal):
                     args[key] = val.value
                 else:
-                    # More complex block values would need more lowering
                     args[key] = self._lower_expr(val)
 
         # Infer output type

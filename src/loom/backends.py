@@ -84,6 +84,9 @@ class ScratchBackend:
     name = "scratch"
 
     def realize(self, spec: dict) -> ModelHandle:
+        kind = spec.get("kind", "decoder")
+        if kind == "nemotron_h":
+            return self._realize_nemotron(spec)
         from miabstraction.models import TinyTransformer
         d = int(spec.get("width", 384))
         layers = int(spec.get("layers", 6))
@@ -97,6 +100,24 @@ class ScratchBackend:
             n_params=sum(p.numel() for p in mod.parameters()),
             n_layers=layers, width=d, vocab=vocab,
             meta={"spec": spec})
+
+    def _realize_nemotron(self, spec: dict) -> ModelHandle:
+        """The hybrid recipe: mostly state-space mixers, attention every N blocks."""
+        from .arch.nemotron_h import NemotronH
+        mod = NemotronH(
+            vocab=int(spec.get("vocab", 16000)),
+            d_model=int(spec.get("width", 256)),
+            n_layers=int(spec.get("layers", 8)),
+            n_heads=int(spec.get("heads", 4)),
+            attention_every=int(spec.get("attention_every", 4)),
+            max_len=int(spec.get("ctx", 512)),
+        )
+        return ModelHandle(
+            module=mod, name=spec.get("name", "nemotron-h"), backend=self.name,
+            n_params=sum(p.numel() for p in mod.parameters()),
+            n_layers=int(spec.get("layers", 8)), width=int(spec.get("width", 256)),
+            vocab=int(spec.get("vocab", 16000)),
+            meta={"spec": spec, "pattern": mod.pattern(), "family": "nemotron_h"})
 
     def blocks(self, m: ModelHandle) -> list[nn.Module]:
         return list(m.module.blocks)

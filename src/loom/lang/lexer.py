@@ -21,6 +21,9 @@ class TokenType(Enum):
     MODEL = auto()
     EVALSET = auto()
     UNIT = auto()
+    FEATURE = auto()
+    CIRCUIT = auto()
+    MONITOR = auto()
     ASSERT = auto()
     EXPORT = auto()
     IMPORT = auto()
@@ -55,6 +58,9 @@ KEYWORDS = {
     "corpus": TokenType.CORPUS,
     "tokenizer": TokenType.TOKENIZER,
     "model": TokenType.MODEL,
+    "feature": TokenType.FEATURE,
+    "circuit": TokenType.CIRCUIT,
+    "monitor": TokenType.MONITOR,
     "evalset": TokenType.EVALSET,
     "unit": TokenType.UNIT,
     "assert": TokenType.ASSERT,

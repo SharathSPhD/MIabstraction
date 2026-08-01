@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from . import ast
 from .types import (
+    FEATURE_TYPE, CIRCUIT_TYPE, MONITOR_TYPE,
     Type,
     SimpleType,
     CorpusType,
@@ -255,6 +256,40 @@ class TypeChecker:
         elif path_str == "data.prefs":
             return CORPUS_PREF_TYPE
 
+        # ---- mechanistic-interpretability primitives: the language's own verbs
+        elif path_str == "concept":
+            # concept(contrast=corpus) -> feature. A feature is defined by what
+            # distinguishes it, so a contrast set is required.
+            return FEATURE_TYPE
+        elif path_str == "data.pairs":
+            return CORPUS_TYPE
+        elif path_str.startswith("std.features."):
+            return FEATURE_TYPE
+        elif path_str.startswith("std.circuits."):
+            return CIRCUIT_TYPE
+        elif path_str in ("construct", "learn_circuit"):
+            return CIRCUIT_TYPE
+        elif path_str == "read":
+            # read(model, feature) -> monitor
+            return MONITOR_TYPE
+        elif path_str in ("amplify", "suppress"):
+            # amplify(model, feature) -> model. A steering control without a bounded
+            # side-effect is the failure mode the red-team found, so the block must
+            # carry one.
+            if call.block is not None:
+                keys = set(call.block.items.keys())
+                if keys and not any("side_effect" in k for k in keys):
+                    raise TypeError(
+                        f"{path_str}(...) has no side-effect bound. A control that is "
+                        "not bounded can pass its effect gate by damaging the model; "
+                        "add side_effect_max = <value> to the block.", call.pos)
+            return MODEL_TYPE
+        elif path_str == "install":
+            # install(model, circuit) -> model
+            return MODEL_TYPE
+        elif path_str in ("probe_acc", "steer_effect", "circuit_gate"):
+            return NUMBER_TYPE
+
         elif path_str == "tokenizer.bpe":
             return TOKENIZER_TYPE
 
@@ -387,6 +422,12 @@ class TypeChecker:
             return EVALSET_TYPE
         elif keyword == "unit":
             return UNIT_TYPE
+        elif keyword == "feature":
+            return FEATURE_TYPE
+        elif keyword == "circuit":
+            return CIRCUIT_TYPE
+        elif keyword == "monitor":
+            return MONITOR_TYPE
         else:
             raise ValueError(f"Unknown type keyword: {keyword}")
 

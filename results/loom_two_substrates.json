@@ -1,0 +1,208 @@
+{
+  "source": "examples/hardened.loom",
+  "claim": "the same program, compiled to two different transformer substrates",
+  "ir_nodes": 25,
+  "substrates": {
+    "A_from_scratch": {
+      "target": "nemotron_h(w=128,l=8,attn_every=4)",
+      "backend": "scratch",
+      "substrate": {
+        "params": 2589312,
+        "layers": 8,
+        "width": 128,
+        "vocab": 31,
+        "family": "nemotron_h",
+        "pattern": "MMMAMMMA"
+      },
+      "ops": [
+        {
+          "op": "read",
+          "ok": true,
+          "metrics": {
+            "probe_acc": 0.9167,
+            "layer": -2,
+            "n": 24
+          },
+          "diagnosis": ""
+        },
+        {
+          "op": "amplify",
+          "ok": false,
+          "metrics": {
+            "dose_curve": [
+              {
+                "strength": 0.2843,
+                "effect": -0.0035,
+                "side_effect": 0.0045
+              },
+              {
+                "strength": 0.5687,
+                "effect": -0.0073,
+                "side_effect": 0.0094
+              },
+              {
+                "strength": 1.1373,
+                "effect": -0.0159,
+                "side_effect": 0.0201
+              },
+              {
+                "strength": 2.2746,
+                "effect": -0.0374,
+                "side_effect": 0.0459
+              },
+              {
+                "strength": 4.5492,
+                "effect": -0.0974,
+                "side_effect": 0.1154
+              }
+            ],
+            "ec50": null,
+            "max_effect": -0.0035,
+            "chosen": null,
+            "side_effect_budget": 0.15
+          },
+          "diagnosis": "No steering strength produced an effect while keeping the side-effect under 0.15. The feature is present but not usable as a control on this substrate at this layer."
+        },
+        {
+          "op": "install",
+          "ok": true,
+          "metrics": {
+            "circuit": "induction",
+            "envelope": {
+              "vocab_max": 31,
+              "len_max": 63,
+              "distribution": "token-diverse sequences with genuine repeats"
+            },
+            "gates": {
+              "prefix_score": ">0.5",
+              "icl_argmax_acc": ">0.9"
+            }
+          },
+          "diagnosis": ""
+        }
+      ],
+      "gates": [
+        {
+          "gate": "probe_acc > 0.7",
+          "measured": 0.9167,
+          "passed": true
+        },
+        {
+          "gate": "steer_effect > 0.0",
+          "measured": -0.0035,
+          "passed": false
+        },
+        {
+          "gate": "circuit_gate(induction)",
+          "measured": true,
+          "passed": true,
+          "note": ""
+        }
+      ],
+      "passed": false,
+      "wall_clock_s": 11.0
+    },
+    "B_open_weight": {
+      "target": "meta-llama/Llama-3.2-1B",
+      "backend": "hf",
+      "substrate": {
+        "params": 1235814400,
+        "layers": 16,
+        "width": 2048,
+        "vocab": 128256,
+        "family": "load",
+        "pattern": null
+      },
+      "ops": [
+        {
+          "op": "read",
+          "ok": true,
+          "metrics": {
+            "probe_acc": 1.0,
+            "layer": -6,
+            "n": 8
+          },
+          "diagnosis": ""
+        },
+        {
+          "op": "amplify",
+          "ok": true,
+          "metrics": {
+            "dose_curve": [
+              {
+                "strength": 0.268,
+                "effect": 0.0247,
+                "side_effect": 0.0089
+              },
+              {
+                "strength": 0.536,
+                "effect": 0.0402,
+                "side_effect": 0.0154
+              },
+              {
+                "strength": 1.0719,
+                "effect": 0.0658,
+                "side_effect": 0.0514
+              },
+              {
+                "strength": 2.1438,
+                "effect": 0.0734,
+                "side_effect": 0.1913
+              },
+              {
+                "strength": 4.2876,
+                "effect": -0.1185,
+                "side_effect": 0.8617
+              }
+            ],
+            "ec50": 0.536,
+            "max_effect": 0.0734,
+            "chosen": {
+              "strength": 0.268,
+              "effect": 0.0247,
+              "side_effect": 0.0089
+            },
+            "side_effect_budget": 0.15
+          },
+          "diagnosis": ""
+        },
+        {
+          "op": "install",
+          "ok": false,
+          "metrics": {
+            "circuit": "induction",
+            "envelope": {
+              "vocab_max": 31,
+              "len_max": 63,
+              "distribution": "token-diverse sequences with genuine repeats"
+            }
+          },
+          "diagnosis": "Circuit not installed: host vocabulary 128,256 exceeds the 31 this circuit was verified for. The circuit is verified, but not for this substrate \u2014 re-verify it at this scale before linking, or compile a circuit for this target."
+        }
+      ],
+      "gates": [
+        {
+          "gate": "probe_acc > 0.7",
+          "measured": 1.0,
+          "passed": true
+        },
+        {
+          "gate": "steer_effect > 0.0",
+          "measured": 0.0734,
+          "passed": true
+        },
+        {
+          "gate": "circuit_gate(induction)",
+          "measured": false,
+          "passed": false,
+          "note": "Circuit not installed: host vocabulary 128,256 exceeds the 31 this circuit was verified for. The circuit is verified, but not for this substrate \u2014 re-verify it at this scale before linking, or compile a circuit for this target."
+        }
+      ],
+      "passed": false,
+      "wall_clock_s": 15.7
+    }
+  },
+  "identical_source": true,
+  "wall_clock_s": 28.6,
+  "gpu": "NVIDIA GB10"
+}

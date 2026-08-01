@@ -75,6 +75,9 @@ class NumberType(Type):
 
 # Singleton instances for common types
 TARGET_TYPE = SimpleType("target")
+FEATURE_TYPE = SimpleType("feature")
+CIRCUIT_TYPE = SimpleType("circuit")
+MONITOR_TYPE = SimpleType("monitor")
 CORPUS_TYPE = CorpusType(kind=None)
 CORPUS_CHAT_TYPE = CorpusType(kind="chat")
 CORPUS_PREF_TYPE = CorpusType(kind="pref")

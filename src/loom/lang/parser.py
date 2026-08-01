@@ -89,6 +89,7 @@ class Parser:
             TokenType.MODEL,
             TokenType.EVALSET,
             TokenType.UNIT,
+                      TokenType.FEATURE, TokenType.CIRCUIT, TokenType.MONITOR,
         ):
             typ_tok = self.advance()
             typ = typ_tok.value
@@ -142,6 +143,7 @@ class Parser:
                 TokenType.MODEL,
                 TokenType.EVALSET,
                 TokenType.UNIT,
+                      TokenType.FEATURE, TokenType.CIRCUIT, TokenType.MONITOR,
             ):
                 name_tok = self.advance()
                 name = name_tok.value

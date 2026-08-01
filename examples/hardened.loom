@@ -1,0 +1,26 @@
+// hardened.loom — one program, compiled to whichever substrate you point it at.
+//
+// The target below is a default. `loom build --target ...` overrides it, the way
+// `gcc -march=` builds one source for a different instruction set. Everything after
+// it is written against features and circuits, never against a particular
+// transformer, so the program does not know what it is running on.
+
+target base = decoder(layers=8, width=128, heads=4, ctx=64, vocab=512);
+
+feature style = concept(contrast = data.pairs("style"));   // read off the substrate
+
+monitor style_probe = read(base, style);                   // can we read it?
+assert probe_acc(style_probe) > 0.7;
+
+model m = amplify(base, style) {                           // can we write it?
+    dose            = ec50;                                // calibrated, not guessed
+    side_effect_max = 0.15;                                // and bounded
+};
+assert steer_effect(m, style) > 0.0;
+
+model m2 = install(m, std.circuits.induction) {            // can we link a circuit?
+    budget = 0.05;
+};
+assert circuit_gate(m2, "induction") > 0.5;
+
+export m2 to "hardened";
