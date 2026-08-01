@@ -267,6 +267,12 @@ def merge_or_detach(
                 for param in lora_mod.base.parameters():
                     param.requires_grad = True
 
+                # Structurally what it was before, on this path too. Leaving the live
+                # wrapper here made the delta count twice and handed its adapters to
+                # every later training stage — escalation trials inherited each
+                # other's state through exactly this hole.
+                _restore(model, handle.layer_name, lora_mod.base)
+
             elif isinstance(lora_mod, LoRAConv1D):
                 # Merge for Conv1D: W_final = W_base + scale * (adapter_a @ adapter_b)
                 # adapter_a: (in_features, rank)

@@ -131,3 +131,37 @@ def test_the_escalation_adapter_travels_with_the_artifact(tmp_path):
     assert _base_fingerprint(reloaded) != _base_fingerprint(built)
     assert _reapply_adapter(reloaded, tmp_path / "adapter_guardrail.pt", "gpt2")
     assert _base_fingerprint(reloaded) == _base_fingerprint(built)
+
+
+def test_merge_restores_the_linear_path_too(tmp_path):
+    """The 'merged model is what it was before' fix only covered Conv1D; on the
+    nn.Linear path merge added the delta and left the live wrapper installed — so the
+    delta counted twice and every later training stage picked up the stale adapters,
+    which is how escalation trials inherited each other's state."""
+    import torch as _t
+    from loom.app.lora import LoRALinear, attach_lora, merge_or_detach
+
+    class Tiny(_t.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.q_proj = _t.nn.Linear(8, 8, bias=False)
+
+        def forward(self, x):
+            return self.q_proj(x)
+
+    _t.manual_seed(0)
+    m = Tiny()
+    handles = attach_lora(m, rank=2, alpha=4.0)
+    assert handles, "attach found nothing to adapt"
+    with _t.no_grad():
+        _t.nn.init.normal_(handles[0].adapter_b, std=0.1)
+        x = _t.randn(3, 8)
+        wrapped_out = m(x)
+    merge_or_detach(m, handles, mode="merge")
+    assert not any(isinstance(mod, LoRALinear) for mod in m.modules()), (
+        "merge left a live LoRA wrapper installed on the Linear path")
+    with _t.no_grad():
+        merged_out = m(x)
+    assert _t.allclose(merged_out, wrapped_out, atol=1e-5), (
+        "the merged weights do not reproduce the adapted model — the delta was "
+        "either lost or counted twice")

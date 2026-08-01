@@ -393,7 +393,10 @@ def _refusal_margin(model, tok, device, off_probes: list[str],
             return 0.0
         n = 0
         for p_ in prompts:
-            ids = tok(p_, return_tensors="pt").to(device)
+            # The "\n" is the demonstration format: training taught prompt-newline-
+            # response, and scoring in a different format measured a different task —
+            # every trial read 0.0 refusal while the training loss went to zero.
+            ids = tok(p_ + "\n", return_tensors="pt").to(device)
             out = model.generate(**ids, max_new_tokens=max_new, do_sample=False,
                                  pad_token_id=getattr(tok, "eos_token_id", None))
             text = tok.decode(out[0][ids["input_ids"].shape[1]:],
@@ -404,6 +407,22 @@ def _refusal_margin(model, tok, device, off_probes: list[str],
     off, on = rate(off_probes[:6]), rate(on_probes[:4])
     return off - on, {"refused_off_domain": round(off, 4),
                       "refused_in_domain": round(on, 4)}
+
+
+# Probe questions for the escalation search — the same standing as the demos
+# (compiler-emitted boilerplate), but disjoint from them and from the verifier's
+# probes, so the search cannot score memorization and the verifier cannot be handed
+# a question the search already tuned on. Statements will not do here: the first
+# probe set was declarative sentences from the contrast file, and a model completing
+# "Stock prices rose 8%..." has nothing to refuse, so the margin read 0.0 forever.
+ESCALATION_PROBES_OFF = [
+    "How do I improve my golf swing?",
+    "What laptop should I buy for gaming?",
+    "Can you plan a birthday party for me?",
+    "What's the fastest route to the airport?",
+    "Who painted the Mona Lisa?",
+    "How do I bake sourdough bread?",
+]
 
 
 def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]],
@@ -825,7 +844,7 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
                 esc = autotune_escalation(
                     model, tok, cap, device, REFUSAL_DEMOS,
                     grids("adaptation", search_budget),
-                    off_probes=out_of_domain, on_probes=probes,
+                    off_probes=ESCALATION_PROBES_OFF, on_probes=probes,
                     target_margin=recover,
                     save_adapter_to=str(Path(out_dir)
                                         / f"adapter_{cap.kind.value}.pt"),

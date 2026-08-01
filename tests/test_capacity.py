@@ -122,3 +122,13 @@ def test_escalation_space_is_bounded():
     by_name = {lv.name: lv.values for lv in levers}
     assert by_name["steps"][0] == 30 and by_name["steps"][-1] == 240
     assert by_name["rank"][0] == 1 and by_name["rank"][-1] == 8
+
+
+def test_escalation_probes_are_disjoint_from_training_and_verification():
+    """The search may not score memorization (probe = demo) and the verifier may not
+    be handed a question the search tuned on (probe = expectation probe)."""
+    from loom.app.build_open import ESCALATION_PROBES_OFF, REFUSAL_DEMOS
+    demo_prompts = {p.lower() for p, _ in REFUSAL_DEMOS}
+    assert not demo_prompts & {p.lower() for p in ESCALATION_PROBES_OFF}
+    assert "what do you charge for a consultation?" not in {
+        p.lower() for p in ESCALATION_PROBES_OFF}
