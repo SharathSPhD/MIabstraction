@@ -13,6 +13,7 @@ left undone.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import time
@@ -430,7 +431,8 @@ def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]]
                         off_probes: list[str], on_probes: list[str],
                         target_margin: float,
                         save_adapter_to: str | None = None,
-                        base_name: str = "") -> dict:
+                        base_name: str = "",
+                        controls: list[dict] | None = None) -> dict:
     """Search the adaptation levers when steering cannot reach the target.
 
     The escalation used to be one fixed configuration — 30 steps at 5e-6 — a guess
@@ -451,11 +453,27 @@ def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]]
                 "reason": "no out-of-domain probes to score refusal on — the app "
                           "declared no corpus to derive them from"}
 
-    def objective() -> float:
-        return _refusal_margin(model, tok, device, off_probes, on_probes)[0]
+    # Measured with the app's calibrated controls installed, because that is the
+    # model a user meets: an adapter judged on the bare model can look sufficient and
+    # then compose badly with the writes the artifact reinstalls at load.
+    def measure() -> tuple[float, dict]:
+        with contextlib.ExitStack() as st:
+            for c in (controls or []):
+                st.enter_context(_Hook(model, c["layer"],
+                                       np.array(c["direction"]), c["strength"]))
+            return _refusal_margin(model, tok, device, off_probes, on_probes)
 
-    base_margin, base_rates = _refusal_margin(model, tok, device,
-                                              off_probes, on_probes)
+    def objective() -> float:
+        return measure()[0]
+
+    base_margin, base_rates = measure()
+    if base_margin >= target_margin:
+        return {"ran": False, "target_met": True,
+                "margin_before": round(base_margin, 4), "rates_before": base_rates,
+                "margin_after": round(base_margin, 4), "rates_after": base_rates,
+                "target_margin": round(target_margin, 4),
+                "reason": "the composed model already meets the declared margin; "
+                          "training would spend budget on a behaviour it has"}
 
     def run(cfg: dict):
         out = finetune_behaviour(model, tok, cap, device, examples,
@@ -484,9 +502,8 @@ def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]]
             steps=int(res.best.config["steps"]), lr=float(res.best.config["lr"]),
             rank=int(res.best.config["rank"]), keep=True,
             save_adapter_to=save_adapter_to, base_name=base_name)
-    final_margin, final_rates = ((_refusal_margin(model, tok, device,
-                                                  off_probes, on_probes))
-                                 if applied.get("ran") else (base_margin, base_rates))
+    final_margin, final_rates = (measure() if applied.get("ran")
+                                 else (base_margin, base_rates))
     torch.cuda.empty_cache()
     return {"ran": bool(applied.get("ran")), "autotune": res.to_dict(),
             "applied": applied or None,
@@ -769,6 +786,7 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         out_of_domain.extend(out)
 
     records, controls = [], []
+    pending_guardrails: list[tuple] = []
     for ch in choices:
         cap = ch.capability
         entry = {"capability": cap.describe(), "kind": cap.kind.value,
@@ -831,32 +849,13 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             if control:
                 controls.append(control)
 
-            # Escalate: either steering was searched and measured to fall short, or the
-            # ledger already showed the demand is beyond what a write delivers. Either
-            # way the decision cites a measurement, and the training that follows is a
-            # search whose cost scales with the gap.
-            if not tuning.get("target_met") and nxt is not None:
-                # The nats gap chose the strategy; the training itself is judged the
-                # way the acceptance test will judge it — refusal on generations,
-                # with in-domain probes as the guard against refusing everything.
-                # `insistence` keeps its meaning: how much of the behaviour must
-                # actually be achieved, here as a net refusal margin.
-                esc = autotune_escalation(
-                    model, tok, cap, device, REFUSAL_DEMOS,
-                    grids("adaptation", search_budget),
-                    off_probes=ESCALATION_PROBES_OFF, on_probes=probes,
-                    target_margin=recover,
-                    save_adapter_to=str(Path(out_dir)
-                                        / f"adapter_{cap.kind.value}.pt"),
-                    base_name=target)
-                if esc.get("ran"):
-                    taught.extend(r for _, r in REFUSAL_DEMOS)
-                entry["escalation"] = {
-                    "from": ch.strategy.name, "to": nxt.name,
-                    "because": why_skip or ("the searched dose space did not reach "
-                                            "the target"),
-                    "result": esc}
-                entry["realized"] = entry["realized"] or esc.get("ran", False)
+            # Escalation by training is decided AFTER the controls are jointly
+            # calibrated, on the composed model's measured behaviour — see below. A
+            # nats target met here does not gate it: on Qwen the steering search met
+            # 40% of a 0.067-nat gap and the model still answered pricing questions,
+            # because likelihood moved and behaviour did not.
+            if nxt is not None:
+                pending_guardrails.append((cap, entry, why_skip))
         records.append(entry)
 
     # Controls are tuned one at a time, but they are installed together and they
@@ -895,6 +894,30 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
                                if chosen_scale else
                                "no joint scale kept the composition inside budget; all "
                                "controls dropped rather than ship a damaged model")})
+
+    # The behavioural gate. Everything above moved likelihoods; a guardrail is a claim
+    # about what the composed model DOES, so it is measured on the composed model —
+    # controls installed at their calibrated strengths — and trained in only if the
+    # measured margin falls short of what the program insisted on. The nats gap chose
+    # between steering and training; behaviour decides whether the capability is done.
+    recover = recovery_target(search_budget)
+    for cap, entry, why_skip in pending_guardrails:
+        esc = autotune_escalation(
+            model, tok, cap, device, REFUSAL_DEMOS,
+            grids("adaptation", search_budget),
+            off_probes=ESCALATION_PROBES_OFF, on_probes=probes,
+            target_margin=recover,
+            save_adapter_to=str(Path(out_dir) / f"adapter_{cap.kind.value}.pt"),
+            base_name=target, controls=controls)
+        if esc.get("ran"):
+            taught.extend(r for _, r in REFUSAL_DEMOS)
+        entry["behavioural_gate"] = {
+            "because": why_skip or ("a steering target in nats is not refusal "
+                                    "behaviour; the composed model is measured and "
+                                    "trained only if it falls short"),
+            "result": esc}
+        entry["realized"] = (entry["realized"] or esc.get("target_met", False)
+                             or esc.get("ran", False))
 
     art = Path(out_dir)
     art.mkdir(parents=True, exist_ok=True)
