@@ -7,7 +7,10 @@ __pycache__/
 .DS_Store
 results/**/*.pt
 checkpoints/
+private/
 
-# research inputs and spec stay local-only
-docs/
+# research inputs and spec stay local-only (except integration documentation)
+docs/*.md
+!docs/INTEGRATION.md
+!docs/LOOM_STDLIB.md
 SPEC.md
