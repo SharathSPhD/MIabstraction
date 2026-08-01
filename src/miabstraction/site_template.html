@@ -299,6 +299,40 @@ into software: no capability ships unverified.</p>
 @@LOOM_DYNAMIC@@
 </div>
 
+<h3>The compiler writes machine code</h3>
+<p>The constructed backend is the sharpest claim made real: <code>kind: induction</code>
+compiled <em>directly into weights</em> — zero training, 0.4 seconds. The design is a
+three-layer program written into attention matrices: two "shift" heads copy the previous
+and the second-previous token into reserved subspaces of the residual stream, and a third
+head matches the current two-token context against those buffers — trigram matching, which
+collapses spurious matches from ~1 per sequence to ~0.06. Two tricks make hand-written
+weights survive a real transformer: <strong>zero-mean Hadamard block codes</strong> (so
+LayerNorm degenerates into a harmless rescale) and near-hard attention via large score
+scales. The hand-built circuit scores <strong>0.979</strong> on the mechanism metric where
+the <em>trained</em> model scored 0.607 — with 13,152 nonzero weights (2.8% of the model).
+The honest trade-off: blunt calibration (0.98 nats vs the trained 0.08) — a perfect
+mechanism is not yet a calibrated probability model.</p>
+
+<h3>The red team, and what it changed</h3>
+<p>An adversarial agent attacked the paradigm and found five holes — including a critical
+one: the monitor library silently fitted probes to <em>random labels</em> when ground truth
+wasn't supplied, reporting confident R² while reading nothing. Exactly the
+confident-wrong-answer failure this project catalogued in phase one, reproduced inside our
+own compiler. Three findings are fixed and locked by regression tests (vacuous gates like
+<code>&gt;-1</code> refused at parse time; ground truth now mandatory for monitors;
+controls that would silently do nothing refuse to install). Two are documented as v0
+limits: suppression is token-level not concept-level, and gates certify the distribution
+they were measured on.</p>
+
+<h3>When the compiler says no</h3>
+<p>The curriculum backend's multi-skill build passed induction (0.909 — MLP compensation
+chosen by the planner <em>improved</em> on the attention-only 0.779) and state-tracking
+(0.911), but parity stalled at chance through three escalating attempts — consistent with
+the literature: parity is the canonical SGD-hard function for transformers. So it became a
+<em>language rule</em>: <code>concept: token_parity</code> now refuses at compile time
+with a plain-English diagnosis and a suggestion of a compilable alternative. A type error
+beats a failed 23-minute build. The refusal artifacts are kept as first-class results.</p>
+
 <h3>How each validated layer became a language feature</h3>
 <div class="tablewrap">
 <table>
