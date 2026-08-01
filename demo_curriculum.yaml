@@ -7,9 +7,9 @@ skills:
   - name: track_state
     kind: state_tracking
     world: mess3
-  - name: parity_detect
+  - name: majority_detect
     kind: classify
-    concept: token_parity
+    concept: majority
 
 gates:
   copy_patterns:
@@ -17,7 +17,7 @@ gates:
     icl_loss: "<0.5"
   track_state:
     probe_r2: ">0.9"
-  parity_detect:
+  majority_detect:
     accuracy: ">0.95"
 
 seed: 42

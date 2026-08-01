@@ -9,7 +9,9 @@ import torch
 
 from loom.curriculum import (
     ClassifyCompiler,
+    CompileRefusal,
     InductionCompiler,
+    MajorityCompiler,
     StateTrackingCompiler,
     allocate_vocabulary,
     check_gates,
@@ -113,23 +115,28 @@ class TestStateTrackingCompiler:
 
 
 class TestClassifyCompiler:
-    """Test the classify (parity) compiler."""
+    """Test the classify compiler — plan-time refusal for known-hard concepts."""
 
-    def test_generator_produces_valid_sequences(self):
-        """Verify generator produces parity sequences with correct answers."""
-        compiler = ClassifyCompiler(seq_len=16, vocab_offset=256)
+    def test_parity_raises_compile_refusal(self):
+        """Verify token_parity raises CompileRefusal at plan time."""
+        with pytest.raises(CompileRefusal, match="token_parity"):
+            ClassifyCompiler(seq_len=16, vocab_offset=256, concept="token_parity")
+
+    def test_majority_generator_produces_valid_sequences(self):
+        """Verify majority compiler generator produces valid sequences."""
+        compiler = MajorityCompiler(seq_len=16, vocab_offset=256)
         rng = np.random.default_rng(42)
         seqs, answers = compiler.generator(n_seq=10, rng=rng)
 
-        assert seqs.shape == (10, 19)  # seq_len + marker + target + parity
+        assert seqs.shape == (10, 19)  # seq_len + marker + token + answer
         assert answers.shape == (10,)
         assert np.all((answers == 0) | (answers == 1))
 
-    def test_evaluator_baseline(self):
-        """Verify evaluator returns accuracy metric."""
+    def test_majority_evaluator_baseline(self):
+        """Verify majority compiler evaluator returns accuracy metric."""
         from miabstraction.models import TinyTransformer
 
-        compiler = ClassifyCompiler(seq_len=16, vocab_offset=256)
+        compiler = MajorityCompiler(seq_len=16, vocab_offset=256)
         rng = np.random.default_rng(42)
         seqs, answers = compiler.generator(n_seq=8, rng=rng)
         tokens = torch.from_numpy(seqs)
@@ -151,7 +158,7 @@ class TestVocabularyPlan:
         skills = [
             Skill(name="skill1", kind="induction"),
             Skill(name="skill2", kind="state_tracking", world="mess3"),
-            Skill(name="skill3", kind="classify", concept="parity"),
+            Skill(name="skill3", kind="classify", concept="majority"),
         ]
 
         plan = allocate_vocabulary(skills, base_vocab=10)
@@ -206,7 +213,7 @@ class TestCompileCurriculum:
             skills=[
                 Skill(name="ind", kind="induction"),
                 Skill(name="state", kind="state_tracking", world="mess3"),
-                Skill(name="parity", kind="classify", concept="parity"),
+                Skill(name="majority", kind="classify", concept="majority"),
             ],
             gates=[],
             seed=42,

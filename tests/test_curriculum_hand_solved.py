@@ -5,7 +5,7 @@ This ensures that each task is well-posed and metrics are achievable.
 import numpy as np
 import torch
 
-from loom.curriculum import ClassifyCompiler, InductionCompiler, StateTrackingCompiler
+from loom.curriculum import InductionCompiler, MajorityCompiler, StateTrackingCompiler
 from miabstraction.models import TinyTransformer
 
 
@@ -42,8 +42,8 @@ def test_induction_task_solvable():
 
 
 def test_classify_task_solvable():
-    """Test that classify (parity) task can be solved."""
-    compiler = ClassifyCompiler(seq_len=16, vocab_offset=256)
+    """Test that majority (attention-soluble classify) task can be solved."""
+    compiler = MajorityCompiler(seq_len=16, vocab_offset=256)
     rng = np.random.default_rng(42)
 
     # Generate dataset
@@ -64,7 +64,7 @@ def test_classify_task_solvable():
 
     # Evaluate
     metrics = compiler.evaluator(model, tokens, answers, "cpu")
-    print(f"Classify metrics: {metrics}")
+    print(f"Majority metrics: {metrics}")
     # With proper training, should achieve some accuracy
     assert metrics["accuracy"] > 0.3, f"accuracy too low: {metrics['accuracy']}"
 

@@ -2,6 +2,11 @@
 
 Based on E2-proven recipe: attention-only models, high sequence diversity,
 and honest gate metrics that are reachable with proper hyperparameters.
+
+KNOWN-HARD CONCEPTS: Plan-time refusal for canonically intractable tasks.
+- token_parity: Hahn 2020, Bhattamishra et al. 2020 show transformers
+  struggle fundamentally to learn parity even when they can express it.
+  Plan-time refusal saves 20+ GPU-minutes and offers alternative (majority).
 """
 from __future__ import annotations
 
@@ -16,6 +21,21 @@ import torch.nn.functional as F
 from miabstraction.data.mess3 import belief_states, mess3_matrices, sample_sequences
 from miabstraction.probes import regression_probe
 from miabstraction.seeding import set_determinism
+
+
+# Known-hard concepts: transformers struggle fundamentally with these tasks
+KNOWN_HARD_CONCEPTS = {
+    "token_parity": {
+        "reason": "Transformers struggle fundamentally to learn parity (Hahn 2020, Bhattamishra et al. 2020).",
+        "diagnosis": "Counting whether a token appears an even or odd number of times is a known blind spot of this model family; this program cannot be compiled with confidence.",
+        "suggestion": "Consider 'majority' (which token appears more often), which is attention-soluble and compiles reliably.",
+    }
+}
+
+
+class CompileRefusal(Exception):
+    """Plan-time refusal: a concept cannot be reliably compiled."""
+    pass
 
 
 @dataclass
@@ -205,22 +225,31 @@ class StateTrackingCompiler:
 
 
 class ClassifyCompiler:
-    """Compile classify (token parity) task."""
+    """Compile classify task — concept-agnostic base class."""
 
-    needs_mlp = True  # Classification REQUIRES nonlinearity (MLPs)
+    needs_mlp = True  # Classification typically REQUIRES nonlinearity (MLPs)
 
-    def __init__(
-        self,
-        seq_len: int = 32,
-        vocab_offset: int = 256,
-        task_token: int = -1,
-    ):
+    def __init__(self, concept: str = "token_parity", **kwargs):
+        self.concept = concept
+        if concept in KNOWN_HARD_CONCEPTS:
+            raise CompileRefusal(
+                f"Concept '{concept}' cannot be compiled: "
+                f"{KNOWN_HARD_CONCEPTS[concept]['diagnosis']} "
+                f"Suggestion: {KNOWN_HARD_CONCEPTS[concept]['suggestion']}"
+            )
+
+
+class ParityCompiler(ClassifyCompiler):
+    """[DEPRECATED] Compile classify (token parity) task — known-hard."""
+
+    def __init__(self, seq_len: int = 32, vocab_offset: int = 256, task_token: int = -1):
         self.seq_len = seq_len
         self.vocab_offset = vocab_offset
         self.task_token = task_token
         self.PARITY_MARKER = vocab_offset
         self.PARITY_0 = vocab_offset + 1
         self.PARITY_1 = vocab_offset + 2
+        super().__init__(concept="token_parity")  # Raises CompileRefusal
 
     def generator(
         self, n_seq: int, rng: np.random.Generator
@@ -255,6 +284,100 @@ class ClassifyCompiler:
             answers = answers.cpu().numpy()
 
         expected_tokens = self.PARITY_0 + (answers % 2)
+        accuracy = np.mean(preds == expected_tokens)
+
+        return {"accuracy": float(accuracy)}
+
+
+class MajorityCompiler(ClassifyCompiler):
+    """Compile classify (token majority) task — attention-soluble.
+
+    Task: Two token types (A, B) appear in sequence among distractors.
+    Query: which appeared more often? (guaranteed no ties).
+    Solvable via attention: count which token has higher attention mass.
+    """
+
+    needs_mlp = False  # Majority is attention-soluble, doesn't need nonlinearity
+
+    def __init__(
+        self,
+        seq_len: int = 32,
+        vocab_offset: int = 256,
+        task_token: int = -1,
+    ):
+        self.seq_len = seq_len
+        self.vocab_offset = vocab_offset
+        self.task_token = task_token
+        self.MAJORITY_MARKER = vocab_offset
+        self.TOKEN_A = vocab_offset + 1
+        self.TOKEN_B = vocab_offset + 2
+        self.ANSWER_A = vocab_offset + 3
+        self.ANSWER_B = vocab_offset + 4
+
+    def generator(
+        self, n_seq: int, rng: np.random.Generator
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate majority sequences: which of token A or B appears more often?"""
+        seqs = np.zeros((n_seq, self.seq_len + 3), dtype=np.int64)
+        answers = np.zeros(n_seq, dtype=np.int64)
+
+        for i in range(n_seq):
+            # Fill sequence with distractors (0-31)
+            seqs[i, :self.seq_len] = rng.integers(0, 32, size=self.seq_len, dtype=np.int64)
+
+            # Randomly place token A and B in the sequence
+            # Count how many times each appears (no ties)
+            a_count = rng.integers(self.seq_len // 4, self.seq_len // 2)
+            b_count = rng.integers(self.seq_len // 4, self.seq_len // 2)
+            # Ensure no tie
+            while a_count == b_count:
+                b_count = rng.integers(self.seq_len // 4, self.seq_len // 2)
+
+            # Place A and B in sequence
+            a_positions = rng.choice(self.seq_len, size=a_count, replace=False)
+            b_positions = rng.choice(
+                [i for i in range(self.seq_len) if i not in a_positions],
+                size=b_count,
+                replace=False
+            )
+            seqs[i, a_positions] = self.TOKEN_A
+            seqs[i, b_positions] = self.TOKEN_B
+
+            # Determine which token is more frequent
+            if a_count > b_count:
+                answers[i] = 0  # A is majority
+                answer_token = self.ANSWER_A
+            else:
+                answers[i] = 1  # B is majority
+                answer_token = self.ANSWER_B
+
+            # Add marker and answer
+            seqs[i, self.seq_len] = self.MAJORITY_MARKER
+            seqs[i, self.seq_len + 1] = rng.choice([self.TOKEN_A, self.TOKEN_B])  # Which to count
+            seqs[i, self.seq_len + 2] = answer_token
+
+        return seqs, answers
+
+    def evaluator(
+        self, model, tokens: torch.Tensor, answers, device: str
+    ) -> dict[str, float]:
+        """Evaluate accuracy on majority prediction."""
+        model.eval()
+        with torch.no_grad():
+            logits = model(tokens[:, :-1])
+
+        answer_pos = self.seq_len + 1
+        answer_logits = logits[:, answer_pos, :]
+        preds = answer_logits.argmax(dim=-1).cpu().numpy()
+
+        if isinstance(answers, torch.Tensor):
+            answers = answers.cpu().numpy()
+
+        expected_tokens = np.where(
+            answers == 0,
+            self.ANSWER_A,
+            self.ANSWER_B,
+        )
         accuracy = np.mean(preds == expected_tokens)
 
         return {"accuracy": float(accuracy)}
@@ -349,10 +472,32 @@ def compile_curriculum(
             }
 
         elif skill.kind == "classify":
-            compiler = ClassifyCompiler(
-                seq_len=32, vocab_offset=300,
-                task_token=vocab_plan.task_tokens[skill.name],
-            )
+            # PLANNER: Check for known-hard concepts at compile time
+            concept = skill.concept or "token_parity"
+            if concept in KNOWN_HARD_CONCEPTS:
+                hard_info = KNOWN_HARD_CONCEPTS[concept]
+                raise CompileRefusal(
+                    f"\n=== PLAN-TIME REFUSAL ===\n"
+                    f"Cannot compile skill '{skill.name}' with concept '{concept}'.\n\n"
+                    f"Reason: {hard_info['reason']}\n"
+                    f"Diagnosis: {hard_info['diagnosis']}\n"
+                    f"Suggestion: {hard_info['suggestion']}\n"
+                    f"Reference: Hahn 2020, Bhattamishra et al. 2020\n"
+                )
+
+            # Use appropriate compiler based on concept
+            if concept == "majority":
+                compiler = MajorityCompiler(
+                    seq_len=32, vocab_offset=300,
+                    task_token=vocab_plan.task_tokens[skill.name],
+                )
+            else:
+                # Default to majority for unknown concepts (safer than parity)
+                compiler = MajorityCompiler(
+                    seq_len=32, vocab_offset=300,
+                    task_token=vocab_plan.task_tokens[skill.name],
+                )
+
             datasets[skill.name] = {
                 "kind": "classify",
                 "compiler": compiler,
