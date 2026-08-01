@@ -105,6 +105,40 @@ class LoomModel:
         return "\n".join(lines)
 
 
+def _reapply_adapter(module, path: Path, base: str) -> bool:
+    """Fold the build's adapter back into the freshly downloaded weights.
+
+    Without this, loading an artifact gives you the base model the build started from,
+    while the report next to it says the knowledge capability passed. The measurement
+    would be true of a model that existed only inside the build process, which is the
+    same failure as reporting a number nobody can reproduce.
+    """
+    if not path.exists():
+        return False
+    # weights_only: an artifact is a thing you hand to someone else, so loading one must
+    # not be able to run code. The blob is tensors, floats and strings by construction.
+    blob = torch.load(path, map_location="cpu", weights_only=True)
+    if blob.get("base_model") and blob["base_model"] != base:
+        raise ValueError(
+            f"{path} holds an adapter trained on {blob['base_model']}, but this artifact "
+            f"names {base}. Refusing to graft one model's adaptation onto another.")
+    by_name = dict(module.named_modules())
+    for layer_name, t in blob.get("adapters", {}).items():
+        mod = by_name.get(layer_name)
+        if mod is None or not hasattr(mod, "weight"):
+            raise ValueError(
+                f"{path} adapts {layer_name!r}, which {base} does not have. The artifact "
+                "and the base model have drifted apart.")
+        a, b, scale = t["a"], t["b"], t["scale"]
+        w = mod.weight
+        delta = scale * torch.matmul(b.T, a.T)          # (out, in), as nn.Linear stores
+        if delta.shape != w.shape:                      # transformers Conv1D is (in, out)
+            delta = scale * torch.matmul(a, b)
+        with torch.no_grad():
+            w.data.add_(delta.to(device=w.device, dtype=w.dtype))
+    return True
+
+
 def load_artifact(path: str | Path, device: str = "cuda") -> LoomModel:
     """Load a built application. Everything needed is in the directory."""
     root = Path(path)
@@ -126,13 +160,16 @@ def load_artifact(path: str | Path, device: str = "cuda") -> LoomModel:
 
     base = report.get("base_model")
     if base:
-        # An open-weight build may carry only its controls: the base is downloaded and
-        # the compiled behaviour is reattached on load. That is the artifact being small
-        # because most of it is already on your disk, not because it is incomplete.
+        # An open-weight build carries its adapter and its controls, not a copy of the
+        # weights: the base is downloaded and the compiled behaviour is put back on load.
+        # That is the artifact being small because most of it is already on your disk,
+        # not because it is incomplete.
         from transformers import AutoModelForCausalLM, AutoTokenizer
         module = AutoModelForCausalLM.from_pretrained(base, dtype=torch.bfloat16)
         module.to(device).eval()
         tok = AutoTokenizer.from_pretrained(base)
+        applied = _reapply_adapter(module, root / "adapter.pt", base)
+        report = {**report, "adapter_reapplied": applied}
         return LoomModel(module, tok, controls, plan, report, device)
 
     raise FileNotFoundError(

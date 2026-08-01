@@ -75,7 +75,9 @@ def _variety(model, tok, device, prompts, n: int = 20) -> float:
 
 def autotune_pretraining(model, tok, pattern: str, device: str,
                          lrs: list[float], step_counts: list[int],
-                         variety_budget: float = 0.05) -> dict:
+                         variety_budget: float = 0.05,
+                         save_adapter_to: str | None = None,
+                         base_name: str = "") -> dict:
     """Search learning rate x steps for continued pretraining.
 
     Training is the least deterministic lever in the compiler: the same corpus at the
@@ -113,15 +115,18 @@ def autotune_pretraining(model, tok, pattern: str, device: str,
                          Lever("steps", step_counts, "how long to train")],
                  run=run, target=0.05, maximize=True, stop_early=False)
 
+    applied: dict = {}
     if res.best is not None:
         # Re-apply the winner and keep it this time, so the model that ships is the one
         # that was chosen rather than whatever the last trial happened to leave behind.
-        continued_pretraining(model, tok, pattern, device,
-                              res.best.config["steps"], res.best.config["lr"],
-                              merge=True)
+        applied = continued_pretraining(
+            model, tok, pattern, device,
+            res.best.config["steps"], res.best.config["lr"],
+            merge=True, save_adapter_to=save_adapter_to, base_name=base_name)
     torch.cuda.empty_cache()
     return {"autotune": res.to_dict(),
             "applied": res.best.config if res.best else None,
+            "adapter_saved_to": (applied or {}).get("adapter_saved_to"),
             "ran": res.best is not None,
             "reason": "" if res.best else
                       "no learning rate and step count improved the corpus without "
@@ -142,7 +147,9 @@ def _base_fingerprint(model) -> str:
 
 def continued_pretraining(model, tok, pattern: str, device: str,
                           steps: int, lr: float, seq: int = 256,
-                          rank: int = 8, merge: bool = True) -> dict:
+                          rank: int = 8, merge: bool = True,
+                          save_adapter_to: str | None = None,
+                          base_name: str = "") -> dict:
     """Train the downloaded model further on the app's material. Real training.
 
     The material goes into an adapter and the downloaded weights stay exactly as they
@@ -198,9 +205,27 @@ def continued_pretraining(model, tok, pattern: str, device: str,
     model.eval()
     intact = _base_fingerprint(model) == fingerprint
     info = get_adapter_info(model)
+
+    # Save the adapter before folding it in. Without this the build merges the
+    # adaptation into weights that live only in this process: the report says the
+    # knowledge capability passed, and `loom run` then loads the untouched base model,
+    # so the artifact does not contain the thing that was verified. The adapter is about
+    # 1% of the parameters, which is why it can travel with the artifact when 2.5GB of
+    # merged weights could not.
+    saved = None
+    if merge and save_adapter_to:
+        p = Path(save_adapter_to)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"rank": rank, "alpha": 2.0 * rank, "base_model": base_name,
+                    "adapters": {h.layer_name: {"a": h.adapter_a.detach().cpu(),
+                                                "b": h.adapter_b.detach().cpu(),
+                                                "scale": h.scale}
+                                 for h in handles}}, p)
+        saved = str(p)
+
     merge_or_detach(model, handles, mode="merge" if merge else "detach")
     return {"ran": True, **meta, "steps": steps, "lr": lr, "rank": rank,
-            "kept": merge,
+            "kept": merge, "adapter_saved_to": saved,
             "adapter_ratio": round(info["adapter_ratio"], 6),
             "base_weights_unchanged": intact,
             "heldout_loss_before": round(before, 4),
@@ -503,7 +528,9 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             entry["execution"] = autotune_pretraining(
                 model, tok, cap.args.get("corpus", "*.txt"), device,
                 lrs=pretrain_grid["lr"], step_counts=pretrain_grid["steps"],
-                variety_budget=budget)
+                variety_budget=budget,
+                save_adapter_to=str(Path(out_dir) / "adapter.pt"),
+                base_name=target)
             entry["realized"] = entry["execution"].get("ran", False)
             best = (entry["execution"].get("autotune") or {}).get("best") or {}
             knowledge_measurements = dict(best.get("metrics") or {})
