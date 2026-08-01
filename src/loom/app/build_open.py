@@ -28,7 +28,8 @@ from .lora import (attach_lora, get_adapter_info, lora_parameters,
 from .lowering import CATALOGUE, Choice, plan
 from .parse import parse_program
 from .search import Lever, search
-from .steering_ops import CONTRASTS, NEUTRAL, _Hook, _loss, _mean_residual, calibrate
+from .steering_ops import (CONTRASTS, NEUTRAL, _Hook, _loss, _mean_residual,
+                           calibrate, corpus_probes, derive_contrast)
 from .substrate import profile_for
 from .verify_app import check
 
@@ -325,15 +326,27 @@ def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
 # ------------------------------------------------------------------- autotune
 
 def autotune_control(model, tok, cap, device, budget: float,
-                     layers: list[int], multipliers: list[float]) -> tuple[dict, dict]:
+                     layers: list[int], multipliers: list[float],
+                     probes: list[str] | None = None) -> tuple[dict, dict]:
     """Search layer x strength for one behavioural capability.
 
     The objective is the capability's own effect; the constraint is that the control may
     not cost more than `budget` of the model's output variety. Which layer a behaviour is
     steerable at is not knowable from the program — it is found here.
+
+    The direction comes from what this capability SAYS, measured on the app's own
+    material. The alternative — a table of contrast sentences keyed by capability kind —
+    installed a direction measured from sentences about pricing under the name "never
+    gives a diagnosis", and gave two different capabilities of the same kind numerically
+    identical trials, because they were the same measurement wearing two labels.
     """
-    key, sign = KIND_TO_CONTRAST[cap.kind]
-    pos, neg = CONTRASTS[key]["positive"], CONTRASTS[key]["negative"]
+    pos, neg, how = derive_contrast(cap, tok, probes or [])
+    sign = 1.0                       # positive is already "doing what the clause asks"
+    if not pos:
+        key, sign = KIND_TO_CONTRAST[cap.kind]
+        pos, neg = CONTRASTS[key]["positive"], CONTRASTS[key]["negative"]
+        how = (f"generic {key} contrast: the capability's own text could not be turned "
+               "into an instruction, so this direction is not specific to it")
 
     P_cache: dict[int, tuple] = {}
 
@@ -379,7 +392,9 @@ def autotune_control(model, tok, cap, device, budget: float,
         run=run, target=0.05, maximize=True, stop_early=False)
 
     if res.best is None:
-        return {}, res.to_dict()
+        failed = res.to_dict()
+        failed["direction_from"] = how
+        return {}, failed
 
     layer = res.best.config["layer"]
     P, N = P_cache[layer]
@@ -388,7 +403,9 @@ def autotune_control(model, tok, cap, device, budget: float,
                "strength": res.best.metrics["strength"],
                "direction": [round(float(x), 6) for x in direction],
                "side_effect": res.best.metrics["degeneration"]}
-    return control, res.to_dict()
+    tuning = res.to_dict()
+    tuning["direction_from"] = how
+    return control, tuning
 
 
 # ---------------------------------------------------------------------- build
@@ -424,6 +441,14 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     # capability apart from a recital of the text that was meant to teach it.
     taught: list[str] = []
     knowledge_measurements: dict = {}
+
+    # Questions from the app's own corpus. Directions are measured on the traffic this
+    # app will actually see, not on sentences about the weather — a control tuned on
+    # off-distribution text is tuned for a distribution the app never meets.
+    probes: list[str] = []
+    for c in app.of(Kind.KNOWLEDGE):
+        probes.extend(corpus_probes(c.args.get("corpus", ""), n=8))
+
     records, controls = [], []
     for ch in choices:
         cap = ch.capability
@@ -447,7 +472,7 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
 
         elif cap.kind in KIND_TO_CONTRAST:
             control, tuning = autotune_control(model, tok, cap, device, budget,
-                                               layers, multipliers)
+                                               layers, multipliers, probes=probes)
             entry["autotune"] = tuning
             entry["realized"] = bool(control)
             if control:

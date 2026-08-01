@@ -291,3 +291,86 @@ NEUTRAL = ["The weather today is mild with a light breeze from the east.",
            "Water boils at one hundred degrees Celsius at sea level.",
            "She opened the book and began reading the first chapter.",
            "The train arrived at the station a few minutes early."]
+
+
+# ---------------------------------------------------------------- derived contrasts
+#
+# The table above is keyed by capability KIND, which means every prohibition in every
+# program got the same direction — one measured from sentences about pricing. An app
+# that says `never gives a diagnosis` had a "don't discuss pricing" direction installed
+# under that name, and two different capabilities of the same kind produced numerically
+# identical trials because they were, in fact, the same measurement.
+#
+# What a capability says has to be what gets measured. On an instruction-following model
+# there is a direct way to get that: ask the same questions twice, once with the
+# capability stated as an instruction and once without, and take the difference. The
+# direction is then the model's own representation of doing what this capability asks,
+# derived from the capability's words rather than from a fixed table.
+
+_INSTRUCTION = {
+    "style": "Answer in a way that is {trait}.",
+    "invariant": "Whatever else you do, always {trait}.",
+    "prohibition": "Under no circumstances {trait}. Decline instead.",
+    "guardrail": "You only answer questions inside your subject. {trait}.",
+    "skill": "Answer by {trait}.",
+}
+
+
+def _as_chat(tok, instruction: str, question: str) -> str:
+    """Format a probe the way this model was trained to receive one, when it has a chat
+    template. Steering an instruct model through raw completion text measures a
+    direction it never uses."""
+    msgs = ([{"role": "system", "content": instruction}] if instruction else []) + \
+           [{"role": "user", "content": question}]
+    tpl = getattr(tok, "apply_chat_template", None)
+    if tpl is None or getattr(tok, "chat_template", None) is None:
+        return (f"{instruction}\n\n{question}" if instruction else question)
+    return tpl(msgs, tokenize=False, add_generation_prompt=True)
+
+
+def derive_contrast(cap, tok, probes: list[str]) -> tuple[list[str], list[str], str]:
+    """Contrast text for one capability, in that capability's own words.
+
+    Returns (positive, negative, how). Positive is the model answering the app's own
+    questions while instructed to satisfy this capability; negative is the same questions
+    with no instruction. The difference is what following THIS capability looks like
+    inside the model, which is the thing the program actually asked for.
+    """
+    kind = getattr(cap.kind, "value", str(cap.kind))
+    trait = cap.args.get("traits") and ", ".join(cap.args["traits"]) or cap.name
+    template = _INSTRUCTION.get(kind)
+    if template is None or not probes:
+        return [], [], f"no instruction form for a {kind} capability"
+    instruction = template.format(trait=trait)
+    pos = [_as_chat(tok, instruction, q) for q in probes]
+    neg = [_as_chat(tok, "", q) for q in probes]
+    return pos, neg, f"instructed vs uninstructed on {len(probes)} of the app's own probes"
+
+
+def corpus_probes(pattern: str, n: int = 8, min_len: int = 25) -> list[str]:
+    """Questions taken from the app's own corpus, to steer on the traffic it will see.
+
+    A direction measured on 'the weather today is mild' is a direction for talking about
+    weather. Measuring on the material the app is about is the difference between a
+    control that fires in production and one that only fired in the lab.
+    """
+    from pathlib import Path
+    files = sorted(Path().glob(pattern))
+    out: list[str] = []
+    for f in files:
+        if not f.is_file():
+            continue
+        for line in f.read_text(errors="ignore").split("\n"):
+            line = line.strip()
+            if line.endswith("?") and min_len <= len(line) <= 200:
+                out.append(line)
+            if len(out) >= n * 4:
+                break
+        if len(out) >= n * 4:
+            break
+    # Spread the picks across the file rather than taking the first n, which would all
+    # come from one document and measure that document rather than the domain.
+    if len(out) <= n:
+        return out
+    step = len(out) // n
+    return [out[i * step] for i in range(n)]

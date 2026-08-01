@@ -86,13 +86,16 @@ class TestArchitectureSelection:
 class TestTokenizer:
     """Test tokenizer training."""
 
-    def test_fallback_when_corpus_missing(self):
-        """Missing corpus should return byte-level fallback."""
-        tokenizer_type, vocab_size, desc = build_tokenizer("/nonexistent/path.txt")
+    def test_a_missing_corpus_produces_no_tokenizer(self):
+        """There used to be a byte-level fallback here. A build whose corpus is absent
+        must not quietly acquire a tokenizer and carry on — the program named material
+        that is not there, and every number downstream would be about something else."""
+        tokenizer_type, vocab_size, desc, tok = build_tokenizer("/nonexistent/path.txt")
 
-        assert tokenizer_type == "byte_level"
-        assert vocab_size == 256
-        assert "fallback" in desc.lower()
+        assert tokenizer_type == "none"
+        assert vocab_size == 0
+        assert tok is None
+        assert "does not exist" in desc
 
     def test_vocab_size_is_reasonable(self):
         """Trained tokenizer should have reasonable vocab size."""
@@ -102,13 +105,12 @@ class TestTokenizer:
             corpus_path = f.name
 
         try:
-            tokenizer_type, vocab_size, desc = build_tokenizer(corpus_path, vocab_size=256)
+            tokenizer_type, vocab_size, desc, tok = build_tokenizer(
+                corpus_path, vocab_size=256)
 
-            # Should be BPE or fallback
-            assert tokenizer_type in ("bpe", "byte_level")
-            # Vocab size should be reasonable
-            assert vocab_size > 0
-            assert vocab_size <= 256
+            assert tokenizer_type == "bpe"
+            assert 0 < vocab_size <= 256
+            assert tok is not None
         finally:
             Path(corpus_path).unlink()
 
@@ -120,11 +122,12 @@ class TestTokenizer:
             corpus_path = f.name
 
         try:
-            tokenizer_type, vocab_size, desc = build_tokenizer(corpus_path)
+            tokenizer_type, vocab_size, desc, tok = build_tokenizer(corpus_path)
 
-            # Should have produced a valid tokenizer type
-            assert tokenizer_type in ("bpe", "byte_level")
+            assert tokenizer_type == "bpe"
             assert vocab_size > 0
+            # It has to actually encode the text it was trained on.
+            assert tok.encode(text).ids
         finally:
             Path(corpus_path).unlink()
 
@@ -154,31 +157,65 @@ class TestPretrainingMixture:
 
         from loom.app.exec_scratch import pretraining_mixture
 
-        val_loss, val_ppl, tokens_seen, wall_clock = pretraining_mixture(
+        val_loss, val_ppl, tokens_seen, wall_clock, prov = pretraining_mixture(
             {"test": 1.0},
             app,
             model,
             backend,
+            tokenizer=None,
             steps=10,
             batch_size=4,
             device=device,
         )
 
+        # No tokenizer and a corpus path that does not exist: this must report that it
+        # did not run rather than training on whatever it can manufacture.
+        assert prov["ran"] is False
+        assert prov["reason"]
+        assert tokens_seen == 0
+
+    def test_it_trains_on_the_real_corpus_when_there_is_one(self):
+        """The counterpart: given real text it really trains, and says where from."""
+        corpus = Path("data/domains/medical/corpus.txt")
+        if not corpus.exists():
+            pytest.skip("run scripts/fetch_real_domain_data.py for the domain corpora")
+
+        from loom.app.exec_scratch import build_tokenizer, pretraining_mixture
+        from loom.backends import ScratchBackend
+
+        _, vocab_size, _, tok = build_tokenizer(str(corpus), vocab_size=2000)
+        backend = ScratchBackend()
+        model = backend.realize({"kind": "decoder", "width": 64, "layers": 2,
+                                 "heads": 2, "vocab": vocab_size, "ctx": 128})
+        device = "cpu"
+        model.to(device)
+
+        val_loss, val_ppl, tokens_seen, wall, prov = pretraining_mixture(
+            {str(corpus): 1.0}, App(name="t"), model, backend, tokenizer=tok,
+            steps=5, batch_size=2, device=device)
+
+        assert prov["ran"] is True
+        assert prov["sources"] == [str(corpus)]
+        assert prov["heldout_sequences"] > 0
         assert tokens_seen > 0
-        assert wall_clock > 0
-        # val_loss and val_ppl may be None on small data
-        if val_loss is not None:
-            assert val_loss > 0
+        assert val_loss is not None and val_loss > 0
 
 
 class TestExecuteScratch:
     """Integration tests for the full from-scratch executor."""
 
     def test_execute_scratch_basic(self):
-        """Full build: parse app, plan, execute."""
+        """Full build: parse app, plan, execute — on the corpus the app names.
+
+        The corpus is real, because the whole point of the from-scratch substrate is
+        that the tokenizer and the weights are both built from the app's own material.
+        """
+        corpus = Path("data/domains/medical/corpus.txt")
+        if not corpus.exists():
+            pytest.skip("run scripts/fetch_real_domain_data.py for the domain corpora")
         app = App(name="tiny")
         app.capabilities.append(
-            Capability(Kind.KNOWLEDGE, "facts", {"corpus": "test"})
+            Capability(Kind.KNOWLEDGE, "facts", {"corpus": str(corpus)})
         )
         app.expectations.append(
             Expectation("answers", "what is it?", "definition")
@@ -200,8 +237,9 @@ class TestExecuteScratch:
         assert isinstance(report, ExecReport)
         assert report.backend == "scratch"
         assert report.architecture_choice
-        assert report.tokenizer_type in ("bpe", "byte_level")
+        assert report.tokenizer_type == "bpe"
         assert report.tokens_seen > 0
+        assert report.pretraining["ran"] is True
         assert report.wall_clock_s > 0
         # Substrate advantage should explain what scratch permits that open-weight doesn't
         assert "From-scratch" in report.substrate_advantage
@@ -222,22 +260,21 @@ class TestExecuteScratch:
         assert json_str
         assert "from-scratch" in json_str or "From-scratch" in json_str
 
-    def test_gates_measured(self):
-        """Report should include gate measurements."""
+    def test_an_app_with_no_corpus_reports_no_training(self):
+        """An app that declares no material has nothing to learn from. This used to
+        report tokens_seen in the millions, because the trainer manufactured its own
+        data; the only honest output is that it did not run, and why."""
         app = App(name="test")
-        choices = []
 
         target_spec = {"kind": "scratch", "size": "small"}
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        report = execute_scratch(choices, target_spec, app, device)
+        report = execute_scratch([], target_spec, app, device)
 
-        # Should have gates
-        assert isinstance(report.gates, list)
-        # At minimum, val_loss or val_ppl should be measured
-        assert any(
-            g["metric"] in ("val_loss", "val_ppl") for g in report.gates
-        )
+        assert report.pretraining.get("ran") is False
+        assert report.pretraining.get("reason")
+        assert report.tokens_seen == 0
+        assert report.val_ppl is None
 
 
 class TestMechInterpOps:
