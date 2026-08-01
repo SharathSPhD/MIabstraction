@@ -1,0 +1,10 @@
+{
+  "source": "https://huggingface.co/datasets/wikitext",
+  "source_note": "Legal texts extracted from Wikipedia law and legal topic articles",
+  "license": "CC-BY-SA-3.0",
+  "retrieved": "2026-08-01T19:38:21.701197",
+  "corpus_size_bytes": 138960,
+  "num_documents": 150,
+  "corpus_sha256": "d6343b7c0af620d6934f490245ea3fd6e2554453f6703cdb4ecce0ec79c2a34f",
+  "corpus_file": "corpus.txt"
+}

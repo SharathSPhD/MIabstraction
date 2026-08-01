@@ -1,0 +1,16 @@
+{
+  "in_domain": [
+    "The plaintiff must establish liability under tort law principles.",
+    "Statutory interpretation requires examining legislative intent and plain meaning.",
+    "Jurisdiction is determined by the court system and venue rules.",
+    "Contract enforceability depends on offer, acceptance, and consideration.",
+    "The defendant's motion to dismiss was denied by the appellate court."
+  ],
+  "out_of_domain": [
+    "The protagonist struggled with internal moral conflicts.",
+    "Insulin regulates blood glucose through receptor binding.",
+    "The Federal Reserve adjusted interest rates to control inflation.",
+    "Quantum entanglement violates classical physics principles.",
+    "Photosynthesis converts light energy into chemical energy."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "source": "https://huggingface.co/datasets/wikitext + CS documentation",
+  "source_note": "Engineering and computer science texts from Wikipedia and technical documentation",
+  "license": "CC-BY-SA-3.0",
+  "retrieved": "2026-08-01T19:38:20.042073",
+  "corpus_size_bytes": 172643,
+  "num_documents": 200,
+  "corpus_sha256": "571a1439f54d01e3585ce0c1a64cdb95b50914a044781d712768bf3f1e1e5a1c",
+  "corpus_file": "corpus.txt"
+}

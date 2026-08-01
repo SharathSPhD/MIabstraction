@@ -1,0 +1,10 @@
+{
+  "source": "https://huggingface.co/datasets/wikitext",
+  "source_note": "Wikipedia articles from WikiText-2 dataset",
+  "license": "CC-BY-SA-3.0",
+  "retrieved": "2026-08-01T19:38:19.131522",
+  "corpus_size_bytes": 239549,
+  "num_documents": 300,
+  "corpus_sha256": "9014c17cc8ae6bde70ea19bf499f5cfc5b65d677664925c7ed5c2124cad1bb92",
+  "corpus_file": "corpus.txt"
+}

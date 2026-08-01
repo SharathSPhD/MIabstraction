@@ -1,0 +1,16 @@
+{
+  "in_domain": [
+    "The fall of the Roman Empire marked the transition to the Medieval period.",
+    "The Industrial Revolution transformed agricultural societies into industrial economies.",
+    "World War II reshaped geopolitical boundaries and power dynamics globally.",
+    "Ancient civilizations developed sophisticated systems of governance and administration.",
+    "The Renaissance was characterized by renewed interest in classical learning."
+  ],
+  "out_of_domain": [
+    "Machine learning uses neural networks for pattern recognition.",
+    "The court decided that the statute was unconstitutional.",
+    "Diabetes is managed through insulin therapy and lifestyle changes.",
+    "The stock market collapsed due to speculation and poor regulations.",
+    "Photosynthesis is essential for oxygen production in ecosystems."
+  ]
+}

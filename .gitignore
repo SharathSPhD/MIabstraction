@@ -15,3 +15,6 @@ docs/*.md
 !docs/LOOM_STDLIB.md
 SPEC.md
 private/
+
+# Domain corpora: large files, regenerable from scripts
+data/domains/*/corpus.txt
