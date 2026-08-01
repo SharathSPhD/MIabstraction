@@ -1,0 +1,23 @@
+name: e2_induction
+hypothesis: H2
+seed: 0
+device: cuda
+model:
+  d_model: 64
+  n_layers: 2
+  n_heads: 4
+  max_len: 72
+  attn_only: true
+data:
+  n_seq: 200000
+  copy_len: 24
+  max_gap: 16
+  vocab: 20
+train:
+  steps: 20000
+  batch_size: 256
+  lr: 0.001
+  log_every: 100
+analysis:
+  n_probe_seq: 128
+out_dir: results
