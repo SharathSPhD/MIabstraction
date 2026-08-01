@@ -1,0 +1,93 @@
+"""What a linear write has been measured to deliver, consulted before lowering to one.
+
+The steering-capacity ledger (`results/steering_capacity.json`, derived from a build
+report by `scripts/steering_capacity.py`) is the compiler's only evidence about the
+ceiling of activation steering: demand spanned 23x across capabilities and what one
+write delivered stayed in a band of 0.004-0.018 nats. This module turns that ledger
+into two decisions:
+
+  - whether to search steering at all: a capability whose target exceeds the most a
+    write has EVER delivered here is not lowered to a control, and the refusal cites
+    the measurement rather than a constant;
+  - what the escalation search looks like when training replaces steering: a space
+    ordered so its cost grows with the gap instead of a fixed 30 steps.
+
+No number in this file is chosen by hand. When the ledger is absent the compiler has
+no prior and must measure, which is why `should_skip_steering` refuses to skip without
+one — a guess dressed as a measurement is worse than the search it would save.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from .search import Lever
+
+LEDGER = Path("results/steering_capacity.json")
+
+
+def delivery_ceiling(path: Path | str = LEDGER) -> tuple[float | None, str]:
+    """The most a searched steering control has ever delivered, in nats, with where
+    that number came from. (None, reason) when there is no measured ledger."""
+    p = Path(path)
+    if not p.exists():
+        return None, f"no measured steering-capacity ledger at {p}"
+    try:
+        rows = json.loads(p.read_text()).get("capabilities", [])
+    except (json.JSONDecodeError, OSError) as e:
+        return None, f"no measured steering-capacity ledger: {p} unreadable ({e})"
+    delivered = [r["delivered_nats"] for r in rows
+                 if isinstance(r.get("delivered_nats"), (int, float))]
+    if not delivered:
+        return None, f"no measured steering-capacity ledger: {p} has no delivery rows"
+    top = max(delivered)
+    return top, (f"{p}: max delivered {top:g} nats across "
+                 f"{len(delivered)} measured capabilities")
+
+
+def should_skip_steering(gap: float, recover: float, ceiling: float | None,
+                         provenance: str) -> tuple[bool, str]:
+    """Is this capability's target beyond what a linear write has ever delivered?
+
+    The target is `gap * recover` — the nats the program demands the control produce.
+    Skipping is only permitted on evidence: no ledger, or no measured demand, means the
+    search runs and produces the measurement itself.
+    """
+    target = gap * recover
+    if ceiling is None or gap <= 0 or target <= 0:
+        return False, ""
+    if target > ceiling:
+        return True, (f"not lowered to steering: the target of {round(target, 4):g} nats "
+                      f"({recover:g} of a {gap:g}-nat gap) exceeds the most a linear "
+                      f"write has ever delivered here ({provenance})")
+    return False, ""
+
+
+def escalation_levers(adaptation_grid: dict[str, list]) -> list[Lever]:
+    """The space the escalation search walks when training replaces steering.
+
+    Three properties, each load-bearing:
+      - `steps` ascend and vary slowest, so with stop_early every cheap configuration
+        runs before any long one — the cost of the search grows with the gap;
+      - the first and last value of every lever survive, so narrowing the count never
+        narrows the declared range;
+      - the total is bounded, because training 64 adapters to close one behaviour is
+        not a search, it is a bill.
+    """
+    def thin(vals: list, keep: int) -> list:
+        vals = sorted(vals)
+        if len(vals) <= keep:
+            return vals
+        if keep <= 2:
+            return [vals[0], vals[-1]]
+        return [vals[0], vals[len(vals) // 2], vals[-1]]
+
+    return [
+        Lever("steps", thin(adaptation_grid["steps"], 3),
+              "how long to train — walked upward, so the search pays for a large gap "
+              "and stops early on a small one"),
+        Lever("lr", thin(adaptation_grid["lr"], 2),
+              "how far each step moves the adapter"),
+        Lever("rank", thin(adaptation_grid["rank"], 2),
+              "how much capacity the adapter has"),
+    ]
