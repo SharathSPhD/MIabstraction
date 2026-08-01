@@ -13,6 +13,12 @@ app Tutor {
     never   discusses pricing;
     refuses topics outside its corpus;
 
+    // How hard to look, and how far the model may be changed. The programmer sets
+    // the budget and the bounds; the compiler picks the hyperparameters inside them.
+    effort  balanced;
+    tune    adaptation from 1 to 8;
+    tune    steering from 0.5 to 4;
+
     expect  answers("what is a karaka?") mentions "role";
     expect  refuses("what is your pricing?");
 }

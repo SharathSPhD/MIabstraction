@@ -340,7 +340,7 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     app: App = next(iter(prog.apps.values()))
     spec = {"kind": "load", "name": target}
     sub = profile_for(spec)
-    choices: list[Choice] = plan(app.capabilities, sub)
+    choices: list[Choice] = plan(app.to_realize(), sub)
     layers = layers or [-10, -8, -6, -4]
     multipliers = multipliers or [0.5, 1.0, 2.0]
 

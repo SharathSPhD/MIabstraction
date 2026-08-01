@@ -38,8 +38,8 @@ def test_the_program_mentions_no_machine_learning(app):
 
 def test_same_program_lowers_differently_per_substrate(app):
     """The compiler adapts to what a substrate permits instead of refusing."""
-    s = {c.capability.kind: c for c in plan(app.capabilities, FROM_SCRATCH)}
-    o = {c.capability.kind: c for c in plan(app.capabilities, OPEN_WEIGHT)}
+    s = {c.capability.kind: c for c in plan(app.to_realize(), FROM_SCRATCH)}
+    o = {c.capability.kind: c for c in plan(app.to_realize(), OPEN_WEIGHT)}
 
     assert s[Kind.KNOWLEDGE].strategy.name == "pretraining_mixture"
     assert o[Kind.KNOWLEDGE].strategy.name == "continued_pretraining"
@@ -49,7 +49,7 @@ def test_same_program_lowers_differently_per_substrate(app):
 def test_every_capability_is_realizable_on_both_substrates(app):
     """No refusals: a program that type-checks must build somewhere on each target."""
     for sub in (FROM_SCRATCH, OPEN_WEIGHT):
-        for ch in plan(app.capabilities, sub):
+        for ch in plan(app.to_realize(), sub):
             assert ch.ok, f"{ch.capability.describe()} unrealizable on {sub.id}"
 
 
@@ -110,3 +110,32 @@ def test_dry_build_writes_a_plan_and_no_model(tmp_path, capsys):
     p = json.loads(plans[0].read_text())
     assert p["capabilities"] and p["expectations"]
     assert not list(tmp_path.rglob("*.safetensors"))
+
+
+def test_tuning_clauses_direct_the_search_not_the_build(app):
+    """`effort` and `tune` bound how the compiler searches; they are not capabilities
+    to realize, and must not appear in the plan."""
+    from loom.app.capability import Kind
+    assert len(app.to_realize()) == 6
+    assert all(c.kind is not Kind.TUNING for c in app.to_realize())
+    assert app.of(Kind.TUNING), "the example declares tuning directives"
+
+
+def test_search_budget_is_expressed_in_the_programmers_terms(app):
+    b = app.search_budget()
+    assert b["effort"] == "balanced"
+    assert b["trials_per_lever"] == 2
+    assert b["bounds"]["adaptation"] == (1.0, 8.0)
+    assert b["bounds"]["steering"] == (0.5, 4.0)
+    # the programmer never names a learning rate or a rank
+    text = " ".join(ln.split("//")[0].lower() for ln in open(SRC).read().split("\n"))
+    assert "rank" not in text and "learning" not in text
+
+
+def test_effort_scales_how_much_is_tried(tmp_path):
+    from loom.app.parse import parse_program
+    for effort, expected in (("quick", 1), ("balanced", 2), ("thorough", 4)):
+        p = tmp_path / f"{effort}.loom"
+        p.write_text(f"app A {{\n  speaks plainly;\n  effort {effort};\n}}\n")
+        a = next(iter(parse_program(p).apps.values()))
+        assert a.search_budget()["trials_per_lever"] == expected

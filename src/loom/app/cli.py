@@ -36,7 +36,7 @@ def cmd_explain(path: str) -> int:
         sub = profile_for(build.spec)
         print(f"\n{app.name} on {_target_name(build.spec)}   [{sub.id} — {sub.family}]")
         print(f"  {sub.notes}\n")
-        for ch in plan(app.capabilities, sub):
+        for ch in plan(app.to_realize(), sub):
             head = f"  {ch.capability.describe()}"
             print(f"{head:<46} -> {ch.strategy.name if ch.ok else 'NO STRATEGY'}")
             print(f"{'':<46}    {ch.reason}")
@@ -63,7 +63,7 @@ def cmd_build(path: str, out: str | None, dry: bool) -> int:
     for build in prog.builds:
         app = prog.apps[build.app]
         sub = profile_for(build.spec)
-        choices = plan(app.capabilities, sub)
+        choices = plan(app.to_realize(), sub)
         art = root / f"{app.name}-{sub.id}"
         art.mkdir(parents=True, exist_ok=True)
         (art / "plan.json").write_text(json.dumps({

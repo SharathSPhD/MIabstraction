@@ -56,6 +56,8 @@ _REFUSES = re.compile(r"^refuses\s+(.+)$")
 _EXP_ANS = re.compile(r"^expect\s+answers\(\"([^\"]*)\"\)\s+mentions\s+\"([^\"]*)\"$")
 _EXP_REF = re.compile(r"^expect\s+refuses\(\"([^\"]*)\"\)$")
 _SCRATCH = re.compile(r"^scratch\s*\(([^)]*)\)$")
+_TUNE = re.compile(r"^tune\s+(\w+)\s+(?:from|between)\s+(.+)$")
+_EFFORT = re.compile(r"^effort\s+(quick|balanced|thorough)$")
 
 
 def _target_spec(text: str, line: int) -> dict:
@@ -124,7 +126,25 @@ def parse_program(path: str | Path) -> Program:
     return prog
 
 
+def _tune_values(text: str):
+    """Parse a declared search range: `1 to 8`, or `light, medium, heavy`."""
+    text = text.strip()
+    if " to " in text:
+        lo, hi = (t.strip() for t in text.split(" to ", 1))
+        return {"range": [float(lo), float(hi)]}
+    return {"choices": [t.strip() for t in text.split(",") if t.strip()]}
+
+
 def _clause(body: str, line: int) -> Capability | Expectation:
+    if (m := _EFFORT.match(body)):
+        # How hard the compiler should search. The programmer sets the budget, not the
+        # hyperparameters: "thorough" means try more configurations, not "use lr=3e-5".
+        return Capability(Kind.TUNING, "effort", {"effort": m.group(1)}, line)
+    if (m := _TUNE.match(body)):
+        # A bound on ONE named lever, in the programmer's terms. `tune adaptation from
+        # 1 to 8` bounds how much the model may be changed; it never names a rank or a
+        # learning rate, because those are the compiler's business.
+        return Capability(Kind.TUNING, m.group(1), _tune_values(m.group(2)), line)
     if (m := _EXP_ANS.match(body)):
         return Expectation("answers", m.group(1), m.group(2), line)
     if (m := _EXP_REF.match(body)):

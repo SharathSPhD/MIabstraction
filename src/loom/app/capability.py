@@ -18,6 +18,7 @@ class Kind(str, Enum):
     INVARIANT = "invariant"       # must always hold
     PROHIBITION = "prohibition"   # must never do
     GUARDRAIL = "guardrail"       # must refuse this class of request
+    TUNING = "tuning"             # how hard, and within what bounds, to search
 
 
 @dataclass
@@ -38,6 +39,13 @@ class Capability:
             return f"always {self.name}"
         if self.kind is Kind.PROHIBITION:
             return f"never {self.name}"
+        if self.kind is Kind.TUNING:
+            if self.name == "effort":
+                return f"search {self.args['effort']}"
+            if "range" in self.args:
+                lo, hi = self.args["range"]
+                return f"keep {self.name} between {lo:g} and {hi:g}"
+            return f"try {self.name}: {', '.join(self.args.get('choices', []))}"
         return f"refuse {self.name}"
 
 
@@ -63,3 +71,28 @@ class App:
 
     def of(self, kind: Kind) -> list[Capability]:
         return [c for c in self.capabilities if c.kind is kind]
+
+    def to_realize(self) -> list[Capability]:
+        """Capabilities the compiler must build. Tuning clauses are excluded: they
+        direct the search rather than being something to realize."""
+        return [c for c in self.capabilities if c.kind is not Kind.TUNING]
+
+    def search_budget(self) -> dict:
+        """How hard to search, and within what bounds, in the programmer's terms.
+
+        The point of putting this in the language is that the design space really is
+        broad and the person building the app has views about it — how much they are
+        willing to change the model, how long they are willing to wait — without having
+        any view about learning rates. Effort maps to how many configurations are tried;
+        a named bound maps to the range of one lever.
+        """
+        effort, bounds = "balanced", {}
+        for c in self.of(Kind.TUNING):
+            if c.name == "effort":
+                effort = c.args["effort"]
+            elif "range" in c.args:
+                bounds[c.name] = tuple(c.args["range"])
+            elif "choices" in c.args:
+                bounds[c.name] = c.args["choices"]
+        grid = {"quick": 1, "balanced": 2, "thorough": 4}[effort]
+        return {"effort": effort, "trials_per_lever": grid, "bounds": bounds}
