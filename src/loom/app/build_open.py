@@ -30,7 +30,8 @@ from .lowering import CATALOGUE, Choice, plan
 from .parse import parse_program
 from .search import Lever, search
 from .steering_ops import (CONTRASTS, NEUTRAL, _Hook, _loss, _mean_residual,
-                           calibrate, corpus_probes, derive_contrast)
+                           calibrate, contrast_sets, corpus_probes,
+                           derive_contrast, probes_for)
 from .substrate import profile_for
 from .verify_app import check
 
@@ -372,7 +373,8 @@ def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
 def autotune_control(model, tok, cap, device, budget: float,
                      layers: list[int], multipliers: list[float],
                      probes: list[str] | None = None,
-                     recover: float = 0.25) -> tuple[dict, dict]:
+                     recover: float = 0.25,
+                     out_of_domain: list[str] | None = None) -> tuple[dict, dict]:
     """Search layer x strength for one behavioural capability.
 
     The objective is the capability's own effect; the constraint is that the control may
@@ -385,7 +387,9 @@ def autotune_control(model, tok, cap, device, budget: float,
     gives a diagnosis", and gave two different capabilities of the same kind numerically
     identical trials, because they were the same measurement wearing two labels.
     """
-    pos, neg, how = derive_contrast(cap, tok, probes or [])
+    chosen, why = probes_for(cap, probes or [], out_of_domain or [])
+    pos, neg, how = derive_contrast(cap, tok, chosen)
+    how = f"{how} ({why})"
     sign = 1.0                       # positive is already "doing what the clause asks"
     if not pos:
         key, sign = KIND_TO_CONTRAST[cap.kind]
@@ -572,8 +576,15 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     # app will actually see, not on sentences about the weather — a control tuned on
     # off-distribution text is tuned for a distribution the app never meets.
     probes: list[str] = []
+    out_of_domain: list[str] = []
     for c in app.of(Kind.KNOWLEDGE):
-        probes.extend(corpus_probes(c.args.get("corpus", ""), n=8))
+        pattern = c.args.get("corpus", "")
+        probes.extend(corpus_probes(pattern, n=8))
+        # A guardrail is about what the app should decline, so it has to be measured on
+        # material outside the subject. Without this it was searched entirely on traffic
+        # it should never fire on, where the behaviour it names cannot appear.
+        _, out = contrast_sets(pattern)
+        out_of_domain.extend(out)
 
     records, controls = [], []
     for ch in choices:
@@ -601,7 +612,8 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         elif cap.kind in KIND_TO_CONTRAST:
             control, tuning = autotune_control(model, tok, cap, device, budget,
                                                layers, multipliers, probes=probes,
-                                               recover=recovery_target(search_budget))
+                                               recover=recovery_target(search_budget),
+                                               out_of_domain=out_of_domain)
             entry["autotune"] = tuning
             entry["realized"] = bool(control)
             if control:

@@ -328,6 +328,30 @@ def _as_chat(tok, instruction: str, question: str) -> str:
     return tpl(msgs, tokenize=False, add_generation_prompt=True)
 
 
+def probes_for(cap, in_domain: list[str], out_of_domain: list[str]) -> tuple[list[str], str]:
+    """The questions that actually exercise this capability.
+
+    Measuring a capability on traffic it should never fire on gives a gap of nearly zero
+    and no signal to steer with. `refuses questions that are not about health` was being
+    measured entirely on health questions — the one place refusing is wrong — and its
+    gap came out at 0.0033 nats, while `never gives a diagnosis`, whose probes really do
+    tempt the forbidden behaviour, came out at 0.1594. Same machinery, same model; the
+    difference was whether the probe could provoke the thing being asked for.
+    """
+    kind = getattr(cap.kind, "value", str(cap.kind))
+    if kind == "guardrail":
+        # A guardrail is about what happens OUTSIDE the app's subject, so it has to be
+        # measured there, with in-domain questions present to keep it from becoming a
+        # direction for refusing everything.
+        if out_of_domain:
+            return (out_of_domain + in_domain[:2],
+                    f"{len(out_of_domain)} out-of-subject questions it should decline, "
+                    f"plus {len(in_domain[:2])} it should not")
+        return in_domain, "no out-of-subject probes available, so this is measured only " \
+                          "on traffic the guardrail should never fire on"
+    return in_domain, f"{len(in_domain)} of the app's own questions"
+
+
 def derive_contrast(cap, tok, probes: list[str]) -> tuple[list[str], list[str], str]:
     """Contrast text for one capability, in that capability's own words.
 
@@ -344,7 +368,19 @@ def derive_contrast(cap, tok, probes: list[str]) -> tuple[list[str], list[str], 
     instruction = template.format(trait=trait)
     pos = [_as_chat(tok, instruction, q) for q in probes]
     neg = [_as_chat(tok, "", q) for q in probes]
-    return pos, neg, f"instructed vs uninstructed on {len(probes)} of the app's own probes"
+    return pos, neg, f"instructed vs uninstructed on {len(probes)} probes"
+
+
+def contrast_sets(pattern: str) -> tuple[list[str], list[str]]:
+    """The domain's in-subject and out-of-subject material, if it published any."""
+    import json
+    from pathlib import Path
+    p = Path(pattern)
+    cf = (p.parent if p.suffix else p) / "contrast.json"
+    if not cf.exists():
+        return [], []
+    d = json.loads(cf.read_text())
+    return list(d.get("in_domain") or []), list(d.get("out_of_domain") or [])
 
 
 def corpus_probes(pattern: str, n: int = 8, min_len: int = 25) -> list[str]:

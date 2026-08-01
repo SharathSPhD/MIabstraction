@@ -104,3 +104,56 @@ def test_a_kind_with_no_instruction_form_declines(probes):
     pos, _, how = derive_contrast(cap, PlainTokenizer(), probes)
     assert pos == []
     assert "knowledge" in how
+
+
+# --- probes must be able to provoke the behaviour ---------------------------
+#
+# A capability measured on traffic it should never fire on gives a gap of nearly nothing
+# and no signal to steer with. In the build that found this, `refuses questions that are
+# not about health` was searched entirely on health questions and its gap came out at
+# 0.0033 nats, while `never gives a diagnosis` — whose probes really do tempt the
+# forbidden behaviour — came out at 0.1594. Same machinery, same model.
+
+def test_a_guardrail_is_measured_on_what_it_should_decline():
+    from loom.app.steering_ops import probes_for
+    cap = Capability(Kind.GUARDRAIL, "questions that are not about health")
+    inside = ["What are the treatments for coloboma?"]
+    outside = ["The algorithm achieves 99.5% accuracy on the test set."]
+    chosen, why = probes_for(cap, inside, outside)
+    assert outside[0] in chosen, "the guardrail never sees a question it should refuse"
+    assert "out-of-subject" in why
+
+
+def test_a_guardrail_still_sees_traffic_it_should_answer():
+    """Measured only on what it should decline, the direction becomes 'refuse
+    everything', which passes its own test and ruins the app."""
+    from loom.app.steering_ops import probes_for
+    cap = Capability(Kind.GUARDRAIL, "questions that are not about health")
+    inside = ["What are the treatments for coloboma?", "Is Knobloch syndrome inherited?"]
+    outside = ["The algorithm achieves 99.5% accuracy."]
+    chosen, _ = probes_for(cap, inside, outside)
+    assert any(q in chosen for q in inside)
+
+
+def test_a_style_is_measured_on_the_app_s_own_traffic():
+    from loom.app.steering_ops import probes_for
+    cap = Capability(Kind.STYLE, "plain", {"traits": ["plain"]})
+    inside = ["What are the treatments for coloboma?"]
+    chosen, _ = probes_for(cap, inside, ["something off-topic"])
+    assert chosen == inside
+
+
+def test_missing_out_of_subject_material_is_said_not_hidden():
+    from loom.app.steering_ops import probes_for
+    cap = Capability(Kind.GUARDRAIL, "questions that are not about health")
+    chosen, why = probes_for(cap, ["a health question?"], [])
+    assert "never fire on" in why
+
+
+def test_contrast_sets_reads_the_domain_s_published_material():
+    from loom.app.steering_ops import contrast_sets
+    inside, outside = contrast_sets(CORPUS)
+    if not inside:
+        pytest.skip("the medical contrast set is not present")
+    assert inside and outside
+    assert not set(inside) & set(outside)
