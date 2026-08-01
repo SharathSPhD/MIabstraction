@@ -39,6 +39,11 @@ def update_registry(results_dir: str | Path = "results",
     for h, r in sorted(by_h.items()):
         if h not in DISCRIMINABILITY:
             continue
+        # An experiment whose metric is fixed by a hyperparameter carries no evidence
+        # either way, so it must not move the posterior (E5: every size ratio returned
+        # the imposed sparsity q). Passing an uninformative test is not support.
+        if r.get("size_metrics_are_tautological"):
+            continue
         reg.update(h, likelihood_ratio(h, bool(r.get("supports"))))
     Path(registry_path).parent.mkdir(parents=True, exist_ok=True)
     reg.save(registry_path)

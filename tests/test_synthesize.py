@@ -27,3 +27,12 @@ def test_update_registry_moves_posteriors_both_ways(tmp_path):
     saved = json.loads(reg_path.read_text())
     # untouched hypotheses stay at the prior — independence is preserved
     assert saved["hypotheses"]["H2"]["posterior"] == 0.5
+
+
+def test_tautological_result_does_not_move_posterior(tmp_path):
+    """An uninformative test must leave belief at the prior, not raise it."""
+    _write(tmp_path, "e5/result.json",
+           {"hypothesis": "H5", "supports": True,
+            "size_metrics_are_tautological": True})
+    posteriors = update_registry(tmp_path, tmp_path / "hypotheses.json")
+    assert posteriors["H5"] == 0.5

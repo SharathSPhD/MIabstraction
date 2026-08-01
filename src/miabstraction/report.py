@@ -93,7 +93,13 @@ def render(results_dir: str | Path = "results") -> str:
         if r is None:
             lines.append(f"| {h} | {LAYER[h]} | ⏳ pending | — | — | — | — |")
             continue
-        verdict = "✅ supported" if r.get("supports") else "❌ not supported"
+        if r.get("size_metrics_are_tautological"):
+            # Passing a test whose metric is fixed by a hyperparameter is not support.
+            verdict = "⚠️ undecidable (metric tautological)"
+        elif r.get("supports"):
+            verdict = "✅ supported"
+        else:
+            verdict = "❌ not supported"
         keys = {
             k: v
             for k, v in r.items()

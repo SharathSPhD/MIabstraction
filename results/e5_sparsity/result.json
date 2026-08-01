@@ -10,6 +10,7 @@
   "circuit_edges_sparse": 25865,
   "circuit_edge_ratio": 0.2092688333859236,
   "imposed_q": 0.2,
+  "size_metrics_are_tautological": true,
   "faithfulness_dense": 1.0,
   "faithfulness_sparse": 1.0,
   "accuracy_dense": 1.0,
@@ -23,7 +24,7 @@
   "final_loss_dense": 0.44416157484054564,
   "leak_budget": 0.0,
   "config_hash": "7af92acb435f",
-  "runtime_s": 1726.3,
+  "runtime_s": 1754.4,
   "device": "cuda",
-  "git_sha": "732108d"
+  "git_sha": "7f24437"
 }

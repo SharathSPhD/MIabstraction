@@ -26,7 +26,7 @@
     },
     "H5": {
       "prior": 0.5,
-      "posterior": 0.8095238095238095,
+      "posterior": 0.5,
       "layer": "Weights (imposed ISA)",
       "description": "Training with weight sparsity yields a smaller, more faithful minimal circuit for an algorithmic task than a matched dense model, at similar task performance."
     }
@@ -36,31 +36,25 @@
       "hypothesis": "H1",
       "likelihood_ratio": 9.499999999999998,
       "posterior_after_update": 0.9047619047619048,
-      "timestamp": "2026-08-01T09:48:19.506469+00:00"
+      "timestamp": "2026-08-01T10:50:44.800900+00:00"
     },
     {
       "hypothesis": "H2",
       "likelihood_ratio": 6.0,
       "posterior_after_update": 0.8571428571428571,
-      "timestamp": "2026-08-01T09:48:19.506481+00:00"
+      "timestamp": "2026-08-01T10:50:44.800909+00:00"
     },
     {
       "hypothesis": "H3",
       "likelihood_ratio": 0.18750000000000003,
       "posterior_after_update": 0.15789473684210528,
-      "timestamp": "2026-08-01T09:48:19.506483+00:00"
+      "timestamp": "2026-08-01T10:50:44.800912+00:00"
     },
     {
       "hypothesis": "H4",
       "likelihood_ratio": 4.5,
       "posterior_after_update": 0.8181818181818182,
-      "timestamp": "2026-08-01T09:48:19.506485+00:00"
-    },
-    {
-      "hypothesis": "H5",
-      "likelihood_ratio": 4.25,
-      "posterior_after_update": 0.8095238095238095,
-      "timestamp": "2026-08-01T09:48:19.506486+00:00"
+      "timestamp": "2026-08-01T10:50:44.800913+00:00"
     }
   ]
 }

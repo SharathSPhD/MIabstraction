@@ -45,3 +45,13 @@ def test_render_includes_pending(tmp_path):
     md = render(tmp_path)
     assert "H5" in md and "pending" in md
     assert "✅" in md
+
+
+def test_tautological_result_is_not_shown_as_supported(tmp_path):
+    """A hypothesis whose metric is fixed by a hyperparameter must not read as a win."""
+    _write(tmp_path, "e5/result.json",
+           {"hypothesis": "H5", "supports": True,
+            "size_metrics_are_tautological": True})
+    md = render(tmp_path)
+    assert "undecidable" in md
+    assert "✅ supported" not in md.split("H5")[1].split("|")[3]
