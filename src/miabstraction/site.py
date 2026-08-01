@@ -102,7 +102,12 @@ def build_html() -> str:
                 else '<span class="chip pend">pending re-run</span>')
 
     # Read the example source file
-    example_src = (ROOT / "examples/tutor.loom").read_text()
+    # One build, walked all the way down. The hood section used to mix a Tutor plan
+    # with a different model's architecture, which is not a walk down a stack — it is
+    # two builds photographed from different angles.
+    hood_plan = _j("build/Clinic-open_weight/plan.json") or plan
+    hood_src = "examples/clinic.loom" if hood_plan is not plan else "examples/tutor.loom"
+    example_src = (ROOT / hood_src).read_text()
 
     tokens = dict(
         WHEN=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
@@ -121,10 +126,11 @@ def build_html() -> str:
         CHART_PRICE=charts.price_curve(
             link.get("L1_no_clobber", {}).get("price_curve", [])),
         CHART_LOSS=charts.loss_curve(found.get("history", [])),
-        HOOD_SOURCE=example_src,
-        HOOD_GRAPH=charts.capability_graph(plan.get("capabilities", [])),
-        HOOD_PLAN=charts.plan_detail(plan.get("capabilities", [])),
-        HOOD_ARCH=charts.model_architecture(demo.get("model_config", {})),
+        HOOD_SOURCE=charts.loom_source(example_src, hood_src),
+        HOOD_SRC_NAME=hood_src,
+        HOOD_GRAPH=charts.capability_graph(hood_plan.get("capabilities", [])),
+        HOOD_PLAN=charts.plan_detail(hood_plan.get("capabilities", [])),
+        HOOD_ARCH=charts.model_architecture(demo.get("model_config", {}), clinic),
         HOOD_TRIALS=charts.search_trials(clinic),
         HOOD_SPACE=(clinic.get("search_space", {}).get("explained")
                     or "not yet measured — no build has recorded its search space"),

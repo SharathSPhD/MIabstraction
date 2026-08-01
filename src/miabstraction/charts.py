@@ -167,51 +167,90 @@ def plan_detail(capabilities: list[dict]) -> str:
 chose the cheapest and sufficient realization strategy, and recorded the choice and reason.</p></div>'''
 
 
-def model_architecture(config: dict) -> str:
-    """L-1: the bare model architecture details."""
-    if not config:
-        return _placeholder("model architecture not yet generated")
+def model_architecture(config: dict, report: dict | None = None) -> str:
+    """L-1: the bare architecture, marking what the build actually touched.
 
+    The parameter count comes from the build report, which counted them. It used to be
+    `d_model * n_layers * n_heads * 64`, a formula that resembles a parameter count
+    without being one — a made-up number under a real label is worse than no number.
+
+    The layer diagram marks the layers a control was installed at and the modules an
+    adapter was attached to, so "which parts of the model were modified" is answered by
+    the picture rather than asserted next to it.
+    """
+    report = report or {}
     d_model = config.get("d_model", 0)
     n_layers = config.get("n_layers", 0)
     n_heads = config.get("n_heads", 0)
     max_len = config.get("max_len", 0)
     vocab = config.get("vocab_total", 0)
+    if report:
+        n_layers = report.get("search_space", {}).get("model_depth") or n_layers
 
-    params = d_model * n_layers * n_heads * 64 if all([d_model, n_layers, n_heads]) else 0
+    if not (n_layers or d_model):
+        return _placeholder("no build has recorded an architecture yet")
+
+    params = report.get("params")
+    controls = report.get("controls") or []
+    # Negative layer indices count from the top, the way the program writes them.
+    touched = {c["layer"] if c["layer"] >= 0 else n_layers + c["layer"]: c
+               for c in controls if isinstance(c.get("layer"), int)}
+
+    adapter_ratio = None
+    for cap in report.get("capabilities", []):
+        ex = cap.get("execution") or {}
+        at = (ex.get("autotune") or {}).get("best") or {}
+        adapter_ratio = (at.get("metrics") or {}).get("adapter_ratio") or adapter_ratio
 
     rows = [
-        ("Layers", f"{n_layers}"),
-        ("Model dimension (d_model)", f"{d_model}"),
-        ("Attention heads", f"{n_heads}"),
-        ("Context window", f"{max_len}"),
-        ("Vocabulary", f"{vocab:,}"),
-        ("Approximate parameters", f"{params:,}" if params else "—"),
+        ("Layers", f"{n_layers}" if n_layers else "—"),
+        ("Model dimension", f"{d_model}" if d_model else "—"),
+        ("Attention heads", f"{n_heads}" if n_heads else "—"),
+        ("Context window", f"{max_len}" if max_len else "—"),
+        ("Vocabulary", f"{vocab:,}" if vocab else "—"),
+        ("Parameters", f"{params:,}" if params else "not counted by this build"),
+        ("Base weights changed by training", "none — the adaptation is an adapter"
+         if adapter_ratio is not None else "—"),
+        ("Trainable share", f"{adapter_ratio * 100:.2f}%" if adapter_ratio else "—"),
+        ("Layers carrying a control", f"{len(touched)} of {n_layers}" if n_layers else "—"),
     ]
 
     svg_content = ""
-    if n_layers > 0:
-        layer_h = 30
-        total_h = n_layers * layer_h + 60
-        svg_content = f'''<svg viewBox="0 0 400 {total_h}" style="width:100%;height:auto;margin:1rem 0">
-'''
+    if n_layers:
+        layer_h, total_h = 26, n_layers * 26 + 70
+        parts = [f'<svg viewBox="0 0 460 {total_h}" style="width:100%;height:auto;'
+                 f'margin:1rem 0" role="img" aria-label="layer stack, marking layers '
+                 f'the build modified">']
+        parts.append(f'<text x="16" y="20" font-size="11" fill="{PALETTE["muted"]}">'
+                     f'blue = untouched   green = a control writes here</text>')
         for i in range(n_layers):
-            y = 40 + i * layer_h
-            col = PALETTE["thread"] if i % 2 == 0 else PALETTE["muted"]
-            svg_content += (f'<rect x="50" y="{y}" width="300" height="24" fill="{col}" '
-                          f'opacity="0.3" stroke="{col}" stroke-width="1"/>'
-                          f'<text x="20" y="{y+16}" class="tick">L{i}</text>'
-                          f'<text x="360" y="{y+16}" class="tick">{d_model}d</text>')
-        svg_content += '</svg>'
+            y = 34 + i * layer_h
+            c = touched.get(i)
+            col = PALETTE["pass"] if c else PALETTE["thread"]
+            op = "0.55" if c else "0.18"
+            parts.append(
+                f'<rect x="52" y="{y}" width="300" height="20" fill="{col}" '
+                f'opacity="{op}" stroke="{col}" stroke-width="1"/>'
+                f'<text x="18" y="{y + 14}" class="tick">L{i}</text>')
+            if c:
+                parts.append(
+                    f'<text x="362" y="{y + 14}" class="tick">{c["name"][:26]} '
+                    f'({c["kind"]})</text>')
+        parts.append("</svg>")
+        svg_content = "".join(parts)
 
     table = "\n".join(
         f'<tr><td>{k}</td><td class="num">{v}</td></tr>' for k, v in rows)
-
+    note = ("No control was admissible in this build, so no layer is marked: the "
+            "compiler searched and refused rather than installing something that did "
+            "not work." if not touched else
+            f"{len(touched)} layer(s) carry a compiled control.")
     return f'''<div class="chartbox"><table class="arch-table">
 <tbody>{table}</tbody></table>
-{svg_content}<p class="cap">The architecture is fixed by the substrate choice. On an open-weight target,
-the trained architecture cannot be changed; on from-scratch, the compiler may adapt it to
-satisfy conflicting capabilities.</p></div>'''
+{svg_content}<p class="cap">{note} The architecture itself is fixed by the substrate
+choice: on an open-weight target the trained architecture cannot be changed, so
+everything the compiler achieves it achieves through adapters, grafts and steering. On
+from-scratch it may pick the architecture to satisfy the capabilities.</p></div>'''
 
 
 def search_trials(report: dict) -> str:
@@ -319,3 +358,32 @@ def data_provenance(manifests: list[dict]) -> str:
     return ('<table class="prov"><thead><tr><th>domain</th><th>data</th>'
             '<th>source</th><th>docs</th><th>license</th><th>note</th></tr></thead>'
             '<tbody>' + "".join(rows) + '</tbody></table>')
+
+
+def loom_source(text: str, name: str) -> str:
+    """The program itself, highlighted from the file rather than transcribed into the page.
+
+    The page used to carry a hand-marked-up copy of the example. A copy drifts: the file
+    on disk is what compiles, and a showcase whose first exhibit is a stale paraphrase of
+    it undermines everything below.
+    """
+    import html as _html
+    import re as _re
+    KEYWORDS = ("app", "build", "on", "knows", "from", "how to", "speaks", "always",
+                "never", "refuses", "expect", "effort", "tune", "scratch", "size")
+    out = []
+    for line in text.split("\n"):
+        if line.strip().startswith("//"):
+            out.append(f'<span class="c">{_html.escape(line)}</span>')
+            continue
+        code, sep, comment = line.partition("//")
+        esc = _html.escape(code)
+        esc = _re.sub(r'(&quot;[^&]*?&quot;)', r'<span class="s">\1</span>', esc)
+        for kw in sorted(KEYWORDS, key=len, reverse=True):
+            esc = _re.sub(rf'(?<![\w-])({kw})(?![\w-])',
+                          r'<span class="k">\1</span>', esc)
+        if sep:
+            esc += f'<span class="c">//{_html.escape(comment)}</span>'
+        out.append(esc)
+    body = "\n".join(out)
+    return f'<pre><span class="c">// {_html.escape(name)}</span>\n{body}</pre>'
