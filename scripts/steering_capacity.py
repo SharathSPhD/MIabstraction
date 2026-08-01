@@ -27,6 +27,10 @@ def main() -> int:
         sc = at.get("scale") or {}
         if not sc.get("gap"):
             continue
+        # A skipped search delivered nothing because it was never run; recording it as
+        # a measured zero would poison the very ceiling the skip was decided by.
+        if at.get("skipped") or "trials" not in at:
+            continue
         admissible = [t for t in at["trials"] if not t["rejected"]]
         best = max((t["score"] for t in admissible), default=0.0)
         rows.append({

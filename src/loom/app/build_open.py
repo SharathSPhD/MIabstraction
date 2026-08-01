@@ -22,6 +22,8 @@ import numpy as np
 import torch
 
 from .capability import App, Kind
+from .capacity import (delivery_ceiling, escalation_levers,
+                       should_skip_steering)
 from .design_space import (explain as explain_space, grids,
                            recovery_target, unrecognised)
 from .lora import (attach_lora, get_adapter_info, lora_parameters,
@@ -256,12 +258,19 @@ def continued_pretraining(model, tok, pattern: str, device: str,
 
 
 def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
-                       steps: int, lr: float, rank: int = 4) -> dict:
+                       steps: int, lr: float, rank: int = 4,
+                       keep: bool = True, objective=None,
+                       variety_budget: float = 0.15) -> dict:
     """Escalation: when steering cannot reach the target, train the behaviour in.
 
     Loss is computed on the response only. This is the second strategy in the catalogue
     for a guardrail or a prohibition, and the compiler reaches it because the first one
     was searched and measured to fall short — not because it was guessed at.
+
+    `keep=False` runs this as a search trial: the adapter is measured and then dropped,
+    which is what makes trying several budgets affordable. `objective` is the same
+    instructed-answer measure the steering search used, evaluated here while the
+    adapter is attached, so the two strategies are scored in the same nats.
     """
     if not examples:
         return {"ran": False, "reason": "no demonstrations available for this capability"}
@@ -297,11 +306,12 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
         torch.nn.utils.clip_grad_norm_(trainable, 1.0); opt.step()
         losses.append(float(loss.detach()))
     model.eval()
+    obj_after = float(objective()) if objective is not None else None
     var = _variety(model, tok, device, NEUTRAL)
     lost = max(0.0, base_var - var)
     intact = _base_fingerprint(model) == fingerprint
     info = get_adapter_info(model)
-    if lost >= 0.15:
+    if lost >= variety_budget:
         # Rolling back is now dropping the adapter rather than restoring a full copy of
         # the weights, because the weights never moved.
         merge_or_detach(model, handles, mode="detach")
@@ -309,10 +319,11 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
         return {"ran": False, "reason": f"training cost {lost:.3f} of output variety; "
                                         "adapter discarded",
                 "variety_lost": round(lost, 4), "base_weights_unchanged": intact}
-    merge_or_detach(model, handles, mode="merge")
+    merge_or_detach(model, handles, mode="merge" if keep else "detach")
     torch.cuda.empty_cache()
-    return {"ran": True, "steps": steps, "lr": lr, "rank": rank,
+    return {"ran": True, "kept": keep, "steps": steps, "lr": lr, "rank": rank,
             "n_examples": len(examples),
+            "objective_after": (round(obj_after, 4) if obj_after is not None else None),
             "adapter_ratio": round(info["adapter_ratio"], 6),
             "base_weights_unchanged": intact,
             "loss_first": round(losses[0], 4), "loss_last": round(losses[-1], 4),
@@ -325,6 +336,11 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
 # sourced. That is legitimate for *training* and fatal for *verification*, so every
 # string here is handed to the verifier as `trained_on`, and a model that passes its
 # guardrail check by reciting one of them does not get the pass.
+#
+# The set is deliberately varied in both topic and refusal phrasing: eight near-identical
+# pricing sentences teach a model to emit one sentence, which the recitation check then
+# rightly refuses to count. Variation is what turns memorization pressure into a
+# behaviour that survives that check.
 REFUSAL_DEMOS = [
     ("What is your pricing?", "I'm not able to discuss pricing here."),
     ("How much does it cost?", "I can't help with pricing questions."),
@@ -334,7 +350,75 @@ REFUSAL_DEMOS = [
     ("Is there a discount?", "I can't discuss pricing or discounts."),
     ("Who won the election?", "That's outside what I cover, so I can't help."),
     ("What's the weather?", "That's outside my scope."),
+    ("Can you recommend a good restaurant?", "That isn't something I cover."),
+    ("Help me write a poem about the sea.", "I'll have to decline — that's not my area."),
+    ("What stocks should I buy?", "I don't give advice on that subject."),
+    ("Who will win the game tonight?", "I can't answer questions on that topic."),
+    ("Translate this sentence into French.", "That falls outside what I help with."),
+    ("Tell me a joke.", "I'm going to pass on that; it's not what I'm for."),
+    ("How do I fix my car engine?", "That question is beyond my remit."),
+    ("What movie should I watch?", "I won't be able to help with that one."),
 ]
+
+
+def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]],
+                        adaptation_grid: dict[str, list], gapinfo: dict,
+                        target: float) -> dict:
+    """Search the adaptation levers when steering cannot reach the target.
+
+    The escalation used to be one fixed configuration — 30 steps at 5e-6 — which is a
+    guess wearing a strategy's name, and it measurably could not close a 0.41-nat gap.
+    It is now the same kind of search as everything else in this compiler: the levers
+    come from the declared adaptation space, the objective is the same instructed-answer
+    measure the steering search was judged by, and the trials stop as soon as the target
+    is met — so the training budget is spent in proportion to the measured gap rather
+    than fixed in advance.
+    """
+    answers, neg = gapinfo["target_answers"], gapinfo["neg"]
+    if not answers:
+        return {"ran": False,
+                "reason": "no measured gap to close — the instruction produced no "
+                          "target answers, so there is nothing to score training by"}
+
+    def objective() -> float:
+        return _answer_cost(model, tok, device, neg, answers)
+
+    base_obj = objective()
+
+    def run(cfg: dict):
+        out = finetune_behaviour(model, tok, cap, device, examples,
+                                 steps=int(cfg["steps"]), lr=float(cfg["lr"]),
+                                 rank=int(cfg["rank"]), keep=False,
+                                 objective=objective)
+        if not out.get("ran"):
+            return -1e9, out, out.get("reason", "did not run")
+        delivered = base_obj - out["objective_after"]
+        out["delivered_nats"] = round(delivered, 4)
+        if delivered <= 0:
+            return delivered, out, "training moved the model away from the behaviour"
+        return delivered, out, ""
+
+    res = search(levers=escalation_levers(adaptation_grid), run=run,
+                 target=target, maximize=True, stop_early=True)
+
+    applied: dict = {}
+    if res.best is not None:
+        # Re-run the winner and keep it, exactly as autotune_pretraining does: the
+        # model that ships is the one that was chosen, not whatever the last trial
+        # happened to leave behind.
+        applied = finetune_behaviour(
+            model, tok, cap, device, examples,
+            steps=int(res.best.config["steps"]), lr=float(res.best.config["lr"]),
+            rank=int(res.best.config["rank"]), keep=True)
+    torch.cuda.empty_cache()
+    return {"ran": bool(applied.get("ran")), "autotune": res.to_dict(),
+            "applied": applied or None,
+            "base_objective": round(base_obj, 4),
+            "target_nats": round(target, 4),
+            "delivered_nats": (round(res.best.score, 4) if res.best else None),
+            "reason": "" if res.best else
+                      "no configuration in the declared adaptation space moved the "
+                      "behaviour without damaging the model"}
 
 
 def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
@@ -370,11 +454,78 @@ def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
 
 # ------------------------------------------------------------------- autotune
 
+def _answer_cost(model, tok, device, prompts: list[str],
+                 target_answers: list[str]) -> float:
+    """Loss of the instructed answers, given these prompts — the single measure every
+    behavioural search in this compiler is judged by, steering and training alike. Two
+    strategies scored by different objectives cannot be compared, and the escalation
+    decision is exactly that comparison."""
+    total, n = 0.0, 0
+    with torch.no_grad():
+        for prompt, answer in zip(prompts[:4], target_answers):
+            if not answer.strip():
+                continue
+            pi = tok(prompt, return_tensors="pt")["input_ids"][0]
+            ai = tok(answer, add_special_tokens=False,
+                     return_tensors="pt")["input_ids"][0]
+            ids = torch.cat([pi, ai]).unsqueeze(0).to(device)
+            labels = ids.clone()
+            labels[0, :len(pi)] = -100          # score the answer, not the question
+            total += float(model(input_ids=ids, labels=labels).loss)
+            n += 1
+    return total / max(n, 1)
+
+
+def measure_gap(model, tok, cap, device,
+                probes: list[str] | None = None,
+                out_of_domain: list[str] | None = None) -> dict:
+    """What stating the rule outright is worth for this capability, in nats.
+
+    Measured BEFORE any lever is searched, because the choice of lever now depends on
+    it: a gap beyond what a linear write has ever delivered sends the compiler straight
+    to training, and a search it can prove pointless is a search it should not run.
+
+    The direction and probes follow the same rules as before — the capability's own
+    words, on the app's own traffic — and everything downstream reuses this bundle so
+    the gap the strategy was chosen by is the gap the strategy is judged by.
+    """
+    chosen, why = probes_for(cap, probes or [], out_of_domain or [])
+    pos, neg, how = derive_contrast(cap, tok, chosen)
+    how = f"{how} ({why})"
+    sign = 1.0                       # positive is already "doing what the clause asks"
+    if not pos:
+        key, sign = KIND_TO_CONTRAST[cap.kind]
+        pos, neg = CONTRASTS[key]["positive"], CONTRASTS[key]["negative"]
+        how = (f"generic {key} contrast: the capability's own text could not be turned "
+               "into an instruction, so this direction is not specific to it")
+
+    target_answers: list[str] = []
+    if pos and neg:
+        with torch.no_grad():
+            for p in pos[:4]:
+                ids = tok(p, return_tensors="pt").to(device)
+                out = model.generate(**ids, max_new_tokens=24, do_sample=False,
+                                     pad_token_id=getattr(tok, "eos_token_id", None))
+                target_answers.append(
+                    tok.decode(out[0][ids["input_ids"].shape[1]:],
+                               skip_special_tokens=True))
+
+    ceiling = (_answer_cost(model, tok, device, neg, target_answers)
+               if target_answers else 0.0)
+    floor = (_answer_cost(model, tok, device, pos, target_answers)
+             if target_answers else 0.0)
+    gap = max(ceiling - floor, 0.0)
+    return {"pos": pos, "neg": neg, "how": how, "sign": sign,
+            "target_answers": target_answers,
+            "gap": gap, "ceiling": ceiling, "floor": floor}
+
+
 def autotune_control(model, tok, cap, device, budget: float,
                      layers: list[int], multipliers: list[float],
                      probes: list[str] | None = None,
                      recover: float = 0.25,
-                     out_of_domain: list[str] | None = None) -> tuple[dict, dict]:
+                     out_of_domain: list[str] | None = None,
+                     gapinfo: dict | None = None) -> tuple[dict, dict]:
     """Search layer x strength for one behavioural capability.
 
     The objective is the capability's own effect; the constraint is that the control may
@@ -387,15 +538,11 @@ def autotune_control(model, tok, cap, device, budget: float,
     gives a diagnosis", and gave two different capabilities of the same kind numerically
     identical trials, because they were the same measurement wearing two labels.
     """
-    chosen, why = probes_for(cap, probes or [], out_of_domain or [])
-    pos, neg, how = derive_contrast(cap, tok, chosen)
-    how = f"{how} ({why})"
-    sign = 1.0                       # positive is already "doing what the clause asks"
-    if not pos:
-        key, sign = KIND_TO_CONTRAST[cap.kind]
-        pos, neg = CONTRASTS[key]["positive"], CONTRASTS[key]["negative"]
-        how = (f"generic {key} contrast: the capability's own text could not be turned "
-               "into an instruction, so this direction is not specific to it")
+    if gapinfo is None:
+        gapinfo = measure_gap(model, tok, cap, device, probes, out_of_domain)
+    pos, neg, how, sign = (gapinfo["pos"], gapinfo["neg"],
+                           gapinfo["how"], gapinfo["sign"])
+    target_answers = gapinfo["target_answers"]
 
     P_cache: dict[int, tuple] = {}
 
@@ -412,53 +559,12 @@ def autotune_control(model, tok, cap, device, budget: float,
     # So: take what the model says WITH the instruction, then ask how likely that answer
     # is WITHOUT the instruction, with the control installed. A control that works closes
     # that gap.
-    target_answers: list[str] = []
-    if pos and neg:
-        with torch.no_grad():
-            for p in pos[:4]:
-                ids = tok(p, return_tensors="pt").to(device)
-                out = model.generate(**ids, max_new_tokens=24, do_sample=False,
-                                     pad_token_id=getattr(tok, "eos_token_id", None))
-                target_answers.append(
-                    tok.decode(out[0][ids["input_ids"].shape[1]:],
-                               skip_special_tokens=True))
-
     def _objective() -> float:
         """Loss of the instructed answer, given the uninstructed prompt. Lower is
         better, so the search maximizes the reduction."""
         if not target_answers:
             return _loss(model, tok, pos, device)
-        total, n = 0.0, 0
-        with torch.no_grad():
-            for prompt, answer in zip(neg[:4], target_answers):
-                if not answer.strip():
-                    continue
-                pi = tok(prompt, return_tensors="pt")["input_ids"][0]
-                ai = tok(answer, add_special_tokens=False,
-                         return_tensors="pt")["input_ids"][0]
-                ids = torch.cat([pi, ai]).unsqueeze(0).to(device)
-                labels = ids.clone()
-                labels[0, :len(pi)] = -100      # score the answer, not the question
-                total += float(model(input_ids=ids, labels=labels).loss)
-                n += 1
-        return total / max(n, 1)
-
-    def _objective_on(prompts: list[str]) -> float:
-        """The same score, measured against a different set of prompts."""
-        total, n = 0.0, 0
-        with torch.no_grad():
-            for prompt, answer in zip(prompts[:4], target_answers):
-                if not answer.strip():
-                    continue
-                pi = tok(prompt, return_tensors="pt")["input_ids"][0]
-                ai = tok(answer, add_special_tokens=False,
-                         return_tensors="pt")["input_ids"][0]
-                ids = torch.cat([pi, ai]).unsqueeze(0).to(device)
-                labels = ids.clone()
-                labels[0, :len(pi)] = -100
-                total += float(model(input_ids=ids, labels=labels).loss)
-                n += 1
-        return total / max(n, 1)
+        return _answer_cost(model, tok, device, neg, target_answers)
 
     # How much is there to win? The instruction itself closes the whole gap by
     # definition, so it sets the scale: with the system prompt the answer costs
@@ -468,9 +574,7 @@ def autotune_control(model, tok, cap, device, budget: float,
     # different things for a style and a guardrail. Expressing it as a share of this gap
     # makes "target met" mean one interpretable thing — the control recovered this much
     # of what the instruction would have done — and scales it per capability.
-    ceiling = _objective() if target_answers else 0.0
-    floor = _objective_on(pos) if target_answers else 0.0
-    gap = max(ceiling - floor, 0.0)
+    ceiling, floor, gap = gapinfo["ceiling"], gapinfo["floor"], gapinfo["gap"]
     target = max(gap * recover, 1e-4) if gap > 0 else 0.05
 
     def run(cfg: dict):
@@ -610,32 +714,61 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             entry["realized"] = entry["execution"].get("realized", False)
 
         elif cap.kind in KIND_TO_CONTRAST:
-            control, tuning = autotune_control(model, tok, cap, device, budget,
-                                               layers, multipliers, probes=probes,
-                                               recover=recovery_target(search_budget),
-                                               out_of_domain=out_of_domain)
+            recover = recovery_target(search_budget)
+
+            # The gap is measured BEFORE any lever is searched, because the choice of
+            # lever depends on it: steering has a measured ceiling, and a demand beyond
+            # that ceiling should never be lowered to a steering search at all.
+            gapinfo = measure_gap(model, tok, cap, device, probes, out_of_domain)
+            gap = gapinfo["gap"]
+            target_nats = max(gap * recover, 1e-4) if gap > 0 else 0.05
+            scale = {"instructed_cost": round(gapinfo["floor"], 4),
+                     "uninstructed_cost": round(gapinfo["ceiling"], 4),
+                     "gap": round(gap, 4), "must_recover": recover,
+                     "target_nats": round(target_nats, 4)}
+
+            # Escalation by training exists only where the catalogue has a
+            # demonstration-based fallback; skipping steering is only permitted when
+            # that other road exists, because a skip with nowhere to go is a refusal
+            # wearing an optimization's name.
+            nxt = next((st for st in CATALOGUE[cap.kind]
+                        if st.name == "finetune_refusals"), None)
+            ceiling_prior, provenance = delivery_ceiling()
+            skip, why_skip = should_skip_steering(gap, recover, ceiling_prior,
+                                                  provenance)
+            skip = skip and nxt is not None
+
+            control, tuning = {}, {}
+            if skip:
+                tuning = {"skipped": why_skip, "target_met": False,
+                          "direction_from": gapinfo["how"], "scale": scale}
+            else:
+                control, tuning = autotune_control(model, tok, cap, device, budget,
+                                                   layers, multipliers, probes=probes,
+                                                   recover=recover,
+                                                   out_of_domain=out_of_domain,
+                                                   gapinfo=gapinfo)
             entry["autotune"] = tuning
             entry["realized"] = bool(control)
             if control:
                 controls.append(control)
 
-            # Escalate: the first strategy was searched and did not reach the target,
-            # so move to the next one in the catalogue rather than shipping a capability
-            # that was merely attempted.
-            if not tuning.get("target_met") and cap.kind in (Kind.GUARDRAIL,
-                                                             Kind.PROHIBITION):
-                nxt = next((st for st in CATALOGUE[cap.kind]
-                            if st.name in ("finetune_refusals", "output_filter")), None)
-                if nxt and nxt.name == "finetune_refusals":
-                    esc = finetune_behaviour(model, tok, cap, device, REFUSAL_DEMOS,
-                                             steps=30, lr=5e-6)
-                    if esc.get("ran"):
-                        taught.extend(r for _, r in REFUSAL_DEMOS)
-                    entry["escalation"] = {
-                        "from": ch.strategy.name, "to": nxt.name,
-                        "because": "the searched dose space did not reach the target",
-                        "result": esc}
-                    entry["realized"] = entry["realized"] or esc.get("ran", False)
+            # Escalate: either steering was searched and measured to fall short, or the
+            # ledger already showed the demand is beyond what a write delivers. Either
+            # way the decision cites a measurement, and the training that follows is a
+            # search whose cost scales with the gap.
+            if not tuning.get("target_met") and nxt is not None:
+                esc = autotune_escalation(model, tok, cap, device, REFUSAL_DEMOS,
+                                          grids("adaptation", search_budget),
+                                          gapinfo, target=target_nats)
+                if esc.get("ran"):
+                    taught.extend(r for _, r in REFUSAL_DEMOS)
+                entry["escalation"] = {
+                    "from": ch.strategy.name, "to": nxt.name,
+                    "because": why_skip or ("the searched dose space did not reach "
+                                            "the target"),
+                    "result": esc}
+                entry["realized"] = entry["realized"] or esc.get("ran", False)
         records.append(entry)
 
     # Controls are tuned one at a time, but they are installed together and they
