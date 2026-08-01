@@ -571,8 +571,14 @@ def quantize(model: nn.Module, bits: int = 8) -> Tuple[nn.Module, Dict[str, Any]
 # ============================================================================
 
 @torch.no_grad()
-def measure_perplexity(model: nn.Module, texts: List[str], device: str = "cuda") -> float:
+def measure_perplexity(model: nn.Module, texts: List[str], device: str = "cuda",
+                       tokenizer=None) -> float:
     """Measure perplexity on a list of text samples.
+
+    The tokenizer MUST be the model's own. Feeding one model's token ids to another
+    measures nothing: an earlier version hardcoded the GPT-2 tokenizer, which made
+    Llama and Gemma report perplexities in the tens of thousands to millions while
+    GPT-2 itself looked fine. Pass the tokenizer that came with the weights.
 
     Returns:
         Mean perplexity across all texts
@@ -580,10 +586,11 @@ def measure_perplexity(model: nn.Module, texts: List[str], device: str = "cuda")
     model.eval()
     model.to(device)
 
-    try:
-        tokenizer = AutoTokenizer.from_pretrained("gpt2", trust_remote_code=True)
-    except:
-        return float('nan')
+    if tokenizer is None:
+        raise ValueError(
+            "measure_perplexity needs the model's own tokenizer. Passing none used to "
+            "silently fall back to GPT-2's, which produces meaningless numbers for "
+            "every other model family.")
 
     total_loss = 0.0
     n_samples = 0

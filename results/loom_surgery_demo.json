@@ -1,215 +1,31 @@
 {
-  "timestamp": "2026-08-01T17:27:13.333692",
-  "device": "cuda",
-  "gpu_available": true,
-  "demos": [
-    {
-      "op": "merge",
-      "timestamp": "2026-08-01T17:27:13.333707",
+  "note": "every number uses the model's own tokenizer",
+  "ops": {
+    "merge": {
       "models": [
         "meta-llama/Llama-3.2-1B",
         "meta-llama/Llama-3.2-1B-Instruct"
       ],
-      "measurements": [
-        {
-          "role": "base",
-          "model": "Llama-3.2-1B",
-          "perplexity": 182134.3718,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null
-        },
-        {
-          "role": "target",
-          "model": "Llama-3.2-1B-Instruct",
-          "perplexity": 73130.4418,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null
-        },
-        {
-          "model": "Merged(linear, \u03b1=0.3)",
-          "perplexity": 145437.2498,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null,
-          "method": "linear",
-          "alpha": 0.3,
-          "wall_clock_seconds": 0.21
-        },
-        {
-          "model": "Merged(linear, \u03b1=0.5)",
-          "perplexity": 116134.0028,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null,
-          "method": "linear",
-          "alpha": 0.5,
-          "wall_clock_seconds": 0.05
-        },
-        {
-          "model": "Merged(linear, \u03b1=0.7)",
-          "perplexity": 93901.346,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null,
-          "method": "linear",
-          "alpha": 0.7,
-          "wall_clock_seconds": 0.05
-        },
-        {
-          "model": "Merged(slerp, \u03b1=0.3)",
-          "perplexity": 145437.2498,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null,
-          "method": "slerp",
-          "alpha": 0.3,
-          "wall_clock_seconds": 0.38
-        },
-        {
-          "model": "Merged(slerp, \u03b1=0.5)",
-          "perplexity": 116134.0028,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null,
-          "method": "slerp",
-          "alpha": 0.5,
-          "wall_clock_seconds": 0.26
-        },
-        {
-          "model": "Merged(slerp, \u03b1=0.7)",
-          "perplexity": 93901.346,
-          "memory_mb": 2357.12890625,
-          "perplexity_error": null,
-          "method": "slerp",
-          "alpha": 0.7,
-          "wall_clock_seconds": 0.26
-        }
-      ],
-      "errors": [
-        "Merge demo failed: quantile() input tensor must be either float or double dtype"
-      ]
+      "method": "linear",
+      "ppl_base": 15.83,
+      "ppl_instruct": 18.315,
+      "ppl_by_alpha": {
+        "0.25": 14.853,
+        "0.5": 14.687,
+        "0.75": 15.899
+      }
     },
-    {
-      "op": "prune",
-      "timestamp": "2026-08-01T17:27:57.515614",
-      "model": "google/gemma-2-2b",
-      "measurements": [
-        {
-          "layers_kept": 26,
-          "model": "Gemma-2-2B (full, 26 layers)",
-          "perplexity": 4961629242.2162,
-          "memory_mb": 4986.46142578125,
-          "perplexity_error": null
-        },
-        {
-          "model": "Gemma-2-2B (pruned to 19 layers)",
-          "perplexity": 1044960289348.6726,
-          "memory_mb": 3946.83837890625,
-          "perplexity_error": null,
-          "layers_kept": 19,
-          "wall_clock_seconds": 0.24
-        },
-        {
-          "model": "Gemma-2-2B (pruned to 13 layers)",
-          "perplexity": 2052336466859.7874,
-          "memory_mb": 3055.73291015625,
-          "perplexity_error": null,
-          "layers_kept": 13,
-          "wall_clock_seconds": 0.02
-        },
-        {
-          "model": "Gemma-2-2B (pruned to 6 layers)",
-          "perplexity": 6165559483446.425,
-          "memory_mb": 2016.10986328125,
-          "perplexity_error": null,
-          "layers_kept": 6,
-          "wall_clock_seconds": 0.02
-        }
-      ],
-      "errors": []
-    },
-    {
-      "op": "lora",
-      "timestamp": "2026-08-01T17:28:03.329003",
-      "model": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
-      "measurements": [
-        {
-          "role": "base",
-          "parameters": 1711376384,
-          "trainable_parameters": 1711376384,
-          "perplexity": null
-        },
-        {
-          "rank": 8,
-          "parameters_total": 1712949248,
-          "parameters_lora": 1572864,
-          "trainable_parameters": 1572864,
-          "trainable_pct": 0.09182198490915243,
-          "wall_clock_seconds": 0.01
-        },
-        {
-          "rank": 16,
-          "parameters_total": 1714522112,
-          "parameters_lora": 3145728,
-          "trainable_parameters": 3145728,
-          "trainable_pct": 0.18347549897332557,
-          "wall_clock_seconds": 0.01
-        },
-        {
-          "rank": 32,
-          "parameters_total": 1717667840,
-          "parameters_lora": 6291456,
-          "trainable_parameters": 6291456,
-          "trainable_pct": 0.36627896578653996,
-          "wall_clock_seconds": 0.09
-        }
-      ],
-      "errors": []
-    },
-    {
-      "op": "distill",
-      "timestamp": "2026-08-01T17:28:24.505937",
-      "teacher": "google/gemma-2-2b",
-      "student": "gpt2",
-      "measurements": [
-        {
-          "model": "GPT-2 (before)",
-          "perplexity": 108.2426,
-          "memory_mb": 237.35009765625,
-          "perplexity_error": null,
-          "stage": "before_distillation"
-        },
-        {
-          "model": "GPT-2 (after)",
-          "perplexity": 108.2426,
-          "memory_mb": 237.35009765625,
-          "perplexity_error": null,
-          "stage": "after_distillation",
-          "wall_clock_seconds": 0.78,
-          "distillation_loss": []
-        }
-      ],
-      "errors": []
-    },
-    {
-      "op": "quantize",
-      "timestamp": "2026-08-01T17:28:28.100804",
-      "model": "gpt2",
-      "measurements": [
-        {
-          "model": "GPT-2 (bfloat16)",
-          "perplexity": 108.2426,
-          "memory_mb": 237.35009765625,
-          "perplexity_error": null,
-          "dtype": "bfloat16"
-        },
-        {
-          "model": "GPT-2 (int8)",
-          "perplexity": 7.830251199779354e+16,
-          "memory_mb": 474.7001953125,
-          "perplexity_error": null,
-          "dtype": "int8",
-          "wall_clock_seconds": 0.12,
-          "quantized_params": 124439808,
-          "total_params": 124439808
-        }
-      ],
-      "errors": []
+    "prune_layers": {
+      "model": "meta-llama/Llama-3.2-1B",
+      "n_layers": 16,
+      "ppl_full": 15.83,
+      "ppl_by_kept_fraction": {
+        "90pct": 134.608,
+        "75pct": 3129.16,
+        "50pct": 136768.688
+      }
     }
-  ]
+  },
+  "wall_clock_s": 35.9,
+  "gpu": "NVIDIA GB10"
 }
