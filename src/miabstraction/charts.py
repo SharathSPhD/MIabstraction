@@ -396,3 +396,33 @@ def loom_source(text: str, name: str) -> str:
         out.append(esc)
     body = "\n".join(out)
     return f'<pre><span class="c">// {_html.escape(name)}</span>\n{body}</pre>'
+
+
+def steering_capacity(report: dict) -> str:
+    """How much behaviour was asked for, against how much a single write delivered."""
+    rows = report.get("capabilities") or []
+    if not rows:
+        return _placeholder("no build has measured steering capacity yet")
+    gmax = max(r["gap_nats"] for r in rows) or 1.0
+    out = []
+    for r in rows:
+        gw = r["gap_nats"] / gmax * 220
+        dw = r["delivered_nats"] / gmax * 220
+        frac = r["recovered_fraction"]
+        col = PALETTE["pass"] if r["met"] else PALETTE["warn"] if frac > 0.15 else PALETTE["fail"]
+        out.append(
+            f'<tr><td>{r["capability"]}</td>'
+            f'<td class="num">{r["gap_nats"]:.4f}</td>'
+            f'<td class="num">{r["delivered_nats"]:.4f}</td>'
+            f'<td><svg viewBox="0 0 230 16" style="width:230px;height:16px">'
+            f'<rect x="0" y="3" width="{gw:.1f}" height="10" fill="{PALETTE["grid"]}"/>'
+            f'<rect x="0" y="3" width="{dw:.1f}" height="10" fill="{col}"/></svg></td>'
+            f'<td class="num" style="color:{col}">{frac:.1%}</td>'
+            f'<td>{"met" if r["met"] else "short"}</td></tr>')
+    return ('<div class="tablewrap"><table><thead><tr><th>capability</th>'
+            '<th class="num">rule stated outright</th><th class="num">one write delivers</th>'
+            '<th>&nbsp;</th><th class="num">recovered</th><th>verdict</th></tr></thead>'
+            '<tbody>' + "".join(out) + '</tbody></table></div>'
+            f'<p class="cap">Grey is what stating the rule is worth; the coloured bar is '
+            f'what a searched control delivered. Nats of loss on the answer the instructed '
+            f'model gives. From <code>{report.get("source", "?")}</code>.</p>')

@@ -162,6 +162,20 @@ CLAIMS = [
           "results/loom_clinic_scratch.json", "val_ppl", "{:.1f}"),
     Claim("CL6", "…sequences of real medical text held out from its training",
           "results/loom_clinic_scratch.json", "pretraining.heldout_sequences", "{:,.0f}"),
+    # What one linear write at one layer can actually buy, measured across four
+    # capabilities of the same program on the same model.
+    Claim("SC1", "Steering capacity: stating the smallest of four rules outright is "
+          "worth this much", "results/steering_capacity.json", "gap_min", "{:.4f}"),
+    Claim("SC2", "…and the largest, twenty-three times more",
+          "results/steering_capacity.json", "gap_max", "{:.4f}"),
+    Claim("SC3", "…yet a searched control delivers at most", 
+          "results/steering_capacity.json", "delivered_max", "{:.4f}"),
+    Claim("SC4", "…so the smallest behaviour is nearly fully recovered",
+          "results/steering_capacity.json", "capabilities.0.recovered_fraction",
+          "{:.1%}"),
+    Claim("SC5", "…and the largest is barely touched",
+          "results/steering_capacity.json", "capabilities.3.recovered_fraction",
+          "{:.1%}"),
     Claim("S1", "Supervised fine-tuning on real dialogue: held-out response perplexity "
           "before", "results/loom_sft_real.json", "heldout_ppl_before", "{:.1f}"),
     Claim("S2", "…and after, with loss computed on response tokens only",
