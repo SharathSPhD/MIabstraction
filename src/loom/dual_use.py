@@ -245,3 +245,32 @@ def write_artifact(
 ) -> Path:
     """Convenience function: write an artifact."""
     return get_classifier().write_artifact(payload, concept, direction, kind, name)
+
+
+# ---- compatibility shim for the port backend -------------------------------------
+# port.py was written against a leaner API; both express the same policy, so the
+# canonical implementation above gains the alias rather than the policy being forked.
+
+def classify_direction(control, concept: str, vector=None) -> str:
+    """Classify a control's dual-use direction. Returns "suppression" | "hardening".
+
+    Suppressing a safety-relevant concept is suppression-facing; amplifying it is
+    hardening-facing. Neutral concepts are always hardening-facing.
+    """
+    safety = {"refusal", "harmfulness", "jailbreak", "safety", "harmful"}
+    kind = getattr(control, "kind", None) or (control or {}).get("kind", "")
+    return ("suppression"
+            if kind == "suppress" and str(concept).lower() in safety
+            else "hardening")
+
+
+def get_artifact_path(direction: str, concept: str, kind: str = "vector") -> str:
+    """Where an artifact must be written.
+
+    Suppression-facing raw artifacts go to the gitignored private/ tree; hardening
+    artifacts are public in results/ — prayoga's policy: transparency where it is safe,
+    containment where it is not.
+    """
+    d = str(direction).lower()
+    root = "private" if d == "suppression" else "results"
+    return f"{root}/{d}/{concept}_{kind}.json"

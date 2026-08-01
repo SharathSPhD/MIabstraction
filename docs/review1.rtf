@@ -1,0 +1,477 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;\f1\fnil\fcharset0 .SFNS-Regular_wdth_opsz110000_GRAD_wght1F40000;\f2\fnil\fcharset0 .AppleSystemUIFontMonospaced-Regular;
+\f3\fnil\fcharset0 HelveticaNeue-Italic;\f4\fnil\fcharset0 .AppleColorEmojiUI;}
+{\colortbl;\red255\green255\blue255;\red11\green11\blue11;\red247\green248\blue245;\red11\green11\blue11;
+\red0\green0\blue0;\red11\green11\blue11;\red11\green11\blue11;\red20\green59\blue131;\red11\green11\blue11;
+}
+{\*\expandedcolortbl;;\cssrgb\c4314\c4314\c4314;\cssrgb\c97647\c97647\c96863;\cssrgb\c4314\c4314\c4314\c3922;
+\cssrgb\c0\c0\c0;\cssrgb\c4314\c4314\c4314\c5882;\cssrgb\c4314\c4314\c4314\c10196;\cssrgb\c9412\c30980\c58431;\cssrgb\c4314\c4314\c4314\c80000;
+}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid1\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid101\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid201\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid3}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}}
+\paperw11900\paperh16840\margl1440\margr1440\vieww22260\viewh14860\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs26 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Let me gather the current ground truth before reporting \'97 including the two runs that were in flight.\cb1 \
+\cb3 Full status report. One caveat up front: I'm answering in a read-only fork, so this is assembled from the session's verified run outputs \'97 with one item I could not re-verify, flagged below.\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs29\fsmilli14857 \cf2 \cb3 1. Original objective\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\fs26 \cf2 \cb3 Discover and validate the\'a0
+\f1 abstraction layer of transformer LLMs
+\f0 , using the research in\'a0
+\f2\fs24 \cb4 docs/
+\f0\fs26 \cb3 \'a0as the hypothesis source \'97 spec-driven, config-driven, TDD, active-inference experiment design, TRIZ innovation, agent teams, git worktrees, GPU-backed, autonomous.\cb1 \
+\cb3 The research synthesis argued a specific thesis: there is\'a0
+\f1 no single clean "neural ISA"
+\f0 \'a0\'97 instead a\'a0
+\f3\i plural, leaky stack
+\f0\i0 \'a0(weights \uc0\u8594  parameter components \u8594  features \u8594  circuits \u8594  algorithms \u8594  behaviors), where weight-structure and representation-geometry are the strong layers and SAE activation-features are demoted to a discovery tool.\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 That thesis was converted into 5 preregistered, falsifiable hypotheses with numeric refutation thresholds
+\f0 \'a0(
+\f2\fs24 \cb4 SPEC.md
+\f0\fs26 \cb3 ) and tested on the GB10.\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs29\fsmilli14857 \cf2 \cb3 2. What was planned\cb1 \
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrt\brdrnil \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat6 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat6 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1\fs26 \cf2 \cb3 \strokec5 Track\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Plan\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f0 \cf2 \cb3 Scaffold\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 SPEC.md contract, YAML-config runner, pytest TDD, subagent definitions\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 E1\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Belief-state geometry (Mess3 HMM) \uc0\u8594  representation-geometry layer\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 E2\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Induction-head phase transition \uc0\u8594  circuits/development layer\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 E3\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 SAE metrics vs random-transformer control \uc0\u8594  SAE reckoning\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 E4\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Linear probe vs SAE probe \uc0\u8594  features vs baselines\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 E5\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Weight-sparse vs dense circuit size \uc0\u8594  "imposed ISA"\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Design\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 TRIZ contradictions + active-inference selector (EIG over hypothesis registry)\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Research\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 External web + HF sweep\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrt\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth1752\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth11888\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Synthesis\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 VALIDATION.md verdicts + Bayesian posteriors + audit\cf0 \cb1 \cell \lastrow\row
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 Parallelism via 3 git worktrees (
+\f2\fs24 \cb4 exp/e2-induction
+\f0\fs26 \cb3 ,\'a0
+\f2\fs24 \cb4 exp/e3-e4-sae
+\f0\fs26 \cb3 ,\'a0
+\f2\fs24 \cb4 exp/e5-sparsity
+\f0\fs26 \cb3 ) with subagents; all merged to\'a0
+\f2\fs24 \cb4 main
+\f0\fs26 \cb3 .\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs29\fsmilli14857 \cf2 \cb3 3. What was executed \'97 verdicts\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\fs26 \cf2 \cb3 All five ran to completion on GPU. Repo:\'a0
+\f1 github.com/SharathSPhD/MIabstraction
+\f0 ,\'a0
+\f2\fs24 \cb4 main
+\f0\fs26 \cb3 , all pushed,\'a0
+\f1 111 tests green
+\f0 .\cb1 \
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrt\brdrnil \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat6 \clwWidth604\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx1440
+\clvertalt \clcbpat6 \clwWidth2074\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx2880
+\clvertalt \clcbpat6 \clwWidth1970\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat6 \clwWidth1365\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx5760
+\clvertalt \clcbpat6 \clwWidth5378\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx7200
+\clvertalt \clcbpat6 \clwWidth2086\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 \strokec5 H\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Layer\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Verdict\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Posterior\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Evidence\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Replication\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth604\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx1440
+\clvertalt \clcbpat4 \clwWidth2074\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx2880
+\clvertalt \clcbpat4 \clwWidth1970\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth1365\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx5760
+\clvertalt \clcbpat4 \clwWidth5378\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx7200
+\clvertalt \clcbpat4 \clwWidth2086\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 H1
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Representation geometry\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u9989 
+\f0 \'a0
+\f1 supported
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 0.90\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 R\'b2=0.998;\'a0
+\f1 incremental R\'b2 beyond a recent-token window 0.0314 vs 0.0003 control (96\'d7)
+\f0 ; loss hit the entropy rate\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 2/2 seeds
+\f0 , 0.0319\'b10.0002\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth604\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx1440
+\clvertalt \clcbpat4 \clwWidth2074\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx2880
+\clvertalt \clcbpat4 \clwWidth1970\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth1365\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx5760
+\clvertalt \clcbpat4 \clwWidth5378\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx7200
+\clvertalt \clcbpat4 \clwWidth2086\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 H2
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Circuits / development\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u9989 
+\f0 \'a0
+\f1 supported
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 0.86\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 score 0\uc0\u8594 0.61 in\'a0
+\f1 15.5%
+\f0 \'a0of training, layer-2 only (0.607 vs 0.073 L1), co-timed with ICL loss 3.00\uc0\u8594 0.078 nats\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 2/2 seeds
+\f0 , 0.7167\'b10.0002\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth604\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx1440
+\clvertalt \clcbpat4 \clwWidth2074\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx2880
+\clvertalt \clcbpat4 \clwWidth1970\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth1365\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx5760
+\clvertalt \clcbpat4 \clwWidth5378\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx7200
+\clvertalt \clcbpat4 \clwWidth2086\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 H3
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 SAE metrics vs random\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u10060 
+\f0 \'a0
+\f1 refuted
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 0.16\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 FVU\'a0
+\f1 0.0524 trained vs 0.0052 random, 22.5\uc0\u963 
+\f0 \'a0\'97 metrics\'a0
+\f3\i did
+\f0\i0 \'a0separate\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 single model seed (5 SAE seeds)\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth604\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx1440
+\clvertalt \clcbpat4 \clwWidth2074\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx2880
+\clvertalt \clcbpat4 \clwWidth1970\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth1365\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx5760
+\clvertalt \clcbpat4 \clwWidth5378\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx7200
+\clvertalt \clcbpat4 \clwWidth2086\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 H4
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Features vs baselines\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u9989 
+\f0  supported (
+\f1 thinnest
+\f0 )\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 0.82\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 belief: raw 0.9076 vs SAE 0.9071 (
+\f1 tie
+\f0 ); entropy: raw 0.679 vs SAE 0.720 (
+\f1 SAE +4.0
+\f0 )\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 2/2 seeds
+\f0 , delta 0.0014\'b10.0019\cf0 \cb1 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrt\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clcbpat4 \clwWidth604\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx1440
+\clvertalt \clcbpat4 \clwWidth2074\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx2880
+\clvertalt \clcbpat4 \clwWidth1970\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx4320
+\clvertalt \clcbpat4 \clwWidth1365\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx5760
+\clvertalt \clcbpat4 \clwWidth5378\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx7200
+\clvertalt \clcbpat4 \clwWidth2086\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt120 \clpadl120 \clpadb120 \clpadr120 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 H5
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 Weights / imposed ISA\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u9888 \u65039 
+\f0  supported but\'a0
+\f1 deflated
+\f0 \cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 0.81\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 80% of weights removable at\'a0
+\f1 99.8% accuracy, 1.0 faithfulness
+\f0 ; node count unchanged 6v6\cf0 \cb1 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf2 \cb3 3 seeds \'97\'a0
+\f1 invariant, flagged
+\f0 \cf0 \cb1 \cell \lastrow\row
+\pard\pardeftab720\partightenfactor0
+\cf2 \strokec2 \
+\pard\pardeftab720\partightenfactor0
+
+\fs29\fsmilli14857 \cf2 \cb3 4. Analysis \'97 what this actually says\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs26 \cf2 \cb3 The stack is plural and unequal, matching the literature synthesis.
+\f0 \'a0Geometry (H1) is the strongest and most principled layer \'97 it's\'a0
+\f3\i derived
+\f0\i0 \'a0(computational mechanics predicts the simplex before you look inside) rather than reverse-engineered, and the fractal belief geometry is visible in the linear readout. Circuits (H2) are real but form discontinuously. Activation-feature SAEs (H3/H4) are the weak joint: on known concepts they only achieve\'a0
+\f1 parity
+\f0 \'a0with a logistic probe, and lose slightly on the harder concept.\cb1 \
+
+\f1 \cb3 Four findings that would have been false claims without controls:
+\f0 \cb1 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls1\ilvl0
+\f1 \cf2 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 E2 positional shortcut
+\f0 \'a0\'97 the fixed-offset\'a0
+\f2\fs24 \cb4 [x;x]
+\f0\fs26 \cb3 \'a0design gave\'a0
+\f3\i perfect
+\f0\i0 \'a0in-context copying with\'a0
+\f1 zero
+\f0 \'a0induction attention. A behavioral metric certified a capability the mechanism didn't implement. Randomizing the gap made the induction head appear. This is the Jonas\'96Kording failure mode, reproduced accidentally on a system whose ground truth we knew.\cb1 \
+\ls1\ilvl0
+\f1 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 E4 non-determinism
+\f0 \'a0\'97 identical runs gave SAE accuracy 0.786 / 0.843 / 0.857. Root cause: the memory-efficient attention kernel's backward pass.\'a0
+\f1 7 points of drift is larger than the effects being claimed.
+\f0 \'a0Fixed by pinning the math SDP backend +\'a0
+\f2\fs24 \cb4 CUBLAS_WORKSPACE_CONFIG
+\f0\fs26 \cb3 ; now bit-reproducible.\cb1 \
+\ls1\ilvl0
+\f1 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 E4 criterion drift
+\f0 \'a0\'97 the code enforced\'a0
+\f2\fs24 \cb4 raw \uc0\u8805  sae \u8722  1pt
+\f0\fs26 \cb3 , but SPEC.md preregistered "SAE beats raw by >5pts consistently". The code had silently drifted to a\'a0
+\f3\i stricter bar than was registered
+\f0\i0 . Restored to the registered rule.\cb1 \
+\ls1\ilvl0
+\f1 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	4	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 E5 tautological metric
+\f0 \'a0\'97 the headline "4.8\'d7 smaller circuit" is\'a0
+\f1 0.2086 \uc0\u8776  the imposed q=0.20
+\f0 . AbsTopK keeps exactly 20% of weights by construction, and both models kept the same 6 nodes, so the ratio reports\'a0
+\f3\i our hyperparameter
+\f0\i0 , not learned structure.\'a0
+\f1 Zero variance across seeds was the tell
+\f0 \'a0\'97 a perfectly reproducible result can be reproducing a constant.\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 Plus: two tests were overwriting real\'a0
+\f2\fs24 \cb4 results/
+\f0\fs26 \cb3 \'a0artifacts with toy-config output, which is how VALIDATION.md briefly quoted numbers no real run produced. Fixed, with an AST-based guard test.\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 H3's refutation is honest but domain-limited
+\f0 : on a 3-symbol synthetic process, an\'a0
+\f3\i untrained
+\f0\i0 \'a0net's activations are low-dimensional and trivially reconstructable, so the random model gets the\'a0
+\f3\i lower
+\f0\i0 \'a0FVU. The separation runs opposite to "trained models are more structured" \'97 the metric is scoring reconstructability, not features.\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs29\fsmilli14857 \cf2 \cb3 5. On course or drifting?\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs26 \cf2 \cb3 On course on substance; the drift is in scale, not direction.
+\f0 \cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u9989 
+\f0  Delivered against every named element: spec-driven (SPEC.md governs), config-driven (all hyperparameters in YAML), TDD (111 tests), active-inference (
+\f2\fs24 \cb4 design.py
+\f0\fs26 \cb3 , and I actually\'a0
+\f3\i used
+\f0\i0 \'a0it to rank next experiments), TRIZ (\cf8 \strokec8 docs/triz-analysis.md\cf2 \strokec2 , 9 proposals, 3 scored), agent teams + worktrees (3 parallel branches, merged), web + HF research, GPU throughout, autonomous.\cb1 \
+
+\f4 \cb3 \uc0\u9888 \u65039 
+\f0 \'a0
+\f1 Two honest drifts:
+\f0 \cb1 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls2\ilvl0
+\f1 \cf2 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Toy scale.
+\f0 \'a0d=64, \uc0\u8804 4 layers, synthetic processes. These establish that the\'a0
+\f3\i methods and controls discriminate
+\f0\i0 \'a0\'97 not that the conclusions transfer to frontier models. H3 in particular is arguably a scale artifact.\cb1 \
+\ls2\ilvl0
+\f1 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Effort skewed to debugging/infrastructure over new science.
+\f0 \'a0Roughly half the session went into catching the four illusions above. I'd argue that\'a0
+\f3\i is
+\f0\i0 \'a0the science \'97 the failure modes are the transferable result \'97 but it means fewer distinct experiments than the original ambition implied.\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f4 \cf2 \cb3 \uc0\u10060 
+\f0 \'a0
+\f1 One genuinely incomplete item:
+\f0 \'a0the E5\'a0
+\f1 edge-level circuit metric
+\f0 \'a0(magnitude-thresholded, independent of q) \'97 the fix for the tautology. Code and tests are written; the run was launched and, per the background-shell notification,\'a0
+\f1 did not complete
+\f0 \'a0before the process exited.\'a0
+\f3\i This is the item I could not re-verify in this fork.
+\f0\i0 \'a0Related uncommitted work:\'a0
+\f2\fs24 \cb4 circuits.py
+\f0\fs26 \cb3 ,\'a0
+\f2\fs24 \cb4 e5_sparsity.py
+\f0\fs26 \cb3 ,\'a0\cf8 \strokec8 tests/test_circuit_weights.py\cf2 \strokec2 , plus the E4 replication artifacts.\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs29\fsmilli14857 \cf2 \cb3 6. Where it's headed / recommended correction\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\fs26 \cf2 \cb3 No change of direction needed. Three steps, in order:\cb1 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls3\ilvl0
+\f1 \cf2 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Finish + commit E5's edge metric
+\f0 \'a0(~25 min GPU). Closes the one known-open defect; either H5 survives on a non-tautological ruler or it doesn't \'97 both are publishable.\cb1 \
+\ls3\ilvl0
+\f1 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Move E3/E4 to a real LM (Pythia-160M).
+\f0 \'a0This is the highest-value step and what the adversarial audit demanded: the Heap et al. control only has its intended meaning where a random model's activations\'a0
+\f3\i aren't
+\f0\i0 \'a0trivially reconstructable. It converts H3 from "refuted on a toy" to a real result.\cb1 \
+\ls3\ilvl0
+\f1 \cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Stop adding toys after that.
+\f0 \'a0The marginal information from another synthetic experiment is low; the active-inference selector already showed its blind spot here (it ranks already-answered questions highly because EIG models outcome uncertainty, not redundancy).\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f1 \cf2 \cb3 One caveat on the posteriors
+\f0 : they're mechanical Bayesian updates from single preregistered outcomes. H5's 0.81 in particular\'a0
+\f1 overstates what was shown
+\f0 , and the narrative says so explicitly. The numbers in\'a0
+\f2\fs24 \cb4 VALIDATION.md
+\f0\fs26 \cb3 \'a0should be read alongside\'a0\cf8 \strokec8 docs/verdict-narrative.md\cf2 \strokec2 , which carries the deflations.\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 The stop hook is correct \'97 E5's edge metric is unfinished and E3/E4 have only been tested on toys. Resuming work.\cb1 \
+\cb3 The E5 edge run (PID 1850608) is\'a0
+\f1 still alive
+\f0 \'a0\'97 it survived the session restart. Arming a monitor and starting the real-LM work in parallel:\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\fs24 \cf9 \strokec9 \
+}
