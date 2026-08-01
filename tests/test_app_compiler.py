@@ -87,3 +87,26 @@ def test_build_of_undefined_app_is_caught(tmp_path):
     p.write_text('app X {\n    speaks plainly;\n}\nbuild Y on "a/b";\n')
     with pytest.raises(AppSyntaxError, match="not defined"):
         parse_program(p)
+
+
+def test_explain_runs_without_touching_a_gpu(capsys):
+    """`loom explain` must be free: it prints the plan, it does not build."""
+    from loom.app.cli import main
+    assert main(["explain", SRC]) == 0
+    out = capsys.readouterr().out
+    assert "scratch" in out and "open_weight" in out
+    assert "pretraining_mixture" in out and "continued_pretraining" in out
+    # the compiler records what it passed over, and why
+    assert "not pretraining_mixture" in out
+
+
+def test_dry_build_writes_a_plan_and_no_model(tmp_path, capsys):
+    from loom.app.cli import main
+    rc = main(["build", SRC, "--out", str(tmp_path), "--dry-run"])
+    assert rc == 0
+    plans = list(tmp_path.rglob("plan.json"))
+    assert len(plans) == 2, "one plan per build target"
+    import json
+    p = json.loads(plans[0].read_text())
+    assert p["capabilities"] and p["expectations"]
+    assert not list(tmp_path.rglob("*.safetensors"))
