@@ -54,6 +54,7 @@ def fit_monitors(
     model: nn.Module,
     spec: WeaveSpec,
     calib_tokens: torch.Tensor,
+    ground_truth: dict[str, "np.ndarray"],
     device: str = "cuda" if torch.cuda.is_available() else "cpu",
 ) -> dict[str, ProbeMonitor]:
     """Fit linear probes on a calibration dataset.
@@ -93,22 +94,25 @@ def fit_monitors(
         if monitor.kind != "probe":
             continue
 
-        # Generate ground-truth labels based on concept
-        # For belief_state: extract belief-state coordinates from Mess3
-        # For now, we'll create synthetic labels; in practice these come from
-        # the environment/curriculum.
-
-        if monitor.concept == "belief_state":
-            # For Mess3: belief state is the posterior over 3 hidden states
-            # We'll fit a regression to predict these coordinates
-            # Create a simple synthetic target: random belief states
-            y = np.random.dirichlet([1, 1, 1], size=B * L)
+        # Ground truth is REQUIRED. A monitor fitted to synthetic labels reports a
+        # confident R^2 while reading nothing (red-team FINDING 4D) — the exact
+        # confident-wrong-answer failure this project catalogued. No fallback.
+        if monitor.concept not in ground_truth:
+            raise ValueError(
+                f"Monitor '{monitor.name}' needs ground-truth labels for concept "
+                f"'{monitor.concept}' (shape (n_samples*seq_len, k) aligned with "
+                "calib_tokens). Refusing to fit a probe to synthetic labels."
+            )
+        y = np.asarray(ground_truth[monitor.concept])
+        if y.shape[0] != B * L:
+            raise ValueError(
+                f"Ground truth for '{monitor.concept}' has {y.shape[0]} rows; "
+                f"expected {B * L} (calib batch x seq_len)."
+            )
+        if y.ndim > 1:
             fit_result = regression_probe(X, y, val_frac=0.2, seed=0)
             quality = {"r2_val": fit_result["r2_val"], "r2_train": fit_result["r2_train"]}
         else:
-            # Generic classifier for unknown concepts
-            # Create synthetic labels (0 or 1)
-            y = np.random.randint(0, 2, B * L)
             fit_result = classification_probe(X, y, val_frac=0.2, seed=0)
             quality = {"acc_val": fit_result["acc_val"], "acc_train": fit_result["acc_train"]}
 

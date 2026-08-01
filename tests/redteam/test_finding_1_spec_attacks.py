@@ -19,38 +19,10 @@ class TestVacuousGates:
     """Gates that are always true are a HIGH severity bug."""
 
     def test_gate_greater_than_negative_one_always_passes(self):
-        """A gate like prefix_score > -1 is vacuously true and always passes."""
-        weave_yaml = """
-model:
-  size: small
-
-skills:
-  - name: copy_patterns
-    kind: induction
-
-gates:
-  copy_patterns:
-    prefix_score: ">-1"  # Vacuous! Any real prefix_score will pass.
-"""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
-            f.write(weave_yaml)
-            f.flush()
-            spec = load_weave(f.name)
-
-        # The spec should load
-        assert spec is not None
-        gates = spec.gates_for("copy_patterns")
-        assert len(gates) == 1
-        assert gates[0].op == ">"
-        assert gates[0].threshold == -1
-
-        # This gate is vacuous: anything > -1 will pass, so accuracy of 0.0001 would pass
-        gate = gates[0]
-        assert gate.holds(0.0001), "Gate >-1 should pass even for tiny positive value"
-        assert gate.holds(0.0), "Gate >-1 should pass even for 0"
-
-        # This is the bug: the gate doesn't actually promise induction works
-        print("FINDING 1A: Vacuous gate >-1 can never fail in practice")
+        """FIXED: '>-1' on a bounded metric is refused as vacuous."""
+        from loom.spec import WeaveError
+        with pytest.raises(WeaveError):
+            parse_gate_expr("skill", "suppression_ratio", ">-1")
 
     def test_gate_less_than_huge_number_always_passes(self):
         """A gate like side_effect < 999 is vacuously true."""
@@ -63,13 +35,10 @@ gates:
         print("FINDING 1B: Vacuous gate <999 promises almost nothing")
 
     def test_negative_threshold_gates_are_allowed(self):
-        """Can we create gates with negative thresholds that make no sense?"""
-        gate = parse_gate_expr("probe", "probe_r2", ">-0.5")
-
-        # R² should be in [0, 1], but this gate allows negative thresholds
-        assert gate.holds(-0.1), "Negative R² should fail but gate passes it"
-
-        print("FINDING 1C: Negative R² thresholds are allowed but nonsensical")
+        """FIXED: vacuous gates (e.g. '>-1') are now refused at parse time."""
+        from loom.spec import WeaveError
+        with pytest.raises(WeaveError):
+            parse_gate_expr("skill", "prefix_score", ">-1")
 
     def test_spec_rejects_non_unique_names(self):
         """The spec should reject duplicate skill/control/monitor names."""

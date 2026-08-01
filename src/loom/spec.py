@@ -67,6 +67,47 @@ class Gate:
 
 _GATE_RE = re.compile(r"^\s*([<>])\s*=?\s*([-+0-9.eE]+)\s*$")
 
+# Metric families with known achievable ranges. A gate whose threshold sits at or
+# outside the range is vacuous — it passes (or fails) no matter what the model does,
+# turning the promise into theater (red-team FINDING 1A). Loom refuses such gates.
+_BOUNDED_01 = re.compile(r"(score|ratio|r2|acc|accuracy|frac|precision|recall)$")
+_NONNEG = re.compile(r"(loss|effect|nats|error)$")
+
+
+def _check_not_vacuous(target: str, metric: str, op: str, thr: float) -> None:
+    import math
+
+    if not math.isfinite(thr):
+        raise WeaveError(
+            f"Gate '{target}.{metric} {op} {thr}' has a non-finite threshold."
+        )
+    m = metric.rsplit("_", 1)[-1]
+    if _BOUNDED_01.search(metric) or _BOUNDED_01.search(m):
+        if op == ">" and not (0 < thr < 1):
+            raise WeaveError(
+                f"Gate '{target}.{metric} > {thr}' is vacuous or impossible: "
+                f"'{metric}' lives in [0, 1], so the threshold must be strictly "
+                "inside (0, 1)."
+            )
+        if op == "<" and not (0 < thr < 1):
+            raise WeaveError(
+                f"Gate '{target}.{metric} < {thr}' is vacuous or impossible for a "
+                f"[0, 1] metric."
+            )
+    elif _NONNEG.search(metric) or _NONNEG.search(m):
+        if thr <= 0:
+            raise WeaveError(
+                f"Gate '{target}.{metric} {op} {thr}': '{metric}' is non-negative, "
+                "so this gate can never be informative."
+            )
+    else:
+        # Unknown metric family: refuse the obviously-vacuous shapes.
+        if op == ">" and thr < 0:
+            raise WeaveError(
+                f"Gate '{target}.{metric} > {thr}' is vacuous: metrics in Loom are "
+                "non-negative, so any measurement would pass. Declare a real bar."
+            )
+
 
 def parse_gate_expr(target: str, metric: str, expr: str) -> Gate:
     m = _GATE_RE.match(str(expr))
@@ -75,8 +116,9 @@ def parse_gate_expr(target: str, metric: str, expr: str) -> Gate:
             f"Gate '{target}.{metric}: {expr}' is not understood. "
             "Write gates like '>0.9' or '<0.1'."
         )
-    return Gate(target=target, metric=metric, op=m.group(1),
-                threshold=float(m.group(2)))
+    op, thr = m.group(1), float(m.group(2))
+    _check_not_vacuous(target, metric, op, thr)
+    return Gate(target=target, metric=metric, op=op, threshold=thr)
 
 
 @dataclass

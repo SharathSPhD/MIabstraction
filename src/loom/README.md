@@ -93,3 +93,20 @@ scores, side-effect budgets on controls).
 v0 targets the primitives above on TinyTransformer-scale models, verified end-to-end on a
 single GPU. The point is not scale — it is the existence proof that a declared program plus
 a verifying compiler can replace expertise for this class of customization.
+
+## Known limitations (red-teamed, documented rather than hidden)
+
+The adversarial audit (REDTEAM.md) found five holes. Three are FIXED and locked by
+regression tests (vacuous gates refused; monitors demand ground-truth labels; controls
+without an active mechanism refuse to install). Two are inherent limits of v0, stated
+here because a limitation you know about is a spec, and one you don't is a trap:
+
+- **Token-level, not concept-level, suppression.** `suppress: token` guarantees the
+  token is not emitted; it does not stop the model expressing the same *meaning* through
+  other tokens. Concept-level control needs representation-level targets and its own
+  gate design.
+- **Gates certify the verified distribution.** Skill and monitor gates hold on the
+  distributions they were measured on (declared copy lengths, gap ranges, world
+  parameters). Out-of-distribution inputs degrade silently. Verification-carrying
+  artifacts state their measured envelope in report.json; using a model outside it is
+  outside the promise.

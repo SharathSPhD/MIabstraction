@@ -21,6 +21,14 @@ from loom.verify import Report, verify
 from miabstraction.models import TinyTransformer
 
 
+
+def _belief_ground_truth(tokens):
+    """Real Mess3 posteriors for calib tokens (vocab 3 assumed by these tests)."""
+    from miabstraction.data.mess3 import belief_states, mess3_matrices
+    T = mess3_matrices(x=0.05, a=0.85)
+    b = belief_states(T, tokens.numpy() % 3)
+    return {"belief_state": b.reshape(-1, b.shape[-1])}
+
 class TestVerify:
     """Test the gate verification engine."""
 
@@ -221,7 +229,7 @@ class TestMonitors:
 
         calib_tokens = torch.randint(0, 256, (10, 32), dtype=torch.int64)
 
-        monitors_dict = fit_monitors(model, spec, calib_tokens)
+        monitors_dict = fit_monitors(model, spec, calib_tokens, _belief_ground_truth(calib_tokens))
 
         assert "state_monitor" in monitors_dict
         monitor = monitors_dict["state_monitor"]
@@ -243,7 +251,7 @@ class TestMonitors:
 
         calib_tokens = torch.randint(0, 256, (10, 32), dtype=torch.int64)
 
-        monitors_dict = fit_monitors(model, spec, calib_tokens, device=device)
+        monitors_dict = fit_monitors(model, spec, calib_tokens, _belief_ground_truth(calib_tokens), device=device)
         monitor = monitors_dict["state_monitor"]
 
         # Test reading a single residual activation (on the correct device)
@@ -297,8 +305,8 @@ skills:
 controls:
   - {name: suppress_test, kind: suppress, token: 42}
 gates:
-  copy_patterns: {prefix_score: ">0.0"}
-  suppress_test: {suppression_ratio: ">0.0", side_effect: "<1.0"}
+  copy_patterns: {prefix_score: ">0.05"}
+  suppress_test: {suppression_ratio: ">0.05", side_effect: "<0.9"}
 """
         with tempfile.TemporaryDirectory() as tmpdir:
             spec_path = Path(tmpdir) / "test.weave.yaml"
@@ -357,7 +365,7 @@ class TestIntegration:
         controlled = install_controls(model, spec, calib_tokens, device=device)
 
         # Fit monitors
-        monitors_dict = fit_monitors(model, spec, calib_tokens, device=device)
+        monitors_dict = fit_monitors(model, spec, calib_tokens, _belief_ground_truth(calib_tokens), device=device)
 
         # Measure
         test_tokens = torch.randint(0, 256, (3, 32), dtype=torch.int64)

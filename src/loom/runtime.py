@@ -30,6 +30,7 @@ class ControlRecord:
     strength: float = 1.0
     mechanism: str = "steering"  # "steering" or "logit_mask"
     steering_vector: torch.Tensor | None = None  # (d,) steering vector
+    enabled: bool = True
 
 
 class ControlledModel(nn.Module):
@@ -50,7 +51,11 @@ class ControlledModel(nn.Module):
         self._install_hooks()
 
     def _install_hooks(self):
-        """Install forward hooks for all controls."""
+        """Install forward hooks for all controls.
+
+        Every control MUST end up with an active mechanism. A control record with
+        no hook is a silently-disabled promise (red-team FINDING 5) — refuse instead.
+        """
         for control in self.controls:
             if control.mechanism == "steering" and control.steering_vector is not None:
                 # Hook at the layer before the final output
@@ -59,6 +64,31 @@ class ControlledModel(nn.Module):
                     self._make_steering_hook(control)
                 )
                 self._hooks.append(handle)
+            elif control.mechanism == "logit_mask":
+                handle = self.base_model.head.register_forward_hook(
+                    self._make_logit_mask_hook(control)
+                )
+                self._hooks.append(handle)
+            else:
+                raise RuntimeError(
+                    f"Control '{control.name}' has no active mechanism "
+                    f"(mechanism={control.mechanism!r}, steering_vector="
+                    f"{'set' if control.steering_vector is not None else 'None'}). "
+                    "Refusing to install a control that would silently do nothing."
+                )
+
+    def _make_logit_mask_hook(self, control: ControlRecord):
+        """Mask (suppress) or boost (amplify) the target token's logit directly."""
+        def hook(module, args, output):
+            if not self.control_enabled.get(control.name, True):
+                return output
+            out = output.clone()
+            if control.kind == "suppress":
+                out[..., control.token] = torch.finfo(out.dtype).min
+            else:  # amplify
+                out[..., control.token] = out[..., control.token] + control.strength * 10.0
+            return out
+        return hook
 
     def _make_steering_hook(self, control: ControlRecord):
         """Create a forward hook for steering vector injection."""

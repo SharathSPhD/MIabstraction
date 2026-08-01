@@ -160,9 +160,28 @@ def build_weave(spec_path: str, output_dir: str | None = None) -> int:
         print(f"    - {ctrl.name}: {ctrl.kind} (token {ctrl.token}, mechanism: {ctrl.mechanism})")
     print()
 
-    # ---- Step 3: Fit monitors ----
+    # ---- Step 3: Fit monitors (ground truth is mandatory) ----
     print("Step 3: Fitting monitors...")
-    monitors_dict = fit_monitors(controlled_model.base_model, spec, calib_tokens, device=device)
+    ground_truth = {}
+    for mon in spec.monitors:
+        if mon.concept == "belief_state":
+            # Real Mess3 posteriors for the SAME calibration sequences — never
+            # synthetic labels (red-team FINDING 4D). Requires a mess3-compatible
+            # vocab; the builder guarantees calib sequences come from the world
+            # when a state_tracking skill or belief_state monitor is declared.
+            from miabstraction.data.mess3 import belief_states, mess3_matrices
+
+            T = mess3_matrices(x=0.05, a=0.85)
+            mess3_calib = torch.tensor(
+                rng.integers(0, 3, (n_calib, calib_tokens.shape[1])),
+                dtype=torch.int64,
+            )
+            calib_tokens = mess3_calib  # monitors read the world's distribution
+            beliefs = belief_states(T, mess3_calib.numpy())
+            ground_truth["belief_state"] = beliefs.reshape(-1, beliefs.shape[-1])
+    monitors_dict = fit_monitors(
+        controlled_model.base_model, spec, calib_tokens, ground_truth, device=device
+    )
     print(f"  Fitted {len(monitors_dict)} monitors")
     for name, mon in monitors_dict.items():
         quality_str = ", ".join(f"{k}={v:.3f}" for k, v in mon.fit_quality.items())
