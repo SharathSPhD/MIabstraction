@@ -280,35 +280,33 @@ def merge_or_detach(
                     )  # (in_features x out_features)
                     lora_mod.base.weight.data.add_(delta)  # Add to base weight
 
-                # Unfreeze base weights
-                for param in lora_mod.base.parameters():
-                    param.requires_grad = True
+                _restore(model, handle.layer_name, lora_mod.base)
 
     elif mode == "detach":
-        # Restore original base modules (no merge)
         for handle in handles:
             lora_mod = handle.module
             if isinstance(lora_mod, (LoRALinear, LoRAConv1D)):
-                # Restore original base module
-                parts = handle.layer_name.split('.')
-                if len(parts) == 1:
-                    # Top-level
-                    parent = model
-                    child_name = parts[0]
-                else:
-                    parent_name = '.'.join(parts[:-1])
-                    child_name = parts[-1]
-                    parent = model
-                    for part in parent_name.split('.'):
-                        parent = getattr(parent, part)
-
-                setattr(parent, child_name, lora_mod.base)
-
-                # Unfreeze base weights
-                for param in lora_mod.base.parameters():
-                    param.requires_grad = True
+                _restore(model, handle.layer_name, lora_mod.base)
 
     return model
+
+
+def _restore(model: nn.Module, layer_name: str, base: nn.Module) -> None:
+    """Put the original module back where the wrapper was, and unfreeze it.
+
+    Merging used to add the delta and leave the wrapper in place, so a "merged" model
+    kept LoRA modules forever: its parameters were named `...c_attn.base.weight` instead
+    of `...c_attn.weight`, which quietly breaks save_pretrained, anything that walks
+    named_modules, and any comparison against a fresh copy of the same architecture. A
+    merged model has to be structurally what it was before.
+    """
+    parts = layer_name.split('.')
+    parent = model
+    for part in parts[:-1]:
+        parent = getattr(parent, part)
+    setattr(parent, parts[-1], base)
+    for param in base.parameters():
+        param.requires_grad = True
 
 
 def get_adapter_info(model: nn.Module) -> dict:

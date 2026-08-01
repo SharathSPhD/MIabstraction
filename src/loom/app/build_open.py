@@ -230,10 +230,15 @@ def continued_pretraining(model, tok, pattern: str, device: str,
     if merge and save_adapter_to:
         p = Path(save_adapter_to)
         p.parent.mkdir(parents=True, exist_ok=True)
+        # The layout is recorded, not inferred. nn.Linear stores (out, in) and
+        # transformers' Conv1D stores (in, out); for a square projection the shapes
+        # cannot tell you which, so a reader guessing from shape silently transposes the
+        # delta on exactly the layers where it looks like it worked.
         torch.save({"rank": rank, "alpha": 2.0 * rank, "base_model": base_name,
                     "adapters": {h.layer_name: {"a": h.adapter_a.detach().cpu(),
                                                 "b": h.adapter_b.detach().cpu(),
-                                                "scale": h.scale}
+                                                "scale": h.scale,
+                                                "layout": type(h.module).__name__}
                                  for h in handles}}, p)
         saved = str(p)
 

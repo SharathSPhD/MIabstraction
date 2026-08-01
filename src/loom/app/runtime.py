@@ -131,9 +131,17 @@ def _reapply_adapter(module, path: Path, base: str) -> bool:
                 "and the base model have drifted apart.")
         a, b, scale = t["a"], t["b"], t["scale"]
         w = mod.weight
-        delta = scale * torch.matmul(b.T, a.T)          # (out, in), as nn.Linear stores
-        if delta.shape != w.shape:                      # transformers Conv1D is (in, out)
+        # nn.Linear stores (out, in); transformers' Conv1D stores (in, out). For a square
+        # projection the shapes cannot tell you which, so the build records the layout
+        # and this reads it rather than guessing.
+        if t.get("layout") == "LoRAConv1D":
             delta = scale * torch.matmul(a, b)
+        else:
+            delta = scale * torch.matmul(b.T, a.T)
+        if delta.shape != w.shape:
+            raise ValueError(
+                f"adapter for {layer_name!r} produces a {tuple(delta.shape)} delta for a "
+                f"{tuple(w.shape)} weight; the artifact does not match this model.")
         with torch.no_grad():
             w.data.add_(delta.to(device=w.device, dtype=w.dtype))
     return True
