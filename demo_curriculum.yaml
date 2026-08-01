@@ -4,10 +4,20 @@ model: {size: small}
 skills:
   - name: copy_patterns
     kind: induction
+  - name: track_state
+    kind: state_tracking
+    world: mess3
+  - name: parity_detect
+    kind: classify
+    concept: token_parity
 
 gates:
   copy_patterns:
-    prefix_score: ">0.12"
-    icl_loss: "<3.0"
+    prefix_score: ">0.5"
+    icl_loss: "<0.5"
+  track_state:
+    probe_r2: ">0.9"
+  parity_detect:
+    accuracy: ">0.95"
 
 seed: 42

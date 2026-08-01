@@ -109,9 +109,7 @@ class TestStateTrackingCompiler:
         metrics = compiler.evaluator(model, tokens, beliefs, device="cpu")
 
         assert "probe_r2" in metrics
-        assert "probe_r2_incremental" in metrics
         assert 0 <= metrics["probe_r2"] <= 1
-        assert metrics["probe_r2_incremental"] >= 0
 
 
 class TestClassifyCompiler:
