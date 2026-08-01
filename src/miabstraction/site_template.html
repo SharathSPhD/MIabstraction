@@ -310,6 +310,21 @@ compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
     <td>GB10 — 128 GB unified memory holds big models</td><td>@@P_STATUS@@</td></tr>
   </tbody></table></div>
 
+  <h3>The same program, two different transformers</h3>
+  <p><code>examples/hardened.loom</code> is written only in features and circuits: read a
+  concept off the residual stream, steer it with a dose-calibrated and bounded control,
+  link a verified circuit, and assert each. It names no architecture. It compiles to a
+  25-node graph and runs unchanged against a hybrid state-space stack built
+  here and a 1.24-billion-parameter model downloaded from the open-weight ecosystem.</p>
+  <div class="cols"><div class='card accent'><h4>nemotron_h(w=128,l=8,attn_every=4)</h4><p class='small muted'>built here — nemotron_h · 2,589,312 params · 8 layers · pattern MMMAMMMA</p><div class='statusRow'><span>probe_acc > 0.7</span><b><span class='chip pass'>0.9167</span></b></div><div class='statusRow'><span>steer_effect > 0.0</span><b><span class='chip fail'>-0.0035</span></b></div><div class='statusRow'><span>circuit_gate(induction)</span><b><span class='chip pass'>installed</span></b></div></div><div class='card accent'><h4>meta-llama/Llama-3.2-1B</h4><p class='small muted'>downloaded — load · 1,235,814,400 params · 16 layers</p><div class='statusRow'><span>probe_acc > 0.7</span><b><span class='chip pass'>1.0</span></b></div><div class='statusRow'><span>steer_effect > 0.0</span><b><span class='chip pass'>0.0734</span></b></div><div class='statusRow'><span>circuit_gate(induction)</span><b><span class='chip fail'>refused</span></b></div></div></div>
+  <div class="note"><b>Both builds were refused, and both refusals are the point.</b> On
+  the hybrid, the concept is clearly readable (0.92) but steering it moved the loss the
+  wrong way at every strength inside the side-effect budget — readable and steerable are
+  different properties, and the program discovered that instead of assuming it. On the
+  downloaded model the circuit link was refused because that circuit is verified for a
+  vocabulary of 31 and the host has 128,256; the linker will not pretend a verification
+  transfers to a scale it was never taken at.</div>
+
   <h3>A real model, built from a weave</h3>
   <p>The foundation backend was pointed at the example weave and dispatched to the RTX
   5090. It trained a <b>@@FP@@</b>-parameter model on <b>@@FT@@</b> tokens of real English —

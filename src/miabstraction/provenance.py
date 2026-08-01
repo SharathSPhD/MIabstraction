@@ -132,6 +132,16 @@ CLAIMS = [
           "results/loom_foundation_demo.json", "val_ppl", "{:.1f}"),
     Claim("F3", "…tokens of real English seen",
           "results/loom_foundation_demo.json", "tokens_seen", "{:,.0f}"),
+    Claim("X1", "The same program, executed on a hybrid state-space stack built here: "
+          "can a declared feature be read off it?",
+          "results/loom_two_substrates.json",
+          "substrates.A_from_scratch.gates.0.measured", "{:.3f}"),
+    Claim("X2", "…and on a downloaded 1.24B open-weight model, same source",
+          "results/loom_two_substrates.json",
+          "substrates.B_open_weight.gates.0.measured", "{:.3f}"),
+    Claim("X3", "…steering that feature on the open-weight substrate",
+          "results/loom_two_substrates.json",
+          "substrates.B_open_weight.gates.1.measured", "{:.4f}"),
     Claim("S1", "Supervised fine-tuning on real dialogue: held-out response perplexity "
           "before", "results/loom_sft_real.json", "heldout_ppl_before", "{:.1f}"),
     Claim("S2", "…and after, with loss computed on response tokens only",
