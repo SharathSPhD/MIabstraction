@@ -1,0 +1,27 @@
+name: loom_runtime_demo
+
+model:
+  size: small
+
+skills:
+  - name: mess3_dynamics
+    kind: state_tracking
+    world: mess3
+
+controls:
+  - name: suppress_token_1
+    kind: suppress
+    token: 1
+    strength: 1.0
+
+monitors:
+  - name: belief_state_monitor
+    kind: probe
+    concept: belief_state
+
+gates:
+  suppress_token_1:
+    suppression_ratio: ">0.9"
+    side_effect: "<0.1"
+  belief_state_monitor:
+    probe_r2: ">0.9"

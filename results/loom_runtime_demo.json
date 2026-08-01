@@ -1,0 +1,75 @@
+{
+  "spec_name": "loom_mess3_demo",
+  "passed": true,
+  "gates": [
+    {
+      "target": "suppress_token_1",
+      "metric": "suppression_ratio",
+      "op": ">",
+      "threshold": 0.9,
+      "measured": 1.0,
+      "passed": true,
+      "diagnosis": ""
+    },
+    {
+      "target": "suppress_token_1",
+      "metric": "side_effect",
+      "op": "<",
+      "threshold": 0.1,
+      "measured": 0.0,
+      "passed": true,
+      "diagnosis": ""
+    },
+    {
+      "target": "belief_state_monitor",
+      "metric": "probe_r2",
+      "op": ">",
+      "threshold": 0.9,
+      "measured": 0.9741931677791108,
+      "passed": true,
+      "diagnosis": ""
+    }
+  ],
+  "demo_info": {
+    "model": {
+      "d_model": 64,
+      "n_layers": 4,
+      "n_heads": 4,
+      "max_len": 64
+    },
+    "data": {
+      "mess3_x": 0.05,
+      "mess3_a": 0.85,
+      "train_sequences": 5000,
+      "calib_sequences": 200,
+      "test_sequences": 200,
+      "seq_len": 32
+    },
+    "training": {
+      "initial_loss": 5.721538543701172,
+      "final_loss": 0.8142272233963013,
+      "steps": 1000,
+      "batch_size": 64,
+      "lr": 0.0005
+    },
+    "control": {
+      "name": "suppress_token_1",
+      "target_token": 1,
+      "mechanism": "logit_mask",
+      "caa_suppression_ratio": 0.2860257029533386,
+      "logit_suppression_ratio": 1.0,
+      "final_suppression_ratio": 1.0,
+      "final_side_effect": 0.0,
+      "caa_side_effect": 0.019948303699493408,
+      "logit_side_effect": 0.0
+    },
+    "monitor": {
+      "name": "belief_state_monitor",
+      "concept": "belief_state",
+      "r2_train": 0.976148177369747,
+      "r2_val": 0.9741931677791108,
+      "burn_in": 4
+    },
+    "wall_clock_s": 14.512093782424927
+  }
+}
