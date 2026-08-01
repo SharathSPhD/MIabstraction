@@ -250,7 +250,7 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
             y[:, 1:].reshape(-1), ignore_index=-100)
         opt.zero_grad(); loss.backward()
         torch.nn.utils.clip_grad_norm_(trainable, 1.0); opt.step()
-        losses.append(float(loss))
+        losses.append(float(loss.detach()))
     model.eval()
     var = _variety(model, tok, device, NEUTRAL[:2])
     lost = max(0.0, base_var - var)
@@ -350,6 +350,50 @@ def autotune_control(model, tok, cap, device, budget: float,
 
     P_cache: dict[int, tuple] = {}
 
+    # What the control is FOR, stated as something measurable.
+    #
+    # The objective used to be "does steering lower the loss of the instructed text".
+    # That is the wrong question and it answered no every time: the instruction is
+    # already in that prompt's context, so there is nothing for a control to add, and
+    # every trial came back negative — the compiler correctly refused to install
+    # anything, for a reason that was an artefact of the measurement.
+    #
+    # The right question is the one the app actually asks. At runtime nobody sends the
+    # system prompt; the control is supposed to make the model behave as if someone had.
+    # So: take what the model says WITH the instruction, then ask how likely that answer
+    # is WITHOUT the instruction, with the control installed. A control that works closes
+    # that gap.
+    target_answers: list[str] = []
+    if pos and neg:
+        with torch.no_grad():
+            for p in pos[:4]:
+                ids = tok(p, return_tensors="pt").to(device)
+                out = model.generate(**ids, max_new_tokens=24, do_sample=False,
+                                     pad_token_id=getattr(tok, "eos_token_id", None))
+                target_answers.append(
+                    tok.decode(out[0][ids["input_ids"].shape[1]:],
+                               skip_special_tokens=True))
+
+    def _objective() -> float:
+        """Loss of the instructed answer, given the uninstructed prompt. Lower is
+        better, so the search maximizes the reduction."""
+        if not target_answers:
+            return _loss(model, tok, pos, device)
+        total, n = 0.0, 0
+        with torch.no_grad():
+            for prompt, answer in zip(neg[:4], target_answers):
+                if not answer.strip():
+                    continue
+                pi = tok(prompt, return_tensors="pt")["input_ids"][0]
+                ai = tok(answer, add_special_tokens=False,
+                         return_tensors="pt")["input_ids"][0]
+                ids = torch.cat([pi, ai]).unsqueeze(0).to(device)
+                labels = ids.clone()
+                labels[0, :len(pi)] = -100      # score the answer, not the question
+                total += float(model(input_ids=ids, labels=labels).loss)
+                n += 1
+        return total / max(n, 1)
+
     def run(cfg: dict):
         layer = cfg["layer"]
         if layer not in P_cache:
@@ -366,10 +410,10 @@ def autotune_control(model, tok, cap, device, budget: float,
                                    pad_token_id=getattr(tok, "eos_token_id", None))
                     for t in NEUTRAL[:2]]
         base_var = sum(len(set(g[0][-20:].tolist())) / 20 for g in base_gen) / len(base_gen)
-        base_target = _loss(model, tok, pos, device)
+        base_target = _objective()
 
         with _Hook(model, layer, direction, strength):
-            eff = base_target - _loss(model, tok, pos, device)
+            eff = base_target - _objective()
             gens = [model.generate(**tok(t, return_tensors="pt").to(device),
                                    max_new_tokens=20, do_sample=False,
                                    pad_token_id=getattr(tok, "eos_token_id", None))
