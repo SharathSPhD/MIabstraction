@@ -17,7 +17,7 @@ def test_e5_config_load():
         assert cfg.hypothesis == "H5"
 
 
-def test_e5_result_structure():
+def test_e5_result_structure(tmp_path):
     """Test that E5 run produces correct result structure."""
     # Create a minimal config for testing
     cfg = ExperimentConfig(
@@ -45,7 +45,7 @@ def test_e5_result_structure():
         analysis=dict(
             sparsity_targets=[0.5, 0.2],
         ),
-        out_dir="results",
+        out_dir=str(tmp_path),
     )
 
     result = run(cfg)
@@ -62,7 +62,7 @@ def test_e5_result_structure():
     assert "config_hash" in result
 
 
-def test_e5_pareto_result():
+def test_e5_pareto_result(tmp_path):
     """Test that E5 produces Pareto frontier results."""
     cfg = ExperimentConfig(
         name="e5_sparsity_pareto",
@@ -89,7 +89,7 @@ def test_e5_pareto_result():
         analysis=dict(
             sparsity_targets=[0.5, 0.2],
         ),
-        out_dir="results",
+        out_dir=str(tmp_path),
     )
 
     result = run(cfg)
@@ -99,7 +99,7 @@ def test_e5_pareto_result():
     assert "accuracy_dense" in result or "final_accuracy_dense" in result
 
 
-def test_e5_h5_hypothesis():
+def test_e5_h5_hypothesis(tmp_path):
     """Test H5 verdict: sparse smaller AND more faithful than dense."""
     cfg = ExperimentConfig(
         name="e5_h5_test",
@@ -126,7 +126,7 @@ def test_e5_h5_hypothesis():
         analysis=dict(
             sparsity_targets=[0.2],
         ),
-        out_dir="results",
+        out_dir=str(tmp_path),
     )
 
     result = run(cfg)

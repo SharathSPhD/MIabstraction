@@ -197,3 +197,26 @@ class AblatedModel(nn.Module):
         # Output
         logits = self.base_model.head(self.base_model.ln_f(x))
         return logits
+
+
+def circuit_weight_count(model: nn.Module, nodes: set[tuple[int, int]]) -> int:
+    """Nonzero parameters attributable to the circuit's nodes.
+
+    Attention heads in a layer share one packed in/out projection, so a head's
+    share is the layer's attention weights divided by n_heads; MLP nodes
+    (head index -1) count their layer's MLP weights. This is the weight-level
+    circuit size that weight-sparse training is claimed to shrink
+    (Gao et al. 2511.13653), and it resolves differences that node counts cannot.
+    """
+    total = 0
+    for layer, head in nodes:
+        blk = model.blocks[layer]
+        if head == -1:
+            if getattr(blk, "attn_only", False):
+                continue
+            total += sum(int((p != 0).sum().item()) for p in blk.mlp.parameters())
+        else:
+            n_heads = blk.attn.num_heads
+            attn_nnz = sum(int((p != 0).sum().item()) for p in blk.attn.parameters())
+            total += attn_nnz // n_heads
+    return total

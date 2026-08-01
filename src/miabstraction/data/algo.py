@@ -161,7 +161,7 @@ class BracketMatchingDataset:
             mask = self.answer_masks[idx]
             ans_pos = np.where(mask)[0][0]
 
-            pred = logits[b, ans_pos].argmax().item()
+            pred = logits[b, ans_pos - 1].argmax().item()
             expected = self.correct_closers[idx]
 
             if pred == expected:

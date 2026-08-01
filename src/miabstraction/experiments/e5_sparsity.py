@@ -23,7 +23,7 @@ from ..config import ExperimentConfig
 from ..data.algo import BracketMatchingDataset
 from ..models import TinyTransformer
 from ..sparsity import train_lm_with_sparsity, WeightSparsity
-from ..circuits import CircuitExtractor
+from ..circuits import CircuitExtractor, circuit_weight_count
 
 
 def run(cfg: ExperimentConfig) -> dict:
@@ -94,8 +94,8 @@ def run(cfg: ExperimentConfig) -> dict:
             correct_count = 0
             for b in range(len(val_seqs)):
                 ans_pos = val_masks[b].nonzero(as_tuple=True)[0].item()
-                if ans_pos < logits.shape[1]:
-                    pred = logits[b, ans_pos, :].argmax().cpu().item()
+                if 0 < ans_pos <= logits.shape[1]:
+                    pred = logits[b, ans_pos - 1, :].argmax().cpu().item()
                     if pred == val_labels[b].item():
                         correct_count += 1
             return correct_count / len(val_seqs) if len(val_seqs) > 0 else 0.0
@@ -143,11 +143,18 @@ def run(cfg: ExperimentConfig) -> dict:
             best_sparse_q = target_q
             best_sparse_result = sparse_circuits[target_q]
 
-    # H5 verdict
+    # H5 verdict.
+    # Node count alone is too coarse (few nodes, both hit the same floor), so the
+    # primary size metric is weight-level: nonzero parameters inside circuit nodes —
+    # the quantity Gao et al. actually shrink.
     best_sparse_circuit = best_sparse_result["circuit"]
-    supports_h5 = (len(best_sparse_circuit.nodes) < len(circuit_dense.nodes)
-                   and best_sparse_circuit.faithfulness
-                   >= circuit_dense.faithfulness)
+    model_sparse_best = sparse_results[best_sparse_q][0]
+    w_dense = circuit_weight_count(model_dense, circuit_dense.nodes)
+    w_sparse = circuit_weight_count(model_sparse_best, best_sparse_circuit.nodes)
+    supports_h5 = bool(
+        w_sparse < w_dense
+        and best_sparse_circuit.faithfulness >= circuit_dense.faithfulness
+    )
 
     # Prepare results
     result = {
@@ -155,6 +162,9 @@ def run(cfg: ExperimentConfig) -> dict:
         "supports": supports_h5,
         "circuit_size_dense": len(circuit_dense.nodes),
         "circuit_size_sparse": len(best_sparse_circuit.nodes),
+        "circuit_weights_dense": w_dense,
+        "circuit_weights_sparse": w_sparse,
+        "circuit_weight_ratio": (w_sparse / w_dense) if w_dense else None,
         "faithfulness_dense": circuit_dense.faithfulness,
         "faithfulness_sparse": best_sparse_circuit.faithfulness,
         "accuracy_dense": dense_acc,
@@ -217,8 +227,8 @@ def _train_model(
             for b, seq_idx in enumerate(idx.tolist()):
                 _, mask, correct = dataset.get_with_mask(seq_idx)
                 ans_pos = mask.nonzero(as_tuple=True)[0].item()
-                if ans_pos < logits.shape[1]:
-                    pred_logits = logits[b, ans_pos, :]
+                if 0 < ans_pos <= logits.shape[1]:
+                    pred_logits = logits[b, ans_pos - 1, :]
                     task_loss = torch.nn.functional.cross_entropy(
                         pred_logits.unsqueeze(0),
                         torch.tensor([correct], device=dev),
@@ -286,8 +296,8 @@ def _train_model_sparse(
             for b, seq_idx in enumerate(idx.tolist()):
                 _, mask, correct = dataset.get_with_mask(seq_idx)
                 ans_pos = mask.nonzero(as_tuple=True)[0].item()
-                if ans_pos < logits.shape[1]:
-                    pred_logits = logits[b, ans_pos, :]
+                if 0 < ans_pos <= logits.shape[1]:
+                    pred_logits = logits[b, ans_pos - 1, :]
                     task_loss = torch.nn.functional.cross_entropy(
                         pred_logits.unsqueeze(0),
                         torch.tensor([correct], device=dev),
