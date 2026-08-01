@@ -22,4 +22,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The venv installs the package from the primary checkout; without this, tests in a
+# worktree would import that checkout's code and pass against the wrong tree.
+pythonpath = ["src"]
 addopts = "-q"
