@@ -87,8 +87,11 @@ def build_html() -> str:
     found = _j("results/loom_foundation_demo.json")
     port = _j("results/loom_port_demo.json")
 
-    f_status = ('<span class="chip pass">run complete</span>' if found.get("completed")
-                else '<span class="chip pend">training now</span>')
+    if found.get("completed"):
+        f_status = ('<span class="chip pass">run complete</span>' if found.get("passed")
+                    else '<span class="chip fail">ran, gates not met</span>')
+    else:
+        f_status = '<span class="chip pend">training now</span>'
     p_status = ('<span class="chip pass">verified</span>' if port
                 else '<span class="chip pend">pending re-run</span>')
 
@@ -99,6 +102,9 @@ def build_html() -> str:
         STATUS_ROWS=status_rows(),
         LEDGER_ROWS=ledger_rows(),
         F_STATUS=f_status,
+        FP=f'{found.get("params", 0):,}' if found else "—",
+        FT=f'{found.get("train_tokens", 0):,}' if found else "—",
+        FM=f'{found.get("elapsed_s", 0)/60:.0f}' if found else "—",
         P_STATUS=p_status,
         CHART_CAPACITY=charts.capacity_bars(
             link.get("L3_capacity", {}).get("out_of_band_host_delta", 0.0),

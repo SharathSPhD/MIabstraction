@@ -124,7 +124,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 73d41e0 · 61 commits · regenerated 2026-08-01 15:34 UTC</div>
+    <div class="eyebrow">build f11dc6b · 62 commits · regenerated 2026-08-01 16:04 UTC</div>
     <h1>Programming the transformer</h1>
     <p class="lede">Today you build a language model by collecting data, running gradient
     descent, and hoping. There is no layer in between where you state what the model must
@@ -141,9 +141,9 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
     <h4>Where the project stands</h4>
     <div class="statusRow"><span>Experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
 <div class="statusRow"><span>Backends compiling</span><b><span class="chip pass">3 of 4 verified</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip warn">29 of 32</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">32 of 32</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
-<div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pend">running on RTX 5090</span></b></div>
+<div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pass">complete</span></b></div>
 <div class="statusRow"><span>Test suite</span><b><span class="chip pass">215 passing</span></b></div>
     <p class="small muted" style="margin:.8rem 0 0">Every number on this page is read from
     a committed result file at build time. Claims without an artifact render as
@@ -296,7 +296,7 @@ compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
   <tbody>
   <tr><td><b>foundation</b></td>
     <td>Pretrains a real language model from scratch on real text (BabyLM, 100M-word corpus)</td>
-    <td>RTX 5090 — throughput-bound, 32 GB is plenty</td><td><span class="chip pend">training now</span></td></tr>
+    <td>RTX 5090 — throughput-bound, 32 GB is plenty</td><td><span class="chip fail">ran, gates not met</span></td></tr>
   <tr><td><b>curriculum</b></td>
     <td>Turns declared skills into a mixed training curriculum and trains one model to hold all of them</td>
     <td>GB10, minutes</td><td><span class="chip pass">all gates pass</span></td></tr>
@@ -307,6 +307,29 @@ compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
     <td>Programs a frozen open-weight model (Llama&nbsp;3.2, Gemma&nbsp;2) with monitors and dose-calibrated controls</td>
     <td>GB10 — 128 GB unified memory holds big models</td><td><span class="chip pass">verified</span></td></tr>
   </tbody></table></div>
+
+  <h3>A real model, built from a weave</h3>
+  <p>The foundation backend was pointed at the example weave and dispatched to the RTX
+  5090. It trained a <b>30,142,848</b>-parameter model on <b>97,132,837</b> tokens of real English —
+  child-directed speech, Simple Wikipedia, and spoken transcripts — holding out the tail of
+  each source so the evaluation text was never trained on. In <b>45 minutes</b> it
+  reached a held-out perplexity of <b>57.2</b>.</p>
+  <div class="chartbox"><svg viewBox="0 0 560 280" role="img"
+ aria-label="Training and held-out loss"><line x1="50" y1="230.0" x2="540" y2="230.0" stroke="#E4E3DC"/><text x="42" y="234.0" text-anchor="end" class="tick">1.6</text><line x1="50" y1="178.5" x2="540" y2="178.5" stroke="#E4E3DC"/><text x="42" y="182.5" text-anchor="end" class="tick">68.2</text><line x1="50" y1="127.0" x2="540" y2="127.0" stroke="#E4E3DC"/><text x="42" y="131.0" text-anchor="end" class="tick">134.8</text><line x1="50" y1="75.5" x2="540" y2="75.5" stroke="#E4E3DC"/><text x="42" y="79.5" text-anchor="end" class="tick">201.4</text><line x1="50" y1="24.0" x2="540" y2="24.0" stroke="#E4E3DC"/><text x="42" y="28.0" text-anchor="end" class="tick">268.0</text>
+ <path d="M50.0,34.1 L51.6,218.1 L53.3,225.4 L54.9,226.8 L56.5,228.3 L58.2,228.1 L59.8,228.4 L61.4,228.4 L63.1,228.0 L64.7,228.8 L66.3,228.5 L68.0,228.7 L69.6,228.0 L71.2,228.1 L72.9,228.3 L74.5,228.6 L76.1,229.0 L77.8,228.8 L79.4,228.7 L81.0,228.7 L82.7,228.7 L84.3,229.1 L85.9,228.8 L87.6,228.9 L89.2,228.8 L90.8,229.4 L92.5,229.1 L94.1,229.1 L95.7,229.3 L97.4,228.8 L99.0,228.9 L100.6,229.4 L102.3,229.2 L103.9,228.8 L105.5,229.1 L107.2,229.5 L108.8,229.0 L110.4,229.1 L112.1,229.2 L113.7,229.0 L115.3,229.2 L117.0,229.0 L118.6,229.3 L120.2,228.8 L121.9,229.3 L123.5,229.1 L125.1,229.1 L126.8,229.0 L128.4,229.1 L130.0,229.4 L131.7,228.9 L133.3,229.2 L134.9,229.3 L136.6,229.6 L138.2,229.1 L139.8,229.4 L141.5,229.2 L143.1,229.6 L144.7,229.3 L146.4,229.4 L148.0,229.3 L149.6,229.3 L151.3,229.4 L152.9,229.5 L154.5,229.6 L156.2,229.3 L157.8,229.4 L159.4,229.6 L161.1,229.4 L162.7,228.7 L164.3,229.6 L166.0,229.5 L167.6,229.8 L169.2,229.4 L170.9,229.2 L172.5,229.2 L174.1,229.3 L175.8,229.2 L177.4,229.2 L179.0,229.5 L180.7,229.3 L182.3,228.9 L183.9,229.6 L185.6,229.2 L187.2,229.2 L188.8,229.5 L190.5,229.5 L192.1,229.3 L193.7,229.5 L195.4,229.5 L197.0,229.3 L198.6,229.5 L200.3,229.3 L201.9,229.4 L203.5,229.4 L205.2,229.5 L206.8,229.5 L208.4,229.5 L210.1,229.1 L211.7,229.2 L213.3,229.5 L215.0,229.4 L216.6,229.4 L218.2,229.1 L219.9,229.3 L221.5,229.2 L223.1,229.7 L224.8,229.7 L226.4,229.3 L228.0,229.5 L229.7,229.2 L231.3,229.3 L232.9,229.4 L234.6,229.1 L236.2,229.5 L237.8,229.3 L239.5,229.3 L241.1,229.5 L242.7,229.6 L244.4,229.2 L246.0,229.5 L247.6,229.4 L249.3,229.2 L250.9,229.3 L252.5,229.4 L254.2,229.6 L255.8,229.5 L257.4,229.4 L259.1,229.3 L260.7,229.4 L262.3,229.5 L264.0,229.7 L265.6,229.5 L267.2,229.5 L268.9,229.4 L270.5,229.3 L272.1,229.4 L273.8,229.1 L275.4,229.8 L277.0,229.5 L278.7,229.3 L280.3,229.4 L281.9,229.5 L283.6,229.6 L285.2,229.6 L286.8,229.7 L288.5,229.5 L290.1,229.3 L291.7,229.6 L293.4,229.4 L295.0,229.5 L296.6,229.7 L298.3,229.8 L299.9,229.3 L301.5,229.7 L303.2,229.5 L304.8,229.6 L306.4,229.8 L308.1,229.0 L309.7,229.3 L311.3,229.8 L313.0,229.3 L314.6,229.3 L316.2,228.9 L317.9,229.5 L319.5,229.3 L321.1,229.4 L322.8,229.5 L324.4,229.5 L326.0,229.4 L327.7,229.6 L329.3,229.2 L330.9,229.6 L332.6,229.4 L334.2,229.3 L335.8,229.8 L337.5,229.4 L339.1,229.3 L340.7,229.6 L342.4,229.8 L344.0,229.5 L345.6,229.5 L347.3,229.7 L348.9,229.7 L350.5,229.5 L352.2,229.4 L353.8,229.3 L355.4,229.5 L357.1,229.4 L358.7,229.7 L360.3,229.4 L362.0,229.5 L363.6,229.4 L365.2,229.5 L366.9,229.8 L368.5,229.1 L370.1,229.6 L371.8,229.4 L373.4,229.4 L375.0,229.5 L376.7,229.5 L378.3,229.5 L379.9,229.5 L381.6,229.6 L383.2,229.6 L384.8,229.5 L386.5,229.5 L388.1,229.5 L389.7,229.6 L391.4,229.7 L393.0,229.6 L394.6,229.3 L396.3,229.3 L397.9,229.4 L399.5,229.4 L401.2,229.9 L402.8,229.6 L404.4,229.1 L406.1,229.6 L407.7,229.1 L409.3,229.3 L411.0,229.5 L412.6,229.8 L414.2,229.4 L415.9,229.5 L417.5,229.3 L419.1,229.3 L420.8,229.8 L422.4,229.5 L424.0,229.4 L425.7,229.4 L427.3,229.7 L428.9,229.7 L430.6,229.6 L432.2,229.5 L433.8,229.4 L435.5,229.7 L437.1,229.5 L438.7,229.6 L440.4,229.3 L442.0,229.8 L443.6,229.8 L445.3,229.5 L446.9,229.4 L448.5,229.3 L450.2,229.5 L451.8,229.5 L453.4,229.4 L455.1,229.1 L456.7,229.5 L458.3,229.6 L460.0,229.2 L461.6,229.4 L463.2,229.5 L464.9,229.7 L466.5,229.3 L468.1,229.9 L469.8,229.5 L471.4,229.7 L473.0,229.5 L474.7,229.2 L476.3,229.5 L477.9,229.7 L479.6,229.7 L481.2,229.6 L482.8,229.4 L484.5,229.6 L486.1,229.5 L487.7,229.2 L489.4,229.9 L491.0,229.4 L492.6,229.6 L494.3,229.8 L495.9,229.8 L497.5,229.3 L499.2,229.4 L500.8,229.7 L502.4,229.5 L504.1,229.2 L505.7,229.6 L507.3,229.6 L509.0,229.7 L510.6,229.6 L512.2,229.7 L513.9,229.7 L515.5,229.7 L517.1,229.3 L518.8,229.4 L520.4,229.4 L522.0,229.6 L523.7,229.4 L525.3,229.4 L526.9,229.5 L528.6,229.5 L530.2,229.3 L531.8,229.1 L533.5,229.7 L535.1,229.5 L536.7,229.2 L538.4,229.6 L540.0,229.9" fill="none" stroke="#6A6E7A" stroke-width="2" stroke-dasharray="3 3"/>
+ <path d="M50.0,33.9 L51.6,214.1 L53.3,223.3 L54.9,225.9 L56.5,226.5 L58.2,226.7 L59.8,226.8 L61.4,226.9 L63.1,227.0 L64.7,227.0 L66.3,226.9 L68.0,227.2 L69.6,227.1 L71.2,227.2 L72.9,227.1 L74.5,227.2 L76.1,227.2 L77.8,227.4 L79.4,227.3 L81.0,227.4 L82.7,227.5 L84.3,227.5 L85.9,227.4 L87.6,227.5 L89.2,227.4 L90.8,227.4 L92.5,227.6 L94.1,227.5 L95.7,227.6 L97.4,227.6 L99.0,227.5 L100.6,227.6 L102.3,227.6 L103.9,227.8 L105.5,227.8 L107.2,227.8 L108.8,227.7 L110.4,227.7 L112.1,227.6 L113.7,227.7 L115.3,227.7 L117.0,227.8 L118.6,227.8 L120.2,227.8 L121.9,227.8 L123.5,227.8 L125.1,227.8 L126.8,227.8 L128.4,227.8 L130.0,227.9 L131.7,227.9 L133.3,227.8 L134.9,227.9 L136.6,227.8 L138.2,227.8 L139.8,227.8 L141.5,227.8 L143.1,227.9 L144.7,228.0 L146.4,227.8 L148.0,227.9 L149.6,227.8 L151.3,227.9 L152.9,227.9 L154.5,227.9 L156.2,227.9 L157.8,228.0 L159.4,227.9 L161.1,227.9 L162.7,227.9 L164.3,227.9 L166.0,228.0 L167.6,227.9 L169.2,228.0 L170.9,227.9 L172.5,227.9 L174.1,227.9 L175.8,228.0 L177.4,227.9 L179.0,228.0 L180.7,228.0 L182.3,228.0 L183.9,228.0 L185.6,227.9 L187.2,228.0 L188.8,227.9 L190.5,228.0 L192.1,228.0 L193.7,228.0 L195.4,228.0 L197.0,228.1 L198.6,228.0 L200.3,228.0 L201.9,228.0 L203.5,228.0 L205.2,228.0 L206.8,227.9 L208.4,228.0 L210.1,228.1 L211.7,228.0 L213.3,228.0 L215.0,228.1 L216.6,228.0 L218.2,228.1 L219.9,228.1 L221.5,228.0 L223.1,228.0 L224.8,228.1 L226.4,228.0 L228.0,228.1 L229.7,228.1 L231.3,228.0 L232.9,228.0 L234.6,228.1 L236.2,228.0 L237.8,228.1 L239.5,228.0 L241.1,228.0 L242.7,228.1 L244.4,228.1 L246.0,228.0 L247.6,228.2 L249.3,228.1 L250.9,228.1 L252.5,228.1 L254.2,228.1 L255.8,227.9 L257.4,228.1 L259.1,228.0 L260.7,228.0 L262.3,228.1 L264.0,228.2 L265.6,228.1 L267.2,228.1 L268.9,228.0 L270.5,228.1 L272.1,228.0 L273.8,228.1 L275.4,228.1 L277.0,228.0 L278.7,228.1 L280.3,228.0 L281.9,228.1 L283.6,228.0 L285.2,228.1 L286.8,228.1 L288.5,228.1 L290.1,228.1 L291.7,228.1 L293.4,228.2 L295.0,228.1 L296.6,228.0 L298.3,228.1 L299.9,228.2 L301.5,228.1 L303.2,228.1 L304.8,228.1 L306.4,228.1 L308.1,228.1 L309.7,228.1 L311.3,228.1 L313.0,228.1 L314.6,228.1 L316.2,228.1 L317.9,228.2 L319.5,228.1 L321.1,228.1 L322.8,228.2 L324.4,228.1 L326.0,228.1 L327.7,228.2 L329.3,228.1 L330.9,228.2 L332.6,228.1 L334.2,228.1 L335.8,228.1 L337.5,228.0 L339.1,228.2 L340.7,228.1 L342.4,228.1 L344.0,228.1 L345.6,228.1 L347.3,228.1 L348.9,228.2 L350.5,228.1 L352.2,228.1 L353.8,228.1 L355.4,228.1 L357.1,228.0 L358.7,228.1 L360.3,228.1 L362.0,228.3 L363.6,228.2 L365.2,228.1 L366.9,228.1 L368.5,228.1 L370.1,228.2 L371.8,228.2 L373.4,228.2 L375.0,228.2 L376.7,228.2 L378.3,228.2 L379.9,228.2 L381.6,228.1 L383.2,228.1 L384.8,228.3 L386.5,228.2 L388.1,228.2 L389.7,228.2 L391.4,228.1 L393.0,228.1 L394.6,228.1 L396.3,228.2 L397.9,228.2 L399.5,228.2 L401.2,228.2 L402.8,228.0 L404.4,228.0 L406.1,228.2 L407.7,228.2 L409.3,228.2 L411.0,228.1 L412.6,228.1 L414.2,228.2 L415.9,228.1 L417.5,228.2 L419.1,228.1 L420.8,228.2 L422.4,228.2 L424.0,228.1 L425.7,228.2 L427.3,228.2 L428.9,228.2 L430.6,228.3 L432.2,228.1 L433.8,228.2 L435.5,228.2 L437.1,228.2 L438.7,228.2 L440.4,228.1 L442.0,228.2 L443.6,228.2 L445.3,228.1 L446.9,228.1 L448.5,228.1 L450.2,228.3 L451.8,228.3 L453.4,228.2 L455.1,228.1 L456.7,228.2 L458.3,228.2 L460.0,228.2 L461.6,228.2 L463.2,228.1 L464.9,228.2 L466.5,228.2 L468.1,228.2 L469.8,228.1 L471.4,228.1 L473.0,228.2 L474.7,228.2 L476.3,228.2 L477.9,228.2 L479.6,228.2 L481.2,228.2 L482.8,228.3 L484.5,228.2 L486.1,228.3 L487.7,228.3 L489.4,228.1 L491.0,228.2 L492.6,228.3 L494.3,228.2 L495.9,228.2 L497.5,228.2 L499.2,228.1 L500.8,228.2 L502.4,228.2 L504.1,228.3 L505.7,228.2 L507.3,228.2 L509.0,228.2 L510.6,228.2 L512.2,228.3 L513.9,228.2 L515.5,228.1 L517.1,228.2 L518.8,228.2 L520.4,228.2 L522.0,228.2 L523.7,228.2 L525.3,228.2 L526.9,228.2 L528.6,228.2 L530.2,228.3 L531.8,228.1 L533.5,228.3 L535.1,228.2 L536.7,228.1 L538.4,228.1 L540.0,228.2" fill="none" stroke="#3B4CC0" stroke-width="2" />
+ <text x="536" y="220.18808161936488" text-anchor="end" class="tick"
+   fill="#3B4CC0">held-out 3.985</text>
+ <text x="280.0" y="270" text-anchor="middle" class="axis">training step</text>
+</svg><p class="cap">Solid: held-out loss on text the model never saw (contiguous tail of
+each corpus domain). Dashed: training loss.</p></div>
+  <div class="note warnbox"><b>And the build was refused.</b> The weave declared
+  <code>val_ppl: "&lt;20.0"</code>. The model reached 57.2, so the compiler reported a
+  failure rather than shipping. The training was healthy — loss fell from 10.9 to
+  4.046 with no instability — but a 30M-parameter model trained for 45 minutes does not
+  reach that bar. The honest reading is that the gate was written as an aspiration
+  instead of from a measured baseline. Moving the bar to match the result would have
+  destroyed the only thing gates are for.</div>
 
   <h3>The compiler chooses the machine</h3>
   <p>Two very different GPUs are available, and they are good at different things. A
@@ -552,9 +575,9 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>…and this is what the host paid for it</td><td class='num'>0.335 nats</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>Composition: a unit's own score drops when a second independently compiled unit is linked beside it</td><td class='num'>-0.141</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…and the second unit is disturbed more</td><td class='num'>-0.401</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr class="pend"><td>Foundation model pretrained from scratch on real text: held-out loss</td><td class='num'>—</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pend">not yet measured</span></td></tr>
-<tr class="pend"><td>…held-out perplexity</td><td class='num'>—</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pend">not yet measured</span></td></tr>
-<tr class="pend"><td>…tokens of real English seen</td><td class='num'>—</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pend">not yet measured</span></td></tr>
+<tr><td>Foundation model pretrained from scratch on real text: held-out loss</td><td class='num'>4.046</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…held-out perplexity</td><td class='num'>57.2</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…tokens of real English seen</td><td class='num'>737,280,000</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>Frozen open-weight model programmed without touching its weights</td><td class='num'>1,235,814,400 params</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…a monitor reading a concept off its residual stream (leave-one-out)</td><td class='num'>1.000</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…control strength at half-maximum effect, measured by dose-response</td><td class='num'>0.650</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
@@ -588,7 +611,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 73d41e0 · 2026-08-01 15:34 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build f11dc6b · 2026-08-01 16:04 UTC</p>
 </div></footer>
 </body>
 </html>

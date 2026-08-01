@@ -303,6 +303,21 @@ compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
     <td>GB10 — 128 GB unified memory holds big models</td><td>@@P_STATUS@@</td></tr>
   </tbody></table></div>
 
+  <h3>A real model, built from a weave</h3>
+  <p>The foundation backend was pointed at the example weave and dispatched to the RTX
+  5090. It trained a <b>@@FP@@</b>-parameter model on <b>@@FT@@</b> tokens of real English —
+  child-directed speech, Simple Wikipedia, and spoken transcripts — holding out the tail of
+  each source so the evaluation text was never trained on. In <b>@@FM@@ minutes</b> it
+  reached a held-out perplexity of <b>@@F2@@</b>.</p>
+  @@CHART_LOSS@@
+  <div class="note warnbox"><b>And the build was refused.</b> The weave declared
+  <code>val_ppl: "&lt;20.0"</code>. The model reached @@F2@@, so the compiler reported a
+  failure rather than shipping. The training was healthy — loss fell from 10.9 to
+  @@F1@@ with no instability — but a 30M-parameter model trained for 45 minutes does not
+  reach that bar. The honest reading is that the gate was written as an aspiration
+  instead of from a measured baseline. Moving the bar to match the result would have
+  destroyed the only thing gates are for.</div>
+
   <h3>The compiler chooses the machine</h3>
   <p>Two very different GPUs are available, and they are good at different things. A
   compiler that targets several processors should decide which one to use, so Loom does:
