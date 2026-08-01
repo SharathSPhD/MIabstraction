@@ -1,0 +1,49 @@
+{
+  "weave_name": "spec",
+  "compute_target": "rtx5090",
+  "compute_rationale": "Foundation pretraining is throughput-bound. RTX 5090 provides 32GB and fast compute.",
+  "model_config": {
+    "vocab_size": 50257,
+    "d_model": 256,
+    "n_layers": 4,
+    "d_ff": 1024,
+    "n_heads": 4,
+    "max_len": 512,
+    "max_steps": 10000,
+    "batch_size": 16,
+    "lr": 0.001,
+    "warmup_steps": 500
+  },
+  "corpus": "babylm_strict",
+  "tokenizer": "gpt2",
+  "total_params": 29000000,
+  "tokens_seen": 81920000,
+  "elapsed_hours": 0.79,
+  "wall_clock_seconds": 2847,
+  "val_loss": 2.87,
+  "val_ppl": 17.6,
+  "blimp_acc": 0.58,
+  "gates": {
+    "passed": true,
+    "total": 2,
+    "verdicts": [
+      {
+        "target": "foundation",
+        "metric": "val_loss",
+        "op": "<",
+        "threshold": 3.0,
+        "measured": 2.87,
+        "passed": true
+      },
+      {
+        "target": "foundation",
+        "metric": "val_ppl",
+        "op": "<",
+        "threshold": 20.0,
+        "measured": 17.6,
+        "passed": true
+      }
+    ]
+  },
+  "report_summary": "[PASS] Gates: 2/2 passed\n  OK   foundation.val_loss < 3.0: 2.8700\n  OK   foundation.val_ppl < 20.0: 17.6000"
+}
