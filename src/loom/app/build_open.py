@@ -22,6 +22,9 @@ import numpy as np
 import torch
 
 from .capability import App, Kind
+from .design_space import explain as explain_space, grids, unrecognised
+from .lora import (attach_lora, get_adapter_info, lora_parameters,
+                   merge_or_detach)
 from .lowering import CATALOGUE, Choice, plan
 from .parse import parse_program
 from .search import Lever, search
@@ -80,14 +83,17 @@ def autotune_pretraining(model, tok, pattern: str, device: str,
     and restored between trials, and any configuration that costs output variety is
     rejected however much it improves its own objective. A fixed learning rate here
     silently degraded a 1.24B model into emitting numbered lists.
+
+    Trials are isolated by discarding the adapter rather than by restoring a saved copy
+    of the weights. With the base frozen there is nothing to restore, which is what makes
+    a real search affordable here: the old snapshot-per-trial cost 2.5GB and a full
+    state-dict copy every time the compiler wanted to try one more learning rate.
     """
-    snapshot = {k: v.detach().clone() for k, v in model.state_dict().items()}
     base_variety = _variety(model, tok, device, NEUTRAL[:2])
 
     def run(cfg: dict):
-        model.load_state_dict(snapshot)
         out = continued_pretraining(model, tok, pattern, device,
-                                    cfg["steps"], cfg["lr"])
+                                    cfg["steps"], cfg["lr"], merge=False)
         if not out.get("ran"):
             return -1e9, out, out.get("reason", "did not run")
         var = _variety(model, tok, device, NEUTRAL[:2])
@@ -106,12 +112,12 @@ def autotune_pretraining(model, tok, pattern: str, device: str,
                          Lever("steps", step_counts, "how long to train")],
                  run=run, target=0.05, maximize=True, stop_early=False)
 
-    model.load_state_dict(snapshot)
     if res.best is not None:
-        # Re-apply the winner, so the model that ships is the one that was chosen.
+        # Re-apply the winner and keep it this time, so the model that ships is the one
+        # that was chosen rather than whatever the last trial happened to leave behind.
         continued_pretraining(model, tok, pattern, device,
-                              res.best.config["steps"], res.best.config["lr"])
-    del snapshot
+                              res.best.config["steps"], res.best.config["lr"],
+                              merge=True)
     torch.cuda.empty_cache()
     return {"autotune": res.to_dict(),
             "applied": res.best.config if res.best else None,
@@ -121,9 +127,28 @@ def autotune_pretraining(model, tok, pattern: str, device: str,
                       "costing output variety; the model was left untouched"}
 
 
+def _base_fingerprint(model) -> str:
+    """A cheap hash of the weights that must not move while an adapter trains."""
+    import hashlib
+    h = hashlib.sha256()
+    for name, p in sorted(model.named_parameters()):
+        if "adapter_" in name:
+            continue
+        h.update(name.encode())
+        h.update(str(float(p.detach().float().sum())).encode())
+    return h.hexdigest()[:16]
+
+
 def continued_pretraining(model, tok, pattern: str, device: str,
-                          steps: int, lr: float, seq: int = 256) -> dict:
-    """Train the downloaded model further on the app's material. Real training."""
+                          steps: int, lr: float, seq: int = 256,
+                          rank: int = 8, merge: bool = True) -> dict:
+    """Train the downloaded model further on the app's material. Real training.
+
+    The material goes into an adapter and the downloaded weights stay exactly as they
+    were. That is not a performance choice: this substrate is worth using precisely
+    because of what those weights already know, and full-parameter training on a small
+    corpus spends that to buy the corpus.
+    """
     texts, meta = _corpus_texts(pattern)
     if not texts:
         return {"ran": False, "reason": f"no corpus matched {pattern!r}", **meta}
@@ -146,7 +171,19 @@ def continued_pretraining(model, tok, pattern: str, device: str,
         return tot / max(len(range(0, min(len(held), 16), 4)), 1)
 
     before = heldout()
-    opt = torch.optim.AdamW(model.parameters(), lr=lr)
+
+    # Adapters, not the weights themselves. Moving every parameter of a 1.24B model to
+    # teach it one corpus is how this used to collapse into repeating a single phrase:
+    # the objective improves while the model stops being a model. With the base frozen
+    # there is nothing to forget, and `base_weights_unchanged` below is checked rather
+    # than asserted in a comment.
+    handles = attach_lora(model, rank=rank, alpha=2.0 * rank)
+    if not handles:
+        return {"ran": False, "reason": "no attention projections to adapt on this "
+                                        "architecture", **meta}
+    fingerprint = _base_fingerprint(model)
+    trainable = lora_parameters(model)
+    opt = torch.optim.AdamW(trainable, lr=lr)
     model.train()
     g = torch.Generator().manual_seed(0)
     for s in range(steps):
@@ -154,11 +191,17 @@ def continued_pretraining(model, tok, pattern: str, device: str,
         b = train[idx].to(device)
         loss = model(input_ids=b, labels=b).loss
         opt.zero_grad(); loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        torch.nn.utils.clip_grad_norm_(trainable, 1.0)
         opt.step()
     after = heldout()
     model.eval()
-    return {"ran": True, **meta, "steps": steps, "lr": lr,
+    intact = _base_fingerprint(model) == fingerprint
+    info = get_adapter_info(model)
+    merge_or_detach(model, handles, mode="merge" if merge else "detach")
+    return {"ran": True, **meta, "steps": steps, "lr": lr, "rank": rank,
+            "kept": merge,
+            "adapter_ratio": round(info["adapter_ratio"], 6),
+            "base_weights_unchanged": intact,
             "heldout_loss_before": round(before, 4),
             "heldout_loss_after": round(after, 4),
             "heldout_ppl_before": round(math.exp(before), 2),
@@ -167,7 +210,7 @@ def continued_pretraining(model, tok, pattern: str, device: str,
 
 
 def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
-                       steps: int, lr: float) -> dict:
+                       steps: int, lr: float, rank: int = 4) -> dict:
     """Escalation: when steering cannot reach the target, train the behaviour in.
 
     Loss is computed on the response only. This is the second strategy in the catalogue
@@ -177,7 +220,6 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
     if not examples:
         return {"ran": False, "reason": "no demonstrations available for this capability"}
     base_var = _variety(model, tok, device, NEUTRAL[:2])
-    snapshot = {k: v.detach().clone() for k, v in model.state_dict().items()}
 
     def batch(pairs):
         xs, ys = [], []
@@ -191,7 +233,13 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
         return (torch.tensor(xs, device=device), torch.tensor(ys, device=device))
 
     x, y = batch(examples)
-    opt = torch.optim.AdamW(model.parameters(), lr=lr)
+    handles = attach_lora(model, rank=rank, alpha=2.0 * rank)
+    if not handles:
+        return {"ran": False, "reason": "no attention projections to adapt on this "
+                                        "architecture"}
+    fingerprint = _base_fingerprint(model)
+    trainable = lora_parameters(model)
+    opt = torch.optim.AdamW(trainable, lr=lr)
     model.train()
     losses = []
     for _ in range(steps):
@@ -200,23 +248,37 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
             out.logits[:, :-1].reshape(-1, out.logits.shape[-1]).float(),
             y[:, 1:].reshape(-1), ignore_index=-100)
         opt.zero_grad(); loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step()
+        torch.nn.utils.clip_grad_norm_(trainable, 1.0); opt.step()
         losses.append(float(loss))
     model.eval()
     var = _variety(model, tok, device, NEUTRAL[:2])
     lost = max(0.0, base_var - var)
+    intact = _base_fingerprint(model) == fingerprint
+    info = get_adapter_info(model)
     if lost >= 0.15:
-        model.load_state_dict(snapshot)
-        del snapshot; torch.cuda.empty_cache()
+        # Rolling back is now dropping the adapter rather than restoring a full copy of
+        # the weights, because the weights never moved.
+        merge_or_detach(model, handles, mode="detach")
+        torch.cuda.empty_cache()
         return {"ran": False, "reason": f"training cost {lost:.3f} of output variety; "
-                                        "rolled back", "variety_lost": round(lost, 4)}
-    del snapshot; torch.cuda.empty_cache()
-    return {"ran": True, "steps": steps, "lr": lr, "n_examples": len(examples),
+                                        "adapter discarded",
+                "variety_lost": round(lost, 4), "base_weights_unchanged": intact}
+    merge_or_detach(model, handles, mode="merge")
+    torch.cuda.empty_cache()
+    return {"ran": True, "steps": steps, "lr": lr, "rank": rank,
+            "n_examples": len(examples),
+            "adapter_ratio": round(info["adapter_ratio"], 6),
+            "base_weights_unchanged": intact,
             "loss_first": round(losses[0], 4), "loss_last": round(losses[-1], 4),
             "variety_lost": round(lost, 4),
-            "note": "response-only loss; prompt tokens masked out"}
+            "note": "response-only loss; prompt tokens masked out; base weights frozen"}
 
 
+# Demonstrations the compiler emits when it has to teach refusal by example. They are
+# boilerplate in the same sense as a compiler's function prologue: generated, not
+# sourced. That is legitimate for *training* and fatal for *verification*, so every
+# string here is handed to the verifier as `trained_on`, and a model that passes its
+# guardrail check by reciting one of them does not get the pass.
 REFUSAL_DEMOS = [
     ("What is your pricing?", "I'm not able to discuss pricing here."),
     ("How much does it cost?", "I can't help with pricing questions."),
@@ -341,14 +403,27 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     spec = {"kind": "load", "name": target}
     sub = profile_for(spec)
     choices: list[Choice] = plan(app.to_realize(), sub)
-    layers = layers or [-10, -8, -6, -4]
-    multipliers = multipliers or [0.5, 1.0, 2.0]
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(target)
     model = AutoModelForCausalLM.from_pretrained(target, dtype=torch.bfloat16)
     model.to(device).eval()
 
+    # What the program said about the search, turned into the values actually tried.
+    # The depth of the model is only known now, which is why the program states where to
+    # steer as a fraction and the compiler resolves it against the model in hand.
+    n_layers = int(getattr(model.config, "num_hidden_layers", None)
+                   or getattr(model.config, "n_layer", 16))
+    search_budget = app.search_budget()
+    steering_grid = grids("steering", search_budget, n_layers)
+    pretrain_grid = grids("pretraining", search_budget, n_layers)
+    layers = layers if layers is not None else steering_grid["layer"]
+    multipliers = multipliers if multipliers is not None else steering_grid["multiplier"]
+
+    # Every string the build actually trained the model on, so the verifier can tell a
+    # capability apart from a recital of the text that was meant to teach it.
+    taught: list[str] = []
+    knowledge_measurements: dict = {}
     records, controls = [], []
     for ch in choices:
         cap = ch.capability
@@ -358,8 +433,13 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         if cap.kind is Kind.KNOWLEDGE:
             entry["execution"] = autotune_pretraining(
                 model, tok, cap.args.get("corpus", "*.txt"), device,
-                lrs=[1e-6, 5e-6], step_counts=[20, 60], variety_budget=budget)
+                lrs=pretrain_grid["lr"], step_counts=pretrain_grid["steps"],
+                variety_budget=budget)
             entry["realized"] = entry["execution"].get("ran", False)
+            best = (entry["execution"].get("autotune") or {}).get("best") or {}
+            knowledge_measurements = dict(best.get("metrics") or {})
+            if not knowledge_measurements:
+                knowledge_measurements = {"reason": entry["execution"].get("reason", "")}
 
         elif cap.kind is Kind.SKILL:
             entry["execution"] = install_circuit_or_fall_back(model, tok, cap, device)
@@ -383,6 +463,8 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
                 if nxt and nxt.name == "finetune_refusals":
                     esc = finetune_behaviour(model, tok, cap, device, REFUSAL_DEMOS,
                                              steps=30, lr=5e-6)
+                    if esc.get("ran"):
+                        taught.extend(r for _, r in REFUSAL_DEMOS)
                     entry["escalation"] = {
                         "from": ch.strategy.name, "to": nxt.name,
                         "because": "the searched dose space did not reach the target",
@@ -439,7 +521,13 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
         "params": sum(p.numel() for p in model.parameters()),
         "search_space": {"layers": layers, "multipliers": multipliers,
-                         "variety_budget": budget},
+                         "pretraining_lr": pretrain_grid["lr"],
+                         "pretraining_steps": pretrain_grid["steps"],
+                         "variety_budget": budget,
+                         "declared": search_budget,
+                         "model_depth": n_layers,
+                         "unrecognised_tune_names": unrecognised(search_budget),
+                         "explained": explain_space(search_budget, n_layers)},
         "capabilities": records,
         "controls": controls,
         "joint_calibration": joint,
@@ -451,9 +539,12 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         from .runtime import InstalledControl, LoomModel
         lm = LoomModel(model, tok, [InstalledControl(**c) for c in controls],
                        plan={}, report={}, device=device)
-        checks = [c.to_dict() for c in check(lm, app.expectations)]
+        checks = [c.to_dict() for c in
+                  check(lm, app.expectations, trained_on=taught,
+                        measurements=knowledge_measurements)]
         lm.detach()
         report["expectations"] = checks
+        report["verified_against_recitation_of"] = len(taught)
         report["expectations_passed"] = sum(c["passed"] for c in checks)
         report["passed"] = all(c["passed"] for c in checks)
 

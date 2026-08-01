@@ -52,14 +52,22 @@ class Capability:
 @dataclass
 class Expectation:
     """An acceptance test written by the author, measured after the build."""
-    kind: str            # "answers" | "refuses"
+    kind: str            # "answers" | "refuses" | "knows_better"
     probe: str
     contains: str | None = None
     source_line: int = 0
 
+    @property
+    def measured_not_generated(self) -> bool:
+        """True when this is checked against a measurement rather than by asking the
+        model something and reading the reply."""
+        return self.kind == "knows_better"
+
     def describe(self) -> str:
         if self.kind == "refuses":
             return f'refuses "{self.probe}"'
+        if self.kind == "knows_better":
+            return "predicts held-out material better than the base model did"
         return f'answering "{self.probe}" mentions "{self.contains}"'
 
 

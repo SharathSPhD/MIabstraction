@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+from .design_space import explain as explain_space
 from .lowering import plan
 from .parse import AppSyntaxError, parse_program
 from .substrate import profile_for
@@ -22,6 +23,26 @@ from .substrate import profile_for
 
 def _target_name(spec: dict) -> str:
     return spec.get("name", f"scratch({spec.get('size', 'small')})")
+
+
+def _depth_of(spec: dict) -> int:
+    """How deep the model will be — needed because the program says where to steer as a
+    fraction of depth, and that only becomes a layer index once the model is known.
+
+    For an open-weight target this reads the published config, which is a few kilobytes
+    of JSON rather than the weights. If that is not available (no network, private repo)
+    the plan is still printed, against a stated assumption, because `explain` is meant to
+    work before you have committed to anything.
+    """
+    if spec.get("kind") == "scratch":
+        return {"small": 6, "medium": 12}.get(spec.get("size", "small"), 6)
+    try:
+        from transformers import AutoConfig
+        cfg = AutoConfig.from_pretrained(spec["name"])
+        return int(getattr(cfg, "num_hidden_layers", None)
+                   or getattr(cfg, "n_layer", 16))
+    except Exception:
+        return 16
 
 
 def cmd_explain(path: str) -> int:
@@ -42,6 +63,11 @@ def cmd_explain(path: str) -> int:
             print(f"{'':<46}    {ch.reason}")
             for name, why in ch.rejected:
                 print(f"{'':<46}    (not {name}: {why})")
+        # What will be searched, and why there is a search at all. A C programmer can
+        # read the assembly before blaming the optimizer; this is the equivalent, and it
+        # matters more here because the build is empirical rather than deterministic.
+        print("\n  " + explain_space(app.search_budget(), _depth_of(build.spec))
+              .replace("\n", "\n  "))
         if app.expectations:
             print("\n  will be checked against:")
             for e in app.expectations:

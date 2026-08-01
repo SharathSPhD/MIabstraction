@@ -55,6 +55,8 @@ _NEVER = re.compile(r"^never\s+(.+)$")
 _REFUSES = re.compile(r"^refuses\s+(.+)$")
 _EXP_ANS = re.compile(r"^expect\s+answers\(\"([^\"]*)\"\)\s+mentions\s+\"([^\"]*)\"$")
 _EXP_REF = re.compile(r"^expect\s+refuses\(\"([^\"]*)\"\)$")
+_EXP_KNOWS = re.compile(
+    r"^expect\s+knows\s+(?:the\s+)?material\s+better\s+than\s+the\s+base\s+model$")
 _SCRATCH = re.compile(r"^scratch\s*\(([^)]*)\)$")
 _TUNE = re.compile(r"^tune\s+(\w+)\s+(?:from|between)\s+(.+)$")
 _EFFORT = re.compile(r"^effort\s+(quick|balanced|thorough)$")
@@ -145,6 +147,14 @@ def _clause(body: str, line: int) -> Capability | Expectation:
         # 1 to 8` bounds how much the model may be changed; it never names a rank or a
         # learning rate, because those are the compiler's business.
         return Capability(Kind.TUNING, m.group(1), _tune_values(m.group(2)), line)
+    if _EXP_KNOWS.match(body):
+        # The one acceptance test a knowledge capability can actually be held to. Asking
+        # a small model to recite a fact and grepping the answer for a keyword measures
+        # luck; asking whether it predicts unseen material from the same source better
+        # than it did before measures learning. This is what the person doing the job by
+        # hand would look at, so it is what the language lets you ask for.
+        return Expectation("knows_better", "held-out material from the app's corpus",
+                           None, line)
     if (m := _EXP_ANS.match(body)):
         return Expectation("answers", m.group(1), m.group(2), line)
     if (m := _EXP_REF.match(body)):
