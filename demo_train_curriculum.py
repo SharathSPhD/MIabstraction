@@ -46,8 +46,11 @@ def main():
 
     print(f"Vocabulary: {plan.vocab_plan.total_vocab} tokens")
     print(f"Attention-only: {plan.attn_only}")
+    print(f"Model layers: {spec.model['n_layers']}")
+    if plan.planner_decisions.get("conflict_detected"):
+        print(f"PLANNER DECISION: Skill conflict detected - {plan.planner_decisions['reason']}")
     for skill_name, n_seq in {k: v["n_seq_train"] for k, v in plan.datasets.items()}.items():
-        print(f"  {skill_name}: {n_seq:,} sequences")
+        print(f"  {skill_name}: {n_seq:,} sequences, weight={plan.mixing_weights[skill_name]:.2f}")
     print(f"Max steps: {plan.max_steps}, batch: {plan.batch_size}, lr: {plan.lr}\n")
 
     # Train
@@ -97,6 +100,7 @@ def main():
         "model_config": spec.model,
         "vocab_total": plan.vocab_plan.total_vocab,
         "attn_only": plan.attn_only,
+        "planner_decisions": plan.planner_decisions,
         "training": {
             "max_steps": plan.max_steps,
             "batch_size": plan.batch_size,
@@ -104,6 +108,7 @@ def main():
             "actual_steps": len(losses),
             "wall_clock_seconds": round(t_elapsed, 1),
         },
+        "mixing_weights": plan.mixing_weights,
         "per_skill_metrics": metrics,
         "gates": [
             {

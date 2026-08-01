@@ -48,6 +48,7 @@ class CurriculumPlan:
     device: str
     gate_metrics: dict[str, dict]  # skill_name -> {metric_name -> {op, threshold}}
     attn_only: bool  # Use attention-only architecture
+    planner_decisions: dict = field(default_factory=dict)  # Compiler planning decisions
 
     def to_dict(self) -> dict:
         return {
@@ -67,6 +68,8 @@ class CurriculumPlan:
 
 class InductionCompiler:
     """Compile induction skill: gapped doubled sequences (E2-proven)."""
+
+    needs_mlp = False  # Induction works fine with attention-only
 
     def __init__(
         self,
@@ -156,6 +159,8 @@ class InductionCompiler:
 class StateTrackingCompiler:
     """Compile state tracking (Mess3)."""
 
+    needs_mlp = False  # State tracking works without MLPs
+
     def __init__(
         self,
         seq_len: int = 32,
@@ -201,6 +206,8 @@ class StateTrackingCompiler:
 
 class ClassifyCompiler:
     """Compile classify (token parity) task."""
+
+    needs_mlp = True  # Classification REQUIRES nonlinearity (MLPs)
 
     def __init__(
         self,
@@ -289,19 +296,30 @@ def compile_curriculum(
     lr: float = 1e-3,
     device: str = "cuda",
 ) -> CurriculumPlan:
-    """Compile a WeaveSpec into a CurriculumPlan using E2-proven hyperparameters."""
+    """Compile a WeaveSpec into a CurriculumPlan with skill-conflict detection.
+
+    PLANNER DECISIONS:
+    - Detects if any skill needs MLPs (classify: True; induction, state_tracking: False)
+    - If MLPs needed: uses full model, increases steps & layers to compensate induction
+    - Upweights tasks that require compensation (classify: 40%, others: 30%)
+    """
     vocab_plan = allocate_vocabulary(spec.skills)
 
     datasets = {}
     mixing_weights = {}
     gate_metrics = {}
     has_induction = False
+    needs_mlp_for_any = False
 
     skill_names = [s.name for s in spec.skills]
     n_skills = len(skill_names)
 
+    # PLANNER: Detect skill conflicts
+    skill_compilers_map = {}
+
     for skill in spec.skills:
         vocab_offset = vocab_plan.skills[skill.name]["token_start"]
+        compiler = None
 
         if skill.kind == "induction":
             has_induction = True
@@ -313,20 +331,13 @@ def compile_curriculum(
             datasets[skill.name] = {
                 "kind": "induction",
                 "compiler": compiler,
-                "n_seq_train": 200000,  # E2 uses 200k!
+                "n_seq_train": 200000,
                 "n_seq_eval": 256,
-            }
-            mixing_weights[skill.name] = 1.0 / n_skills
-            gate_metrics[skill.name] = {
-                m.metric: {"op": m.op, "threshold": m.threshold}
-                for m in spec.gates_for(skill.name)
             }
 
         elif skill.kind == "state_tracking":
             compiler = StateTrackingCompiler(
-                seq_len=32,
-                x=0.05,
-                a=0.85,
+                seq_len=32, x=0.05, a=0.85,
                 vocab_offset=vocab_offset,
                 task_token=vocab_plan.task_tokens[skill.name],
             )
@@ -336,16 +347,10 @@ def compile_curriculum(
                 "n_seq_train": 2048,
                 "n_seq_eval": 256,
             }
-            mixing_weights[skill.name] = 1.0 / n_skills
-            gate_metrics[skill.name] = {
-                m.metric: {"op": m.op, "threshold": m.threshold}
-                for m in spec.gates_for(skill.name)
-            }
 
         elif skill.kind == "classify":
             compiler = ClassifyCompiler(
-                seq_len=32,
-                vocab_offset=300,
+                seq_len=32, vocab_offset=300,
                 task_token=vocab_plan.task_tokens[skill.name],
             )
             datasets[skill.name] = {
@@ -354,11 +359,50 @@ def compile_curriculum(
                 "n_seq_train": 4096,
                 "n_seq_eval": 256,
             }
-            mixing_weights[skill.name] = 1.0 / n_skills
+
+        if compiler is not None:
+            skill_compilers_map[skill.name] = compiler
+            if compiler.needs_mlp:
+                needs_mlp_for_any = True
+
             gate_metrics[skill.name] = {
                 m.metric: {"op": m.op, "threshold": m.threshold}
                 for m in spec.gates_for(skill.name)
             }
+
+    # PLANNER DECISION: Resolve skill conflicts
+    planner_decisions = {
+        "conflict_detected": needs_mlp_for_any and has_induction,
+        "needs_mlp": needs_mlp_for_any,
+        "reason": "Classification requires MLPs (nonlinearity); induction compensated with more steps and layers"
+        if (needs_mlp_for_any and has_induction)
+        else None,
+    }
+
+    # Adjust hyperparameters if conflict detected
+    if needs_mlp_for_any:
+        attn_only = False
+        # Compensate induction with more steps (25k-35k range)
+        if max_steps == 20000:
+            max_steps = 30000
+        # Increase model capacity (5-6 layers)
+        if "n_layers" in spec.model and spec.model["n_layers"] == 4:
+            spec.model["n_layers"] = 6
+    else:
+        attn_only = has_induction
+
+    # Upweight tasks that need compensation
+    if needs_mlp_for_any:
+        # 40/30/30 split: classify gets extra weight
+        for skill_name in datasets.keys():
+            if datasets[skill_name]["kind"] == "classify":
+                mixing_weights[skill_name] = 0.4
+            else:
+                mixing_weights[skill_name] = 0.3
+    else:
+        # Equal weights if no conflict
+        for skill_name in datasets.keys():
+            mixing_weights[skill_name] = 1.0 / len(datasets)
 
     return CurriculumPlan(
         vocab_plan=vocab_plan,
@@ -370,7 +414,8 @@ def compile_curriculum(
         seed=spec.seed,
         device=device,
         gate_metrics=gate_metrics,
-        attn_only=has_induction,  # Use attn_only if induction is present
+        attn_only=attn_only,
+        planner_decisions=planner_decisions,
     )
 
 
