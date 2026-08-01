@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIabstraction — programming the transformer</title>
+<style>
+:root{
+  --paper:#FAFAF8; --panel:#F2F1EC; --ink:#20242E; --muted:#6A6E7A;
+  --thread:#3B4CC0; --thread-deep:#2A3690; --thread-tint:#E7E9F8;
+  --pass:#2E7D4F; --pass-bg:#E4F0E8; --fail:#B3402E; --fail-bg:#F6E5E1;
+  --warn:#9A6B12; --warn-bg:#F5EDDA; --line:#DDDCD4;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 var(--sans)}
+main{max-width:76rem;margin:0 auto;padding:0 1.5rem 6rem}
+h1,h2,h3{font-family:var(--serif);line-height:1.2;text-wrap:balance}
+h1{font-size:2.6rem;margin:.2em 0 .3em}
+h2{font-size:1.9rem;margin:2.6em 0 .5em;padding-top:.5em;border-top:3px solid var(--ink)}
+h3{font-size:1.25rem;margin:1.8em 0 .4em;color:var(--thread-deep)}
+h4{margin:.2em 0 .5em;font-size:1rem}
+p,li{max-width:68ch}
+a{color:var(--thread)}
+code,.num{font-family:var(--mono);font-size:.92em}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--thread)}
+.lede{font-size:1.15rem;max-width:64ch;color:#3A3F4C}
+.muted{color:var(--muted)}
+nav{position:sticky;top:0;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:5;padding:.55rem 1.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.85rem}
+nav a{text-decoration:none;color:var(--ink)}
+nav a:hover,nav a:focus-visible{color:var(--thread)}
+nav b{color:var(--thread-deep);font-family:var(--serif)}
+header.hero{padding:3.5rem 0 1rem}
+.statusline{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0;font-size:.85rem}
+.chip{display:inline-block;padding:.12rem .6rem;border-radius:2px;font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.chip.pass{background:var(--pass-bg);color:var(--pass)}
+.chip.fail{background:var(--fail-bg);color:var(--fail)}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.pend{background:var(--panel);color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:.4rem .7rem}
+td{padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+.tablewrap{overflow-x:auto;margin:1rem 0}
+figure{margin:1.6rem 0;background:#fff;border:1px solid var(--line);padding:.8rem}
+figure img{max-width:100%;height:auto;display:block}
+figcaption{font-size:.83rem;color:var(--muted);padding-top:.6rem;max-width:75ch}
+.pbar{display:grid;grid-template-columns:11rem 1fr 3rem;gap:.8rem;align-items:center;margin:.35rem 0}
+.pl{font-family:var(--mono);font-size:.78rem}
+.pt{background:var(--panel);height:.85rem;position:relative}
+.pt i{display:block;height:100%}
+.pt i.hi{background:var(--pass)} .pt i.mid{background:var(--warn)} .pt i.lo{background:var(--fail)}
+.pt::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px dashed var(--muted)}
+.pv{font-family:var(--mono);font-size:.82rem;text-align:right}
+.stack{display:flex;flex-direction:column;gap:0;margin:1.4rem 0;max-width:30rem}
+.stack .lay{border:1.5px solid var(--ink);padding:.5rem .9rem;background:#fff;font-size:.9rem;position:relative}
+.stack .lay+.lay{border-top:0}
+.stack .lay.new{background:var(--thread-tint);border-left:4px solid var(--thread)}
+.stack .lay small{display:block;color:var(--muted);font-size:.76rem}
+.stackrow{display:flex;gap:2.5rem;flex-wrap:wrap;align-items:flex-start}
+.pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1.4rem 0}
+.pipe .st{background:#fff;border:1.5px solid var(--ink);padding:.5rem .8rem;font-size:.85rem;min-width:8.5rem}
+.pipe .st b{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--thread-deep)}
+.pipe .arr{align-self:center;color:var(--thread);font-size:1.2rem}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));gap:1rem;margin:1.2rem 0}
+.card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--thread);padding:1rem 1.2rem}
+.card.trap{border-top-color:var(--fail)}
+.card h4{font-family:var(--serif)}
+.loomcard{background:#fff;border:1px solid var(--line);padding:.9rem 1.1rem}
+.loomcard.building{border-style:dashed;color:var(--muted)}
+.mini td{padding:.25rem .5rem;font-size:.82rem;border-bottom:1px solid var(--panel)}
+.mini td.num{text-align:right}
+pre.weave{background:#252A38;color:#E8EAF2;padding:1.1rem 1.3rem;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.55;border-left:4px solid var(--thread)}
+pre.weave .c{color:#7C86A2} pre.weave .k{color:#8FB8FF} pre.weave .s{color:#A9D9A0}
+blockquote{border-left:3px solid var(--thread);margin:1.4rem 0;padding:.3rem 0 .3rem 1.1rem;color:#3A3F4C;font-family:var(--serif);font-size:1.05rem}
+.finding{background:var(--thread-tint);border-left:4px solid var(--thread);padding:.9rem 1.2rem;margin:1.3rem 0;max-width:72ch}
+.finding b{font-family:var(--serif)}
+footer{border-top:3px solid var(--ink);margin-top:4rem;padding-top:1rem;font-size:.83rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.legend{font-size:.8rem;color:var(--muted)}
+:focus-visible{outline:2px solid var(--thread);outline-offset:2px}
+</style>
+</head>
+<body>
+<nav aria-label="sections">
+  <b>MIabstraction</b>
+  <a href="#question">Question</a>
+  <a href="#method">Method</a>
+  <a href="#results">Results</a>
+  <a href="#lessons">Lessons</a>
+  <a href="#loom">Loom</a>
+  <a href="#steer">Steering</a>
+  <a href="https://github.com/SharathSPhD/MIabstraction">Repo ↗</a>
+</nav>
+<main>
+
+<header class="hero" id="top">
+  <div class="eyebrow">Live project mirror · build @@SHA@@ · @@NCOMMITS@@ commits · regenerated @@WHEN@@</div>
+  <h1>Programming the transformer</h1>
+  <p class="lede">Can the internals of a transformer be treated the way a compiler treats a
+  CPU — with variables, instructions, a debugger, and eventually a language a non-expert can
+  program in? This project answers empirically: five preregistered experiments validate which
+  layers of the hypothetical "abstraction stack" are real, and <strong>Loom</strong>, a
+  prototype programming layer, is being built on the layers that survived.</p>
+
+  <h3>Current belief per hypothesis <span class="legend">(independent posteriors; dashed line = 0.5 prior)</span></h3>
+  @@POSTERIOR_BARS@@
+</header>
+
+<section id="question">
+<h2>1 · The question</h2>
+<p>Modern computing is a tower of abstractions: application → language → compiler → assembly
+→ instruction set → silicon. Every layer was <em>designed</em>. A transformer has no such
+tower — it jumps from linear algebra straight to application, and the middle is missing:</p>
+
+<div class="stackrow">
+  <div>
+    <h4>CPU stack (designed)</h4>
+    <div class="stack">
+      <div class="lay">Application</div>
+      <div class="lay">Language / Compiler</div>
+      <div class="lay">Assembly / ISA</div>
+      <div class="lay">Microarchitecture</div>
+      <div class="lay">Silicon</div>
+    </div>
+  </div>
+  <div>
+    <h4>Transformer stack (today)</h4>
+    <div class="stack">
+      <div class="lay">Application</div>
+      <div class="lay">Prompt<small>hope, not control</small></div>
+      <div class="lay" style="border-style:dashed;color:var(--muted)">??? <small>the missing middle</small></div>
+      <div class="lay">Linear algebra</div>
+      <div class="lay">GPU</div>
+    </div>
+  </div>
+  <div>
+    <h4>The stack under test</h4>
+    <div class="stack">
+      <div class="lay">Application</div>
+      <div class="lay new">Loom program<small>skills · controls · monitors · gates</small></div>
+      <div class="lay new">Circuits<small>instructions — H2</small></div>
+      <div class="lay new">Representation geometry<small>variables — H1</small></div>
+      <div class="lay new">Features / probes<small>debugger — H3, H4</small></div>
+      <div class="lay new">Weight structure<small>machine code — H5</small></div>
+      <div class="lay">Transformer weights</div>
+      <div class="lay">GPU</div>
+    </div>
+  </div>
+</div>
+
+<p>The literature synthesis that seeded this project concluded the layer, if it exists, is
+<em>plural and leaky</em> — not one clean instruction set but several partial descriptions,
+each with a measurable failure fraction ("leak budget"). That claim was turned into five
+falsifiable hypotheses with numeric refutation thresholds, then tested on a single
+NVIDIA GB10 with small transformers whose ground truth we control.</p>
+</section>
+
+<section id="method">
+<h2>2 · The method</h2>
+<div class="pipe">
+  <div class="st"><b>Spec</b>Falsifiable claims, thresholds preregistered</div><div class="arr">→</div>
+  <div class="st"><b>Config</b>Every hyperparameter in YAML, none in code</div><div class="arr">→</div>
+  <div class="st"><b>TDD</b>Tests before code, 130+ green</div><div class="arr">→</div>
+  <div class="st"><b>Run</b>GPU experiments, deterministic kernels</div><div class="arr">→</div>
+  <div class="st"><b>Audit</b>Adversarial agent re-derives every verdict</div><div class="arr">→</div>
+  <div class="st"><b>Replicate</b>Multi-seed; zero variance = red flag</div><div class="arr">→</div>
+  <div class="st"><b>Synthesize</b>Bayesian update → this page</div>
+</div>
+<p>Three auxiliary engines steered the work: a <strong>TRIZ contradiction analysis</strong>
+(interpretability ↔ capability; imposed ↔ discovered structure) generated the experiment
+variants; an <strong>active-inference selector</strong> ranked candidate experiments by
+expected information gain per GPU-minute; and a <strong>ralph loop</strong> re-entered every
+experiment until its verdict was grounded in a committed artifact — no result below was
+accepted on first pass.</p>
+</section>
+
+<section id="results">
+<h2>3 · Results</h2>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Experiment</th><th>Question</th><th>Verdict</th><th>Replication</th></tr></thead>
+<tbody>
+@@VERDICT_ROWS@@
+</tbody>
+</table>
+</div>
+
+<h3>E1 — Geometry: the layer that held</h3>
+<p>A 4-layer transformer trained on the Mess3 hidden-Markov process embeds the process's
+belief-state simplex in its residual stream, linearly readable at
+<strong>R² = @@E1_R2@@</strong>. The decisive control: an <em>untrained</em> network already
+probes at @@E1_CTRL@@ (random features memorize recent tokens), and the last-8-tokens
+baseline explains @@E1_WIN@@. The signal is the <em>incremental</em> R² beyond that window —
+<strong>@@E1_INC@@ trained vs @@E1_INCC@@ untrained</strong>, a ~96× gap. The fractal
+geometry is visible by eye:</p>
+@@IMG_E1@@
+
+<h3>E2 — Circuits: real, discrete, and shortcut-prone</h3>
+<p>Induction (in-context copying) forms as a phase transition: prefix-matching attention
+rises to <strong>@@E2_SCORE@@</strong> inside @@E2_WF@@ of training, co-timed with the
+in-context loss collapsing to near zero — and it lives in layer 2 only
+(@@E2_L2@@ vs @@E2_L1@@ in layer 1), the classic two-layer composition. The route was the
+finding: the first design used fixed-offset repetition and got <em>perfect copying with zero
+induction attention</em> — a positional shortcut. Randomizing the gap destroyed the shortcut
+and the true circuit appeared.</p>
+@@IMG_E2@@
+
+<h3>E3 &amp; E4 — Features: descriptive, not canonical</h3>
+<p>E3 asked whether SAE quality metrics can even tell a trained model from a random one
+(they failed to in the literature). Here they separated at <strong>@@E3_SIG@@σ</strong> —
+but in the <em>wrong direction</em>: the random model reconstructs more easily
+(FVU @@E3_FR@@ vs @@E3_FT@@) because its activations are low-dimensional. The metric scores
+reconstructability, not learned structure. E4: on known concepts, a plain logistic probe on
+raw activations ties the SAE probe on belief-region (@@E4_RB@@ vs @@E4_SB@@) and loses
+slightly on entropy (@@E4_RE@@ vs @@E4_SE@@) — <strong>parity, not superiority</strong>,
+replicated at a gap of 0.001 ± 0.002.</p>
+@@IMG_E3@@
+@@IMG_E4@@
+
+<h3>E5 — Weights: undecidable as measured, and that is the result</h3>
+<p>Training at 80% weight sparsity kept @@E5_ACC@@ accuracy with a perfectly faithful
+extracted circuit — sparsity is nearly free. But the headline "4.8× smaller circuit"
+deflated on replication: the weight ratio (@@E5_WR@@), an independent edge-level ratio
+(@@E5_ER@@), and the <em>imposed sparsity knob</em> (q = @@E5_Q@@) are the same number,
+with zero variance across seeds. Every size metric we built measures the hyperparameter,
+not the learned mechanism. The experiment now self-reports this
+(<code>size_metrics_are_tautological</code>) and its posterior is pinned at the 0.5 prior —
+passing an uninformative test is not evidence.</p>
+@@IMG_E5@@
+</section>
+
+<section id="lessons">
+<h2>4 · What almost fooled us</h2>
+<p>Every positive result was one control away from being wrong. These four failure modes
+were each caught live, on systems whose ground truth we knew — which is precisely why toy
+models first:</p>
+<div class="grid2">
+  <div class="card trap"><h4>The reservoir effect</h4>
+  <p>An <em>untrained</em> network probed belief state at R² 0.887 — random features over
+  recent tokens explain almost everything. Any probe result without an untrained control
+  and a trivial-baseline comparison is unfounded.</p></div>
+  <div class="card trap"><h4>The positional shortcut</h4>
+  <p>Perfect in-context copying with zero induction attention: fixed-offset repetition is
+  solvable from positional embeddings alone. A behavioral metric certified a capability the
+  mechanism did not implement.</p></div>
+  <div class="card trap"><h4>GPU non-determinism</h4>
+  <p>Identical runs moved a headline accuracy by 7 points (0.786 → 0.857) — enough to flip
+  a verdict. Seeding is not enough: the memory-efficient attention backward pass is
+  non-deterministic; the math backend must be pinned before CUDA initializes.</p></div>
+  <div class="card trap"><h4>The tautological metric</h4>
+  <p>"Sparse circuits are 4.8× smaller" was the sparsity knob echoed back. The tell:
+  <em>zero variance across seeds</em>. A result that reproduces perfectly may be
+  reproducing a constant.</p></div>
+</div>
+<div class="finding"><b>Standing rule, now enforced in code:</b> the pipeline flags
+seed-invariant metrics, refuses to count tautological passes as evidence, verifies that
+support rules in code match the preregistered thresholds, and never lets the test suite
+write into real results.</div>
+</section>
+
+<section id="loom">
+<h2>5 · Loom — building the layer</h2>
+<p class="lede">Validation said which layers are load-bearing. Loom is the constructive
+step: a language in which a person who has never heard of gradients declares <em>what the
+model must do</em>, and a compiler either delivers a <strong>verified</strong> model or
+refuses with a diagnosis. The compiler's contract is the project's central lesson turned
+into software: no capability ships unverified.</p>
+
+<pre class="weave"><span class="c"># hello_transformer.weave.yaml — a program, not a config:</span>
+<span class="c"># the author never mentions losses, layers, or learning rates</span>
+<span class="k">skills:</span>
+  - <span class="k">name:</span> <span class="s">copy_patterns</span>   <span class="k">kind:</span> <span class="s">induction</span>
+  - <span class="k">name:</span> <span class="s">track_state</span>     <span class="k">kind:</span> <span class="s">state_tracking</span>  <span class="k">world:</span> <span class="s">mess3</span>
+  - <span class="k">name:</span> <span class="s">parity</span>          <span class="k">kind:</span> <span class="s">classify</span>  <span class="k">concept:</span> <span class="s">token_parity</span>
+<span class="k">controls:</span>
+  - <span class="k">name:</span> <span class="s">never_token_2</span>   <span class="k">kind:</span> <span class="s">suppress</span>  <span class="k">token:</span> <span class="s">2</span>
+<span class="k">monitors:</span>
+  - <span class="k">name:</span> <span class="s">state_monitor</span>   <span class="k">kind:</span> <span class="s">probe</span>  <span class="k">concept:</span> <span class="s">belief_state</span>
+<span class="k">gates:</span>                    <span class="c"># the promise — build FAILS unless all hold</span>
+  <span class="k">copy_patterns:</span>  <span class="s">{prefix_score: ">0.5", icl_loss: "<0.5"}</span>
+  <span class="k">track_state:</span>    <span class="s">{probe_r2: ">0.9"}</span>
+  <span class="k">parity:</span>         <span class="s">{accuracy: ">0.95"}</span>
+  <span class="k">never_token_2:</span>  <span class="s">{suppression_ratio: ">0.9", side_effect: "<0.1"}</span></pre>
+
+<div class="pipe">
+  <div class="st"><b>Parse</b>weave.yaml → typed spec; ungated skills refused</div><div class="arr">→</div>
+  <div class="st"><b>Plan</b>joint vocabulary, curriculum, backend per skill</div><div class="arr">→</div>
+  <div class="st"><b>Build</b>curriculum · constructed · runtime backends</div><div class="arr">→</div>
+  <div class="st"><b>Verify</b>every gate measured with its controls</div><div class="arr">→</div>
+  <div class="st"><b>Ship or refuse</b>report.json with evidence, or diagnosis</div>
+</div>
+
+<h3>Backend status <span class="legend">(auto-updates as builds land)</span></h3>
+<div class="grid2">
+@@LOOM_DYNAMIC@@
+</div>
+
+<h3>How each validated layer became a language feature</h3>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Evidence</th><th>Loom feature</th><th>Guarantee inherited from validation</th></tr></thead>
+<tbody>
+<tr><td>H1 geometry (R²=@@E1_R2@@)</td><td><code>monitors: probe</code> — named readable state</td><td>gates use incremental-R², immune to the reservoir effect</td></tr>
+<tr><td>H2 circuits (score @@E2_SCORE@@)</td><td><code>skills: induction</code></td><td>gate is mechanism-level and shortcut-hardened (variable gaps)</td></tr>
+<tr><td>H4 probe parity</td><td>probes, not SAEs, as the default debugger</td><td>simplest instrument that matched every alternative</td></tr>
+<tr><td>E5 sparsity ~free</td><td>headroom for <code>constructed</code> weights backend</td><td>size claims must pass the tautology check</td></tr>
+<tr><td>Steering literature + E4</td><td><code>controls: suppress/amplify</code></td><td>side-effect budget is a mandatory gate, not an option</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="steer">
+<h2>6 · Steering — the open decisions</h2>
+<ul>
+<li><strong>H5 needs a non-weight-counting ruler.</strong> Causal edge pruning or
+description length of the extracted algorithm; until then the weights layer stays at its
+prior.</li>
+<li><strong>Scale jump:</strong> re-run E3/E4 on a real LM (Pythia-160M) where the
+random-model control has its intended meaning; port a Loom monitor to it.</li>
+<li><strong>Loom expressiveness:</strong> v0 has 3 skill kinds, 2 control kinds, 1 monitor
+kind. The next kinds should come from what a real user asks for, not from what is easy.</li>
+<li><strong>Constructed backend:</strong> if pure hand-compiled induction passes its gates,
+the "compiler emits machine code" claim is proven at toy scale; the follow-up is
+composing two constructed skills in one model.</li>
+</ul>
+<blockquote>The test of the paradigm is not whether experts find Loom elegant — it is
+whether a person who cannot define "residual stream" can get a model that verifiably does
+what they asked, and a refusal they can understand when it cannot.</blockquote>
+</section>
+
+<footer>
+  <span>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a></span>
+  <span>Regenerate with <code>python -m miabstraction.site</code> · build @@SHA@@ · @@WHEN@@</span>
+</footer>
+</main>
+</body>
+</html>
