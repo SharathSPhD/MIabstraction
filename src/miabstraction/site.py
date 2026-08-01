@@ -119,6 +119,8 @@ def loom_section_dynamic() -> str:
     blocks = []
     demos = {
         "results/loom_curriculum_demo.json": "Curriculum backend (skills → training)",
+        "results/loom_link_demo.json": "ABI + linker (separate compilation)",
+        "results/loom_port_demo.json": "Port backend (frozen open weights)",
         "results/loom_runtime_demo.json": "Runtime backend (controls & monitors)",
         "results/loom_constructed_demo.json": "Constructed backend (weights by hand)",
         "results/loom_e2e_report.json": "End-to-end weave build",
