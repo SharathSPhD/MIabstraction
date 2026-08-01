@@ -34,13 +34,13 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}\n")
 
-    # Compile curriculum with E2-proven hyperparameters
-    print("Compiling curriculum...")
+    # Compile curriculum with round-3 recipe: MLPs enabled, 6 layers, 30k steps
+    print("Compiling curriculum (round-3 recipe)...")
     plan = compile_curriculum(
         spec,
-        max_steps=20000,  # E2 used 20000
-        batch_size=256,   # E2 used 256
-        lr=1e-3,          # E2 used 0.001
+        max_steps=30000,  # Round-3 recipe: up to 30k steps
+        batch_size=256,   # Batch 256
+        lr=1e-3,          # Learning rate 1e-3
         device=device,
     )
 

@@ -190,6 +190,24 @@ class TestVocabularyPlan:
 class TestCompileCurriculum:
     """Test curriculum compilation."""
 
+    def test_compile_parity_concept_raises_refusal(self):
+        """Verify that compile_curriculum() on a weave with token_parity concept raises CompileRefusal."""
+        spec = WeaveSpec(
+            model={"d_model": 64, "n_layers": 2, "n_heads": 4, "max_len": 64},
+            skills=[Skill(name="parity_test", kind="classify", concept="token_parity")],
+            gates=[],
+            seed=42,
+        )
+
+        with pytest.raises(CompileRefusal) as exc_info:
+            compile_curriculum(spec, max_steps=100, batch_size=16)
+
+        # Verify the error message is readable and contains diagnostic info
+        error_msg = str(exc_info.value)
+        assert "token_parity" in error_msg
+        assert "cannot be compiled" in error_msg.lower()
+        assert "majority" in error_msg  # Should suggest alternative
+
     def test_compile_single_skill(self):
         """Verify compilation of a single-skill weave."""
         spec = WeaveSpec(

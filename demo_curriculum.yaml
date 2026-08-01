@@ -1,23 +1,23 @@
 name: curriculum_demo
-model: {size: small}
+model: {size: medium}
 
 skills:
-  - name: copy_patterns
+  - name: induction
     kind: induction
-  - name: track_state
+  - name: state_tracking
     kind: state_tracking
     world: mess3
-  - name: majority_detect
+  - name: classify
     kind: classify
     concept: majority
 
 gates:
-  copy_patterns:
+  induction:
     prefix_score: ">0.5"
     icl_loss: "<0.5"
-  track_state:
+  state_tracking:
     probe_r2: ">0.9"
-  majority_detect:
+  classify:
     accuracy: ">0.95"
 
 seed: 42
