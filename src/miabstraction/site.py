@@ -132,6 +132,12 @@ def build_html() -> str:
         HOOD_PLAN=charts.plan_detail(hood_plan.get("capabilities", [])),
         HOOD_ARCH=charts.model_architecture(demo.get("model_config", {}), clinic),
         HOOD_TRIALS=charts.search_trials(clinic),
+        HOOD_GUARD=(
+            "the side-effect guard reads output variety in steps of "
+            f"{clinic['side_effect_guard']['resolution']:.4f}, against a budget of "
+            f"{clinic['side_effect_guard']['budget']}"
+            if clinic.get("side_effect_guard") else
+            "not yet measured — no build has recorded its guard resolution"),
         HOOD_SPACE=(clinic.get("search_space", {}).get("explained")
                     or "not yet measured — no build has recorded its search space"),
         DATA_PROV=charts.data_provenance(manifests),

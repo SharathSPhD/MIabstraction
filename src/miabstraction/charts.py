@@ -308,6 +308,15 @@ def search_trials(report: dict) -> str:
         # capability and a control for its kind, so it belongs next to the numbers.
         if at.get("direction_from"):
             caption += f'. Direction: {at["direction_from"]}'
+        sc = at.get("scale") or {}
+        if sc.get("gap"):
+            # What the target actually means for this capability, in the same units as
+            # the bars, so "target not met" is a distance rather than a verdict.
+            caption += (f'. Stating the rule outright is worth {sc["gap"]:.4f} nats here; '
+                        f'the program asks a control to recover {sc["must_recover"]:.0%} '
+                        f'of that ({sc["target_nats"]:.4f})')
+        if at.get("recovered") is not None:
+            caption += f'; best recovered {at["recovered"]:.0%}'
         blocks.append(
             f'<figure class="chartbox"><svg viewBox="0 0 {w} {h}" '
             f'role="img" aria-label="{caption}">'

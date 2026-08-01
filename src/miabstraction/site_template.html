@@ -418,6 +418,11 @@ compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
   rank or a learning rate. Those are the compiler's, and this is the full list of them:</p>
   <pre class="space">@@HOOD_SPACE@@</pre>
 
+  <p class="small muted">A budget is only as real as the measurement enforcing it:
+  @@HOOD_GUARD@@. Measured too coarsely, a guard rejects by rounding rather than by
+  evidence — which is exactly what it was doing until the readings stopped clustering on
+  one value.</p>
+
   <p>Every bar below is one real configuration that was run. Green is what shipped; a
   struck-through bar is a trial that a budget refused however well it scored, which is the
   entire reason this is a search and not an argmax.</p>
