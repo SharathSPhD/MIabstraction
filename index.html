@@ -145,7 +145,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 8853fa6 · 110 commits · regenerated 2026-08-01 19:38 UTC</div>
+    <div class="eyebrow">build 58b0497 · 112 commits · regenerated 2026-08-01 19:47 UTC</div>
     <h1>Programming the transformer</h1>
     <p class="lede">Today you build a language model by collecting data, running gradient
     descent, and hoping. There is no layer in between where you state what the model must
@@ -162,7 +162,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
     <h4>Where the project stands</h4>
     <div class="statusRow"><span>Experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
 <div class="statusRow"><span>Backends compiling</span><b><span class="chip pass">3 of 4 verified</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">40 of 40</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">46 of 46</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
 <div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pass">complete</span></b></div>
 <div class="statusRow"><span>Test suite</span><b><span class="chip pass">215 passing</span></b></div>
@@ -787,6 +787,12 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>The same program, executed on a hybrid state-space stack built here: can a declared feature be read off it?</td><td class='num'>0.917</td><td><code>results/loom_two_substrates.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…and on a downloaded 1.24B open-weight model, same source</td><td class='num'>1.000</td><td><code>results/loom_two_substrates.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…steering that feature on the open-weight substrate</td><td class='num'>0.0734</td><td><code>results/loom_two_substrates.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Compiling clinic.loom onto a downloaded 1.24B instruct model: held-out loss on medical text excluded from training, before adaptation</td><td class='num'>2.0562</td><td><code>results/loom_clinic_build.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…and after, with the downloaded weights frozen and the material in an adapter</td><td class='num'>2.0014</td><td><code>results/loom_clinic_build.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…share of the model's parameters the adaptation was allowed to move</td><td class='num'>0.243%</td><td><code>results/loom_clinic_build.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>The same program built from scratch instead: vocabulary learned from that corpus</td><td class='num'>6,487</td><td><code>results/loom_clinic_scratch.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…held-out perplexity of the model it trained, on sequences it never saw</td><td class='num'>143.6</td><td><code>results/loom_clinic_scratch.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…sequences of real medical text held out from its training</td><td class='num'>19</td><td><code>results/loom_clinic_scratch.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>Supervised fine-tuning on real dialogue: held-out response perplexity before</td><td class='num'>102.7</td><td><code>results/loom_sft_real.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…and after, with loss computed on response tokens only</td><td class='num'>47.0</td><td><code>results/loom_sft_real.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>Merging a base and instruct checkpoint beats both parents</td><td class='num'>14.69</td><td><code>results/loom_surgery_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
@@ -825,7 +831,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 8853fa6 · 2026-08-01 19:38 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 58b0497 · 2026-08-01 19:47 UTC</p>
 </div></footer>
 </body>
 </html>

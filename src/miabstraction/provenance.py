@@ -142,6 +142,26 @@ CLAIMS = [
     Claim("X3", "…steering that feature on the open-weight substrate",
           "results/loom_two_substrates.json",
           "substrates.B_open_weight.gates.1.measured", "{:.4f}"),
+    # One program, both substrates, on genuine specialist material (MedQuAD, published
+    # by the U.S. National Library of Medicine and not written for this project).
+    Claim("CL1", "Compiling clinic.loom onto a downloaded 1.24B instruct model: held-out "
+          "loss on medical text excluded from training, before adaptation",
+          "results/loom_clinic_build.json",
+          "capabilities.0.execution.autotune.best.metrics.heldout_loss_before",
+          "{:.4f}"),
+    Claim("CL2", "…and after, with the downloaded weights frozen and the material in an "
+          "adapter", "results/loom_clinic_build.json",
+          "capabilities.0.execution.autotune.best.metrics.heldout_loss_after", "{:.4f}"),
+    Claim("CL3", "…share of the model's parameters the adaptation was allowed to move",
+          "results/loom_clinic_build.json",
+          "capabilities.0.execution.autotune.best.metrics.adapter_ratio", "{:.3%}"),
+    Claim("CL4", "The same program built from scratch instead: vocabulary learned from "
+          "that corpus", "results/loom_clinic_scratch.json", "tokenizer_vocab_size",
+          "{:,.0f}"),
+    Claim("CL5", "…held-out perplexity of the model it trained, on sequences it never saw",
+          "results/loom_clinic_scratch.json", "val_ppl", "{:.1f}"),
+    Claim("CL6", "…sequences of real medical text held out from its training",
+          "results/loom_clinic_scratch.json", "pretraining.heldout_sequences", "{:,.0f}"),
     Claim("S1", "Supervised fine-tuning on real dialogue: held-out response perplexity "
           "before", "results/loom_sft_real.json", "heldout_ppl_before", "{:.1f}"),
     Claim("S2", "…and after, with loss computed on response tokens only",
