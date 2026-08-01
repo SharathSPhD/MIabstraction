@@ -220,7 +220,7 @@ else:
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
 # Load BabyLM corpus
-print(f"Loading {{'{corpus_name}' if '{corpus_name}' else 'synthetic'}} corpus...")
+print(f"Loading corpus: {corpus_name or '(none named — this run will stop)'}")
 try:
     from datasets import load_dataset
 
@@ -254,32 +254,19 @@ try:
             print(f"Warning: Could not split BabyLM corpus: {{e}}")
             raise
     else:
-        # Fallback: synthetic data
-        import random
-        random.seed(42)
-        vocab_size = 50257
-        seq_len = 1024
-        n_train = 10000
-        dataset = TensorDataset(
-            torch.randint(0, vocab_size, (n_train, seq_len))
-        )
-        val_dataset = TensorDataset(
-            torch.randint(0, vocab_size, (1000, seq_len))
+        raise RuntimeError(
+            "the corpus loaded but produced no usable split; refusing to continue"
         )
 except Exception as e:
-    print(f"Warning: Could not load corpus: {{e}}")
-    print("Using synthetic data fallback.")
-    import random
-    random.seed(42)
-    vocab_size = config.get("vocab_size", 50257)
-    seq_len = config.get("max_len", 1024)
-    n_train = 10000
-
-    # Create simple sequential tensors as synthetic data
-    train_data = torch.randint(0, vocab_size, (n_train, seq_len))
-    val_data = torch.randint(0, vocab_size, (1000, seq_len))
-    dataset = TensorDataset(train_data)
-    val_dataset = TensorDataset(val_data)
+    # There used to be a torch.randint fallback here. A pretraining run that silently
+    # switches to uniform noise still emits a loss curve and a perplexity, and nothing
+    # downstream can tell that number apart from one earned on text. A run that cannot
+    # find its corpus has to stop.
+    raise SystemExit(
+        f"corpus could not be loaded: {{e}}\n"
+        f"This job trains on real text or it does not train. Check the dataset cache, "
+        f"or pass a corpus this machine can reach."
+    )
 
 print(f"Dataset loaded: {{len(dataset)}} training, {{len(val_dataset)}} validation sequences")
 

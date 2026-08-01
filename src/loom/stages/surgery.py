@@ -411,7 +411,8 @@ def compose_adapters(adapters: List[LoRAAdapter]) -> LoRAAdapter:
 def distill(student: nn.Module, teacher: nn.Module, corpus: Optional[List[str]] = None,
             epochs: int = 1, temperature: float = 4.0, alpha: float = 0.5,
             batch_size: int = 4, learning_rate: float = 1e-4,
-            device: str = "cuda") -> Tuple[nn.Module, Dict[str, Any]]:
+            device: str = "cuda",
+            tokenizer_name: str | None = None) -> Tuple[nn.Module, Dict[str, Any]]:
     """Knowledge distillation: train student to match teacher logits.
 
     Uses KL divergence on soft targets (teacher logits with temperature).
@@ -443,16 +444,25 @@ def distill(student: nn.Module, teacher: nn.Module, corpus: Optional[List[str]] 
         "distillation_loss": [],
     }
 
-    # If no corpus provided, use dummy data for measurement only
-    if corpus is None:
-        corpus = ["The quick brown fox jumps over the lazy dog."] * 10
+    # Distilling against one sentence repeated ten times measures how well the student
+    # copies that sentence, and reports it as a distillation loss. There is no default
+    # corpus for the same reason there is no default training set.
+    if not corpus:
+        raise ValueError(
+            "distillation needs a corpus. It used to fall back to one sentence repeated "
+            "ten times, which produces a loss curve that means nothing.")
 
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(
-            "gpt2", trust_remote_code=True
-        )
-    except:
-        tokenizer = None
+    # The teacher's own tokenizer, not gpt2's. Distilling a Llama teacher through gpt2
+    # token ids compares logits over two different vocabularies — the same bug that once
+    # made this file report a perplexity of 182,000.
+    name = tokenizer_name or getattr(
+        getattr(teacher, "config", None), "_name_or_path", None)
+    if not name:
+        raise ValueError(
+            "distillation needs the teacher's own tokenizer; pass tokenizer_name")
+    tokenizer = AutoTokenizer.from_pretrained(name, trust_remote_code=True)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
     total_loss = 0.0
     n_batches = 0
@@ -463,14 +473,10 @@ def distill(student: nn.Module, teacher: nn.Module, corpus: Optional[List[str]] 
             batch_texts = corpus[i:i+batch_size]
 
             try:
-                if tokenizer:
-                    inputs = tokenizer(
-                        batch_texts, return_tensors="pt", padding=True,
-                        truncation=True, max_length=128
-                    ).to(device)
-                else:
-                    # Dummy inputs if tokenizer fails
-                    inputs = {"input_ids": torch.randint(0, 50257, (len(batch_texts), 10)).to(device)}
+                inputs = tokenizer(
+                    batch_texts, return_tensors="pt", padding=True,
+                    truncation=True, max_length=128
+                ).to(device)
 
                 with torch.no_grad():
                     teacher_out = teacher(**{k: v for k, v in inputs.items() if k in ["input_ids", "attention_mask"]})

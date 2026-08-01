@@ -251,9 +251,10 @@ class TestDistillation:
         teacher = gpt2_like
         student = gpt2_like
 
-        texts = ["hello world"] * 2
+        texts = ["hello world", "the patient was referred for further tests"]
         student_trained, meta = distill(
-            student, teacher, corpus=texts, epochs=1, device="cpu"
+            student, teacher, corpus=texts, epochs=1, device="cpu",
+            tokenizer_name="gpt2",
         )
 
         assert "distillation_loss" in meta
@@ -266,7 +267,8 @@ class TestDistillation:
         teacher = gpt2_like
         student = gpt2_like
 
-        _, meta = distill(student, teacher, corpus=["test"], epochs=1, device="cpu")
+        _, meta = distill(student, teacher, corpus=["test"], epochs=1, device="cpu",
+                          tokenizer_name="gpt2")
 
         assert "epochs" in meta
         assert "temperature" in meta
@@ -358,3 +360,23 @@ def test_no_regression_on_simple_forward():
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+class TestDistillationRefusesToInventData:
+    """A distillation loss earned against invented text is a number about nothing."""
+
+    def test_no_corpus_is_an_error_not_a_default(self, gpt2_like):
+        with pytest.raises(ValueError, match="needs a corpus"):
+            distill(gpt2_like, gpt2_like, corpus=None, epochs=1, device="cpu",
+                    tokenizer_name="gpt2")
+
+    def test_an_empty_corpus_is_also_an_error(self, gpt2_like):
+        with pytest.raises(ValueError, match="needs a corpus"):
+            distill(gpt2_like, gpt2_like, corpus=[], epochs=1, device="cpu",
+                    tokenizer_name="gpt2")
+
+    def test_it_will_not_guess_the_tokenizer(self, gpt2_like):
+        """Distilling a Llama teacher through gpt2 ids compares logits over two
+        different vocabularies. That once reported a perplexity of 182,000."""
+        with pytest.raises(ValueError, match="tokenizer"):
+            distill(gpt2_like, gpt2_like, corpus=["text"], epochs=1, device="cpu")

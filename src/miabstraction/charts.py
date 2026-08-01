@@ -265,6 +265,10 @@ def search_trials(report: dict) -> str:
         caption = (f'{cap.get("capability", "?")} — {n} configurations of '
                    f'{", ".join(at.get("levers_searched", []))}; {kept} admissible; '
                    f'target {"met" if met else "not met"}')
+        # Where the direction came from is the difference between a control for THIS
+        # capability and a control for its kind, so it belongs next to the numbers.
+        if at.get("direction_from"):
+            caption += f'. Direction: {at["direction_from"]}'
         blocks.append(
             f'<figure class="chartbox"><svg viewBox="0 0 {w} {h}" '
             f'role="img" aria-label="{caption}">'
