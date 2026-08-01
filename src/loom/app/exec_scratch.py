@@ -42,7 +42,9 @@ class ExecReport:
     architecture_rationale: str = ""
     tokenizer_type: str = ""
     tokenizer_vocab_size: int = 0
+    tokenizer_description: str = ""
     pretraining_corpus: str = ""
+    pretraining: dict = field(default_factory=dict)
     tokens_seen: int = 0
     val_loss: float | None = None
     val_ppl: float | None = None
@@ -61,7 +63,9 @@ class ExecReport:
             "architecture_rationale": self.architecture_rationale,
             "tokenizer_type": self.tokenizer_type,
             "tokenizer_vocab_size": self.tokenizer_vocab_size,
+            "tokenizer_description": self.tokenizer_description,
             "pretraining_corpus": self.pretraining_corpus,
+            "pretraining": self.pretraining,
             "tokens_seen": self.tokens_seen,
             "val_loss": self.val_loss,
             "val_ppl": self.val_ppl,
@@ -189,18 +193,17 @@ def choose_architecture(app: App, size: str = "small") -> dict:
 # Tokenizer
 # ============================================================================
 
-def build_tokenizer(corpus: str | Path, vocab_size: int = 16000) -> tuple[str, int, str]:
-    """Train or load a tokenizer on the corpus.
+def build_tokenizer(corpus: str | Path, vocab_size: int = 16000):
+    """Train a tokenizer on the app's own corpus.
 
-    Args:
-        corpus: Path to corpus .txt file or directory
-        vocab_size: Target vocabulary size
+    Choosing the tokenizer is one of the levers this substrate has and the open-weight
+    one does not, so it is trained on the material the app is actually about rather than
+    borrowed. A medical corpus gets a vocabulary that spells "hypertension" in two pieces
+    instead of six, which is most of why a small from-scratch model can be worth building
+    at all.
 
-    Returns:
-        (tokenizer_type, actual_vocab_size, description)
-
-    When `tokenizers` library is available, train a real BPE tokenizer.
-    Fallback to a byte-level tokenizer (255 tokens + special tokens).
+    Returns (tokenizer_type, actual_vocab_size, description, tokenizer). The tokenizer
+    itself comes back because the caller has to encode the corpus with the same one.
     """
     try:
         import tokenizers
@@ -212,8 +215,9 @@ def build_tokenizer(corpus: str | Path, vocab_size: int = 16000) -> tuple[str, i
         # Check if corpus exists
         corpus_path = Path(corpus)
         if not corpus_path.exists():
-            # Return fallback
-            return "byte_level", 256, "Corpus not found; using byte-level fallback (256 tokens)"
+            return ("none", 0,
+                    f"the program's corpus {str(corpus)!r} does not exist, so no "
+                    "tokenizer was trained", None)
 
         # Collect all .txt files
         if corpus_path.is_dir():
@@ -222,7 +226,7 @@ def build_tokenizer(corpus: str | Path, vocab_size: int = 16000) -> tuple[str, i
             txt_files = [corpus_path]
 
         if not txt_files:
-            return "byte_level", 256, "No .txt files in corpus; using byte-level fallback"
+            return ("none", 0, f"no .txt files under {corpus_path}", None)
 
         # Train BPE tokenizer
         tokenizer = Tokenizer(BPE())
@@ -231,105 +235,176 @@ def build_tokenizer(corpus: str | Path, vocab_size: int = 16000) -> tuple[str, i
         tokenizer.train([str(f) for f in txt_files], trainer=trainer)
 
         actual_vocab = len(tokenizer.get_vocab())
-        return "bpe", actual_vocab, f"BPE tokenizer trained on {len(txt_files)} files"
+        return ("bpe", actual_vocab,
+                f"BPE trained on {len(txt_files)} file(s): "
+                f"{', '.join(f.name for f in txt_files[:4])}", tokenizer)
 
-    except (ImportError, Exception):
-        # Fallback to simple byte-level tokenizer
-        return "byte_level", 256, "Using byte-level fallback (tokenizers library unavailable)"
+    except ImportError:
+        return ("none", 0, "the tokenizers library is not installed, so no tokenizer "
+                           "could be trained", None)
 
 
 # ============================================================================
 # Pretraining
 # ============================================================================
 
+def _tokenize_corpus(tokenizer, paths: dict[str, float], seq_len: int,
+                     vocab: int, limit_chars: int = 2_000_000) -> torch.Tensor:
+    """Turn the app's real corpus files into sequences, honouring the mixture weights.
+
+    The weights are a mixture over sources, so a corpus that is 0.7 medical and 0.3
+    engineering yields roughly that proportion of sequences. Nothing is generated here;
+    if a path holds no text this returns nothing and the caller says so.
+    """
+    chunks: list[torch.Tensor] = []
+    total_w = sum(paths.values()) or 1.0
+    for path, weight in paths.items():
+        files = sorted(Path(path).glob("*.txt")) if Path(path).is_dir() else [Path(path)]
+        text = ""
+        for f in files:
+            if f.is_file():
+                text += f.read_text(errors="ignore")
+        if not text:
+            continue
+        text = text[:int(limit_chars * (weight / total_w))]
+        ids = tokenizer.encode(text).ids if hasattr(tokenizer, "encode") else []
+        ids = [i for i in ids if 0 <= i < vocab]
+        n = (len(ids) // seq_len) * seq_len
+        if n >= seq_len:
+            chunks.append(torch.tensor(ids[:n], dtype=torch.long).view(-1, seq_len))
+    if not chunks:
+        return torch.empty(0, seq_len, dtype=torch.long)
+    return torch.cat(chunks, dim=0)
+
+
+def _contrast_batches(corpora: dict[str, float], tokenizer, vocab: int, device: str,
+                      seq: int = 128, per_batch: int = 4, n: int = 3):
+    """Real in-domain / out-of-domain text for measuring a direction.
+
+    A feature direction is the difference between what the model does on one kind of
+    input and what it does on another. If both kinds are random tokens the difference is
+    noise with a confident-looking magnitude, so this reads the domain's contrast set and
+    returns nothing when there is not one.
+    """
+    empty: list = []
+    if tokenizer is None:
+        return empty, empty, empty
+    for path in sorted(corpora):
+        cf = Path(path).parent / "contrast.json" if Path(path).suffix else \
+            Path(path) / "contrast.json"
+        if not cf.exists():
+            continue
+        sets = json.loads(cf.read_text())
+        pos, neg = sets.get("in_domain") or [], sets.get("out_of_domain") or []
+        neu = sets.get("neutral") or (pos[len(pos) // 2:] + neg[len(neg) // 2:])
+        if not pos or not neg:
+            continue
+
+        def batches(texts: list[str]):
+            out = []
+            for i in range(n):
+                rows = []
+                for j in range(per_batch):
+                    t = texts[(i * per_batch + j) % len(texts)]
+                    ids = [k for k in tokenizer.encode(t).ids if 0 <= k < vocab][:seq]
+                    ids = ids + [0] * (seq - len(ids))
+                    rows.append(ids)
+                out.append(torch.tensor(rows, dtype=torch.long))
+            return out
+
+        return batches(pos), batches(neg), batches(neu)
+    return empty, empty, empty
+
+
 def pretraining_mixture(
     corpora: dict[str, float],
     app: App,
     model: ModelHandle,
     backend: Backend,
+    tokenizer=None,
     steps: int = 500,
     batch_size: int = 8,
     device: str = "cuda",
-) -> tuple[float | None, float | None, int, float]:
-    """Pretrain on a weighted mixture of corpora.
+    lr: float = 1e-4,
+) -> tuple[float | None, float | None, int, float, dict]:
+    """Pretrain the model we are building on the app's real corpus.
 
-    Args:
-        corpora: dict mapping corpus path -> sampling weight (should sum to 1.0)
-        app: Application (for context)
-        model: ModelHandle to train
-        backend: ScratchBackend for loss computation
-        steps: Training steps
-        batch_size: Batch size
-        device: Device to train on
+    This used to train on torch.randint — uniform noise over the vocabulary. It ran, it
+    produced a loss curve, and every number that came out of it was meaningless: a model
+    fitted to noise has learned the unigram distribution of a random number generator.
+    A from-scratch build is the substrate where the compiler has every lever, so it is
+    the last place that should be faked.
 
-    Returns:
-        (val_loss, val_ppl, tokens_seen, wall_clock_seconds)
-
-    Creates synthetic data for now (since real corpora are large).
-    In production, this would load real pretraining data.
+    Returns (val_loss, val_ppl, tokens_seen, seconds, provenance). `provenance` says
+    which files the tokens came from, so a report can never imply training that did not
+    happen.
     """
     t0 = time.time()
+    seq_len = min(256, model.meta.get("spec", {}).get("ctx", 512))
+
+    if tokenizer is None:
+        return None, None, 0, 0.0, {
+            "ran": False,
+            "reason": "no tokenizer was built, so the corpus could not be encoded"}
+
+    data = _tokenize_corpus(tokenizer, corpora, seq_len, model.vocab)
+    if len(data) < 16:
+        return None, None, 0, time.time() - t0, {
+            "ran": False,
+            "reason": f"the corpus {sorted(corpora)} yielded {len(data)} sequences of "
+                      f"{seq_len} tokens, which is not enough to train or evaluate on",
+            "sources": sorted(corpora)}
+
+    # Held out by position rather than at random: neighbouring chunks of one document
+    # share sentences, and a random split would put those on both sides and report a
+    # validation loss that is partly memorisation.
+    cut = int(len(data) * 0.9)
+    train_data, val_data = data[:cut], data[cut:]
 
     model.module.train()
-    opt = torch.optim.AdamW(model.module.parameters(), lr=1e-4)
+    opt = torch.optim.AdamW(model.module.parameters(), lr=lr)
+    train_loader = DataLoader(TensorDataset(train_data), batch_size=batch_size,
+                              shuffle=True)
+    val_loader = DataLoader(TensorDataset(val_data), batch_size=batch_size)
 
-    # Create synthetic pretraining data with vocab indices within range
-    # torch.randint(0, N) generates integers in [0, N), so we use model.vocab as the upper bound
-    # Use a sequence length that fits within the model's context length
-    seq_len = min(256, model.meta.get("spec", {}).get("ctx", 512))  # Truncate to model's ctx
-    n_train_samples = steps * batch_size
+    total_train_loss, tokens_seen, done = 0.0, 0, 0
+    while done < steps:
+        for (batch,) in train_loader:
+            if done >= steps:
+                break
+            batch = batch.to(device)
+            loss = backend.forward_loss(model, batch)
+            opt.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.module.parameters(), 1.0)
+            opt.step()
+            total_train_loss += float(loss.detach())
+            tokens_seen += batch.shape[0] * batch.shape[1]
+            done += 1
 
-    # Generate synthetic data — torch.randint(0, model.vocab) generates indices in [0, model.vocab)
-    # which is exactly what we need for embeddings that expect indices [0, model.vocab)
-    train_data = torch.randint(0, model.vocab, (n_train_samples, seq_len))
-    val_data = torch.randint(0, model.vocab, (100, seq_len))
-
-    train_loader = DataLoader(
-        TensorDataset(train_data),
-        batch_size=batch_size,
-        shuffle=True,
-    )
-    val_loader = DataLoader(
-        TensorDataset(val_data),
-        batch_size=batch_size,
-    )
-
-    # Training loop
-    total_train_loss = 0.0
-    tokens_seen = 0
-
-    for step, (batch,) in enumerate(train_loader):
-        if step >= steps:
-            break
-
-        batch = batch.to(device)
-        loss = backend.forward_loss(model, batch)
-
-        opt.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.module.parameters(), 1.0)
-        opt.step()
-
-        total_train_loss += float(loss.detach())
-        tokens_seen += batch.shape[0] * batch.shape[1]
-
-    # Validation
     model.module.eval()
-    val_loss = 0.0
-    val_tokens = 0
+    val_loss, n_batches = 0.0, 0
     with torch.no_grad():
         for (batch,) in val_loader:
             batch = batch.to(device)
-            loss = backend.forward_loss(model, batch)
-            val_loss += float(loss)
-            val_tokens += batch.shape[0] * batch.shape[1]
+            val_loss += float(backend.forward_loss(model, batch))
+            n_batches += 1
 
-    val_loss = val_loss / max(len(val_loader), 1) if val_loader else None
+    val_loss = val_loss / n_batches if n_batches else None
     val_ppl = math.exp(val_loss) if val_loss is not None else None
-
-    wall_clock = time.time() - t0
-
-    return val_loss, val_ppl, tokens_seen, wall_clock
+    prov = {
+        "ran": True,
+        "sources": sorted(corpora),
+        "weights": corpora,
+        "sequences": int(len(data)),
+        "seq_len": seq_len,
+        "train_sequences": int(len(train_data)),
+        "heldout_sequences": int(len(val_data)),
+        "steps": done,
+        "lr": lr,
+        "final_train_loss": round(total_train_loss / max(done, 1), 4),
+    }
+    return val_loss, val_ppl, tokens_seen, time.time() - t0, prov
 
 
 # ============================================================================
@@ -537,27 +612,36 @@ def execute_scratch(
     rep.architecture_choice = f"{arch_spec['kind']} ({arch_spec['width']}w, {arch_spec['layers']}L)"
     rep.architecture_rationale = arch_rationale
 
+    # -------- Corpus --------
+    # The material comes from the program's own `knows from` clause. There is no demo
+    # corpus and no fallback: a build that cannot find what it was told to learn has to
+    # say so, because the alternative is a model trained on something nobody asked for.
+    corpora = {c.args["corpus"]: 1.0 for c in app.of(Kind.KNOWLEDGE)
+               if c.args.get("corpus")}
+    rep.pretraining_corpus = ", ".join(sorted(corpora)) or "none declared"
+
     # -------- Tokenizer --------
-    tokenizer_type, vocab_size, tok_desc = build_tokenizer(
-        Path.home() / ".cache" / "sample_corpus.txt",
+    tokenizer_type, vocab_size, tok_desc, tokenizer = build_tokenizer(
+        sorted(corpora)[0] if corpora else "",
         vocab_size=arch_spec["vocab"],
     )
     rep.tokenizer_type = tokenizer_type
     rep.tokenizer_vocab_size = vocab_size
-    arch_spec["vocab"] = vocab_size
+    rep.tokenizer_description = tok_desc
+    if vocab_size:
+        arch_spec["vocab"] = vocab_size
 
     # -------- Realize model --------
     backend = ScratchBackend()
     model = backend.realize(arch_spec)
     model.to(device)
 
-    rep.pretraining_corpus = "synthetic (demo)"
-
     # -------- Pretraining --------
-    corpora = {"demo": 1.0}  # In production, this would be real corpora
-    val_loss, val_ppl, tokens_seen, pretrain_wall = pretraining_mixture(
-        corpora, app, model, backend, steps=500, batch_size=8, device=device
+    val_loss, val_ppl, tokens_seen, pretrain_wall, pretrain_prov = pretraining_mixture(
+        corpora, app, model, backend, tokenizer=tokenizer,
+        steps=500, batch_size=8, device=device
     )
+    rep.pretraining = pretrain_prov
     rep.tokens_seen = tokens_seen
     rep.val_loss = val_loss
     rep.val_ppl = val_ppl
@@ -565,10 +649,13 @@ def execute_scratch(
     # -------- Per-capability measurements --------
     model.module.eval()
 
-    # Create dummy contrastive data for mech-interp ops
-    dummy_a = [torch.randint(0, vocab_size, (4, 128)) for _ in range(3)]
-    dummy_b = [torch.randint(0, vocab_size, (4, 128)) for _ in range(3)]
-    dummy_neutral = [torch.randint(0, vocab_size, (4, 128)) for _ in range(3)]
+    # Contrastive material for the mech-interp operations. These used to be
+    # torch.randint tensors, which means every direction measured from them was a
+    # difference between two samples of noise — a number that exists and means nothing.
+    # They now come from the domain's real contrast set, and when there is not one the
+    # capability reports that it could not be measured.
+    dummy_a, dummy_b, dummy_neutral = _contrast_batches(
+        corpora, tokenizer, model.vocab, device)
 
     for choice in choices:
         cap_record = {

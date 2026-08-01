@@ -25,6 +25,14 @@ def _target_name(spec: dict) -> str:
     return spec.get("name", f"scratch({spec.get('size', 'small')})")
 
 
+def torch_available() -> bool:
+    try:
+        import torch
+        return torch.cuda.is_available()
+    except ImportError:
+        return False
+
+
 def _depth_of(spec: dict) -> int:
     """How deep the model will be — needed because the program says where to steer as a
     fraction of depth, and that only becomes a layer index once the model is known.
@@ -104,12 +112,14 @@ def cmd_build(path: str, out: str | None, dry: bool) -> int:
         if dry:
             continue
         try:
+            device = "cuda" if torch_available() else "cpu"
             if sub.id == "open_weight":
                 from .exec_open import execute_open
-                report = execute_open(choices, build.spec, app, str(art))
+                result = execute_open(choices, build.spec, app, device)
             else:
                 from .exec_scratch import execute_scratch
-                report = execute_scratch(choices, build.spec, app, str(art))
+                result = execute_scratch(choices, build.spec, app, device)
+            report = result if isinstance(result, dict) else result.to_dict()
         except ImportError as e:
             print(f"  executor unavailable ({e}); wrote the plan only. "
                   f"Use --dry-run to plan without building.", file=sys.stderr)
