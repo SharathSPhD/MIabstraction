@@ -222,8 +222,12 @@ def unrecognised(budget: dict) -> list[str]:
 
 def explain(budget: dict, n_layers: int = 16) -> str:
     """What the compiler will search, given this program. Printed by `loom explain`."""
+    rec = recovery_target(budget)
+    declared = "insistence" in budget.get("bounds", {})
     lines = [f"search effort: {budget.get('effort', 'balanced')} "
-             f"({budget.get('trials_per_lever', 2)} values per lever)"]
+             f"({budget.get('trials_per_lever', 2)} values per lever)",
+             f"a behavioural control counts only if it recovers {rec:.0%} of what "
+             f"stating the rule outright would do  [{'tune insistence' if declared else 'default'}]"]
     for stage in ("steering", "adaptation", "pretraining"):
         g = grids(stage, budget, n_layers)
         if not g:
