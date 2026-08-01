@@ -444,3 +444,40 @@ class TestLoRAWithLoss:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+# --- device and dtype placement ---------------------------------------------
+#
+# These exist because the original adapters were created with torch.zeros() and no
+# device, which works perfectly in a CPU test suite and dies at the first matmul the
+# moment the model is on a GPU. A LoRA implementation that only runs on CPU is not one.
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs a GPU")
+def test_adapters_land_on_the_same_device_as_the_base():
+    from transformers import AutoModelForCausalLM
+    from loom.app.lora import attach_lora, lora_parameters
+    m = AutoModelForCausalLM.from_pretrained("gpt2").to("cuda")
+    attach_lora(m, rank=2, alpha=4.0)
+    params = lora_parameters(m)
+    assert params
+    assert all(p.device.type == "cuda" for p in params)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs a GPU")
+def test_a_forward_pass_survives_on_a_gpu():
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from loom.app.lora import attach_lora
+    tok = AutoTokenizer.from_pretrained("gpt2")
+    m = AutoModelForCausalLM.from_pretrained("gpt2").to("cuda").eval()
+    attach_lora(m, rank=2, alpha=4.0)
+    ids = tok("the patient presented with", return_tensors="pt").to("cuda")
+    out = m(**ids, labels=ids["input_ids"])
+    assert torch.isfinite(out.loss)
+
+
+def test_adapters_match_the_base_dtype():
+    from transformers import AutoModelForCausalLM
+    from loom.app.lora import attach_lora, lora_parameters
+    m = AutoModelForCausalLM.from_pretrained("gpt2", dtype=torch.bfloat16)
+    attach_lora(m, rank=2, alpha=4.0)
+    assert all(p.dtype == torch.bfloat16 for p in lora_parameters(m))

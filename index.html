@@ -79,6 +79,15 @@ figcaption,.cap{font-size:.86rem;color:var(--muted);padding-top:.6rem;max-width:
 .chartbox{background:#fff;border:1px solid var(--line);padding:1rem 1.2rem;margin:1.3rem 0}
 .chartbox svg{width:100%;height:auto;display:block}
 .chartbox.missing{display:flex;align-items:center;justify-content:center;color:var(--muted);font-style:italic;border-style:dashed}
+.chartbox figcaption{color:var(--muted);font-size:.86rem;margin-top:.5rem}
+pre.space{background:#fff;border:1px solid var(--line);padding:.9rem 1.1rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+table.prov{width:100%;border-collapse:collapse;font-size:.88rem;margin:1.1rem 0}
+table.prov th,table.prov td{text-align:left;padding:.42rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+table.prov th{font-weight:600;color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+table.prov td.pass{color:#2E7D4F}
+table.prov td.warn{color:#9A6B12}
+table.prov td.muted{color:var(--muted)}
+table.prov code{font-size:.8rem;word-break:break-all}
 .tick{font:11px var(--mono);fill:var(--muted)}
 .axis{font:12px var(--sans);fill:var(--muted)}
 .blabel{font:12px var(--sans);fill:var(--body)}
@@ -136,7 +145,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 3fbd377 · 87 commits · regenerated 2026-08-01 18:44 UTC</div>
+    <div class="eyebrow">build 7ef12d3 · 98 commits · regenerated 2026-08-01 19:06 UTC</div>
     <h1>Programming the transformer</h1>
     <p class="lede">Today you build a language model by collecting data, running gradient
     descent, and hoping. There is no layer in between where you state what the model must
@@ -428,6 +437,26 @@ The compiler knows how to realize each one on different substrates.</p></div>
 <p class="cap">For each capability, the compiler consulted the substrate's capability table,
 chose the cheapest and sufficient realization strategy, and recorded the choice and reason.</p></div>
 
+  <h3>L1b · The search: what the compiler tried, and what it refused</h3>
+  <p>This is where compiling a model stops resembling compiling a program. Nothing in the
+  source says which layer a behaviour is legible at, how hard to push it, or how far to move
+  the weights — and nothing can, because those are not properties of the intent. They are
+  found by trying them and measuring, the way a machine-learning engineer spends the day.
+  So the compiler autotunes: it enumerates the space below, runs every configuration, scores
+  each against the same objective the program will be judged by, and throws away any trial
+  that improved its own number by damaging the model.</p>
+
+  <p>The program is allowed to bound this search, and only in its own terms. It writes
+  <code>effort thorough</code> and <code>tune adaptation from 1 to 6</code> — how many
+  configurations are worth trying and how far the model may be changed. It never writes a
+  rank or a learning rate. Those are the compiler's, and this is the full list of them:</p>
+  <pre class="space">not yet measured — no build has recorded its search space</pre>
+
+  <p>Every bar below is one real configuration that was run. Green is what shipped; a
+  struck-through bar is a trial that a budget refused however well it scored, which is the
+  entire reason this is a search and not an argmax.</p>
+  <div class="chartbox missing" style="min-height:180px"><span>no search has been run yet — the trials chart appears once a build records them</span></div>
+
   <h3>L0 & L-1 · The substrate operations and bare architecture</h3>
   <p>The plan lowers to operations on the available hardware. Below that is the model itself
   — the fixed architecture when building on an open-weight substrate, or a chosen architecture
@@ -450,6 +479,14 @@ satisfy conflicting capabilities.</p></div>
   should not have to. When building from scratch, the compiler chooses the architecture to
   satisfy your capabilities. When targeting an open-weight model, the architecture is fixed,
   and the compiler adapts the strategy to work within those constraints.</div>
+
+  <h3>The material it was built on</h3>
+  <p>A compiler is only as honest as its inputs. Three of these corpora come from genuine
+  specialist sources; three fall back to Wikipedia because the specialist source could not be
+  reached, and say so in their manifest rather than in a footnote. A demo built on Wikipedia
+  articles that happen to mention "medical" is not a medical demo, and the flag below is
+  carried in the data so it cannot quietly drift from what was actually downloaded.</p>
+  <table class="prov"><thead><tr><th>domain</th><th>data</th><th>source</th><th>docs</th><th>license</th><th>note</th></tr></thead><tbody><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/lavita/MedQuAD</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted"></td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://arxiv.org/api/</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted">tried togethercomputer/arxiv (HF): Dataset 'togethercomputer/arxiv' doesn't exist on the Hub or cannot be accessed.</td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/gbharti/finance-alpaca</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted">tried financial_phrasebank: Dataset scripts are no longer supported, but found financial_phrasebank.py</td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried merve/gutenberg: Dataset 'merve/gutenberg' doesn't exist on the Hub or cannot be accessed.</td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried pile-of-law: Dataset scripts are no longer supported, but found pile-of-law.py</td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried wikisource: Requires OAuth/login</td></tr></tbody></table>
 
   <h3>What a person writes vs. what the compiler does</h3>
   <div class="tablewrap"><table>
@@ -742,7 +779,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 3fbd377 · 2026-08-01 18:44 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 7ef12d3 · 2026-08-01 19:06 UTC</p>
 </div></footer>
 </body>
 </html>

@@ -212,3 +212,106 @@ def model_architecture(config: dict) -> str:
 {svg_content}<p class="cap">The architecture is fixed by the substrate choice. On an open-weight target,
 the trained architecture cannot be changed; on from-scratch, the compiler may adapt it to
 satisfy conflicting capabilities.</p></div>'''
+
+
+def search_trials(report: dict) -> str:
+    """Every configuration the compiler tried, and why the losers lost.
+
+    This is the chart that makes the autotuning real rather than asserted. Each column is
+    one trial; height is the score it earned; a struck-through bar is a trial a budget
+    refused however well it scored, which is the whole reason the search is not just
+    "take the best number".
+    """
+    caps = report.get("capabilities", [])
+    blocks = []
+    for cap in caps:
+        at = cap.get("autotune") or (cap.get("execution") or {}).get("autotune") or {}
+        trials = at.get("trials") or []
+        if not trials:
+            continue
+        w, h, pad = 640, 150, 34
+        n = len(trials)
+        bw = max(6, min(38, (w - 2 * pad) // max(n, 1) - 4))
+        scores = [t.get("score", 0.0) for t in trials]
+        lo, hi = min(scores + [0.0]), max(scores + [0.0])
+        span = (hi - lo) or 1.0
+        best_cfg = (at.get("best") or {}).get("config")
+
+        bars = []
+        for i, t in enumerate(trials):
+            x = pad + i * (bw + 4)
+            frac = (t.get("score", 0.0) - lo) / span
+            bh = max(2, int(frac * (h - 2 * pad)))
+            y = h - pad - bh
+            rejected = bool(t.get("rejected"))
+            won = t.get("config") == best_cfg and not rejected
+            fill = (PALETTE["fail"] if rejected
+                    else PALETTE["pass"] if won else PALETTE["thread"])
+            op = "0.35" if rejected else "1"
+            title = ", ".join(f"{k}={v:g}" if isinstance(v, float) else f"{k}={v}"
+                              for k, v in (t.get("config") or {}).items())
+            why = t.get("rejected") or ("chosen" if won else "admissible")
+            bars.append(
+                f'<rect x="{x}" y="{y}" width="{bw}" height="{bh}" fill="{fill}" '
+                f'opacity="{op}"><title>{title} — score {t.get("score", 0):.4g} '
+                f'({why})</title></rect>')
+            if rejected:
+                my = y + bh // 2
+                bars.append(f'<line x1="{x}" y1="{my}" x2="{x + bw}" y2="{my}" '
+                            f'stroke="{PALETTE["fail"]}" stroke-width="1.5"/>')
+
+        kept = sum(1 for t in trials if not t.get("rejected"))
+        met = at.get("target_met")
+        caption = (f'{cap.get("capability", "?")} — {n} configurations of '
+                   f'{", ".join(at.get("levers_searched", []))}; {kept} admissible; '
+                   f'target {"met" if met else "not met"}')
+        blocks.append(
+            f'<figure class="chartbox"><svg viewBox="0 0 {w} {h}" '
+            f'role="img" aria-label="{caption}">'
+            f'<line x1="{pad}" y1="{h - pad}" x2="{w - pad}" y2="{h - pad}" '
+            f'stroke="{PALETTE["grid"]}"/>'
+            + "".join(bars) +
+            f'<text x="{pad}" y="{pad - 12}" font-size="11" fill="{PALETTE["muted"]}">'
+            f'score by configuration (struck through = refused by a budget)</text>'
+            f'</svg><figcaption>{caption}</figcaption></figure>')
+
+    if not blocks:
+        return _placeholder("no search has been run yet — the trials chart appears "
+                            "once a build records them")
+    return "\n".join(blocks)
+
+
+def data_provenance(manifests: list[dict]) -> str:
+    """Where each corpus came from, and whether it is really the specialist source.
+
+    A demo built on Wikipedia articles that mention "medical" is not a medical demo. The
+    flag is carried in the manifest rather than in prose so it cannot quietly drift from
+    what was actually downloaded.
+    """
+    if not manifests:
+        return _placeholder("no corpus manifests found")
+    rows = []
+    for m in manifests:
+        spec = m.get("is_specialist")
+        mark = ("<strong>specialist</strong>" if spec else
+                "fallback" if spec is False else "unstated")
+        cls = "pass" if spec else "warn"
+        tried = m.get("attempted_sources") or []
+        note = ""
+        if tried:
+            first = tried[0]
+            if isinstance(first, dict):
+                note = (f'tried {first.get("source", "?")}: '
+                        f'{str(first.get("error", ""))[:90]}')
+            else:
+                note = f"tried {str(first)[:90]}"
+        rows.append(
+            f'<tr><td>{m.get("domain", "?")}</td>'
+            f'<td class="{cls}">{mark}</td>'
+            f'<td><code>{str(m.get("source", "?"))[:64]}</code></td>'
+            f'<td>{m.get("n_docs", "—")}</td>'
+            f'<td>{m.get("license", "—")}</td>'
+            f'<td class="muted">{note}</td></tr>')
+    return ('<table class="prov"><thead><tr><th>domain</th><th>data</th>'
+            '<th>source</th><th>docs</th><th>license</th><th>note</th></tr></thead>'
+            '<tbody>' + "".join(rows) + '</tbody></table>')

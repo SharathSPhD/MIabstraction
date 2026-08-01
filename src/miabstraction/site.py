@@ -88,6 +88,10 @@ def build_html() -> str:
     port = _j("results/loom_port_demo.json")
     demo = _j("results/loom_curriculum_demo.json")
     plan = _j("build/Tutor-open_weight/plan.json")
+    clinic = _j("results/loom_clinic_build.json")
+    manifests = [_j(f"data/domains/{d}/manifest.json") for d in
+                 ("medical", "engineering", "fintech", "literature", "legal", "history")]
+    manifests = [m for m in manifests if m]
 
     if found.get("completed"):
         f_status = ('<span class="chip pass">run complete</span>' if found.get("passed")
@@ -121,6 +125,10 @@ def build_html() -> str:
         HOOD_GRAPH=charts.capability_graph(plan.get("capabilities", [])),
         HOOD_PLAN=charts.plan_detail(plan.get("capabilities", [])),
         HOOD_ARCH=charts.model_architecture(demo.get("model_config", {})),
+        HOOD_TRIALS=charts.search_trials(clinic),
+        HOOD_SPACE=(clinic.get("search_space", {}).get("explained")
+                    or "not yet measured — no build has recorded its search space"),
+        DATA_PROV=charts.data_provenance(manifests),
         IMG_E1=_img("results/final/e1_mess3/belief_geometry.png",
                     "Belief-state geometry",
                     "Left: the mathematically correct set of belief states for this "

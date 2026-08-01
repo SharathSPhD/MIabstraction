@@ -48,14 +48,14 @@ class LoRALinear(nn.Module):
         in_features = base_linear.in_features
         out_features = base_linear.out_features
 
-        # A: in_features -> rank
+        # On the base weight's device and dtype, not the default ones. An adapter built
+        # on CPU beside a model on CUDA fails at the first matmul, and only when someone
+        # actually runs it on a GPU.
+        w = base_linear.weight
         self.adapter_a = nn.Parameter(
-            torch.zeros(in_features, rank, dtype=base_linear.weight.dtype)
-        )
-        # B: rank -> out_features
+            torch.zeros(in_features, rank, dtype=w.dtype, device=w.device))
         self.adapter_b = nn.Parameter(
-            torch.zeros(rank, out_features, dtype=base_linear.weight.dtype)
-        )
+            torch.zeros(rank, out_features, dtype=w.dtype, device=w.device))
 
         # Initialize adapters: A ~ N(0, 1/rank), B ~ 0
         # This ensures adapter contribution starts near zero
@@ -95,14 +95,11 @@ class LoRAConv1D(nn.Module):
         out_features = self.base.nf  # Output features
         in_features = self.base.weight.shape[0]  # Input features
 
-        # A: in_features -> rank
+        w = self.base.weight
         self.adapter_a = nn.Parameter(
-            torch.zeros(in_features, rank, dtype=self.base.weight.dtype)
-        )
-        # B: rank -> out_features
+            torch.zeros(in_features, rank, dtype=w.dtype, device=w.device))
         self.adapter_b = nn.Parameter(
-            torch.zeros(rank, out_features, dtype=self.base.weight.dtype)
-        )
+            torch.zeros(rank, out_features, dtype=w.dtype, device=w.device))
 
         # Initialize
         nn.init.kaiming_uniform_(self.adapter_a, a=0, mode='fan_out')
