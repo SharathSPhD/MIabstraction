@@ -1,0 +1,25 @@
+{
+  "backend": "constructed",
+  "construction_pure": true,
+  "polish_steps": 0,
+  "vocab": 20,
+  "copy_len": 22,
+  "max_gap": 16,
+  "architecture": "3-layer 1-head attention-only, d_model=192, trigram matching",
+  "prefix_score": 0.9791666865348816,
+  "icl_argmax_acc": 0.948828125,
+  "icl_loss_nats": 0.9775038540362269,
+  "uniform_loss_nats": 2.995732273553991,
+  "layer0_prev_token_mass": 1.0,
+  "layer1_shift2_mass": 1.0,
+  "negative_control_score": 0.08353021740913391,
+  "nonzero_params": 13152,
+  "total_params": 465408,
+  "gates": {
+    "prefix_score>0.5": true,
+    "icl_argmax_acc>0.9": true,
+    "negative_control<0.2": true
+  },
+  "passed": true,
+  "wall_clock_s": 0.4
+}
