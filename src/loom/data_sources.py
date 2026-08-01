@@ -72,7 +72,13 @@ def load_domain(domain: str) -> Tuple[str, dict]:
     Returns:
         Tuple of (corpus_text, manifest_dict)
         - corpus_text: Plain text of all documents in the domain
-        - manifest_dict: Metadata including source, license, sha256, size, num_documents
+        - manifest_dict: Metadata including:
+          - source: URL/reference to data source
+          - license: Permissive license (CC-BY*, Apache, MIT, etc.)
+          - sha256: Corpus checksum
+          - size, num_documents: Corpus statistics
+          - is_specialist: bool - True if from specialist source, False if Wikipedia fallback
+          - attempted_sources: (optional) List of attempted sources and errors
 
     Raises:
         FileNotFoundError: If domain or its files don't exist.
@@ -183,7 +189,8 @@ def load_manifest(domain: str) -> dict:
 
     Returns:
         Manifest dict with keys: source, source_note, license, retrieved,
-        corpus_size_bytes, num_documents, corpus_sha256, corpus_file
+        corpus_size_bytes, num_documents, corpus_sha256, corpus_file, is_specialist,
+        (optional) attempted_sources
 
     Raises:
         FileNotFoundError: If domain or manifest doesn't exist.
@@ -198,12 +205,27 @@ def load_manifest(domain: str) -> dict:
         return json.load(f)
 
 
+def is_specialist_domain(domain: str) -> bool:
+    """
+    Check if a domain's corpus is from a specialist source or a fallback.
+
+    Args:
+        domain: Domain name
+
+    Returns:
+        True if corpus is from specialist source, False if from fallback (e.g., Wikipedia)
+    """
+    manifest = load_manifest(domain)
+    return manifest.get('is_specialist', True)
+
+
 def domain_info(domain: str) -> dict:
     """
     Get comprehensive info about a domain.
 
     Returns:
-        Dict with keys: name, path, manifest, has_corpus, has_contrast, num_documents, size_bytes
+        Dict with keys: name, path, manifest, has_corpus, has_contrast, num_documents,
+        size_bytes, license, source, is_specialist
     """
     domain_path = _validate_domain_exists(domain)
 
@@ -222,6 +244,7 @@ def domain_info(domain: str) -> dict:
         "size_bytes": manifest.get('corpus_size_bytes', 0),
         "license": manifest.get('license'),
         "source": manifest.get('source'),
+        "is_specialist": manifest.get('is_specialist', True),
     }
 
 

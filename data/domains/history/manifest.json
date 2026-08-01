@@ -1,10 +1,17 @@
 {
   "source": "https://huggingface.co/datasets/wikitext",
-  "source_note": "Historical texts extracted from Wikipedia history articles",
+  "source_note": "Wikipedia historical articles (fallback: Wikisource API requires OAuth)",
   "license": "CC-BY-SA-3.0",
-  "retrieved": "2026-08-01T19:38:23.362730",
-  "corpus_size_bytes": 129090,
+  "retrieved": "2026-08-01T19:43:29.546713",
+  "corpus_size_bytes": 132112,
   "num_documents": 150,
-  "corpus_sha256": "69e3153924fded3a476d486312a04f0169711e932bcb722619fae265e201a15a",
-  "corpus_file": "corpus.txt"
+  "corpus_sha256": "29859b4a92dd120118d48e108913c4828673fa04a3b92c28312056211005c1ac",
+  "corpus_file": "corpus.txt",
+  "is_specialist": false,
+  "attempted_sources": [
+    {
+      "source": "wikisource",
+      "error": "Requires OAuth/login"
+    }
+  ]
 }

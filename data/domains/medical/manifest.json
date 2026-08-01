@@ -1,10 +1,11 @@
 {
-  "source": "https://huggingface.co/datasets/wikitext",
-  "source_note": "Biomedical and medical texts extracted from Wikipedia",
-  "license": "CC-BY-SA-3.0",
-  "retrieved": "2026-08-01T19:38:20.867398",
-  "corpus_size_bytes": 100708,
-  "num_documents": 150,
-  "corpus_sha256": "a4fff9fe38c22c98525735156dc52ed760dc2816180f93748a98b2393800ff04",
-  "corpus_file": "corpus.txt"
+  "source": "https://huggingface.co/datasets/lavita/MedQuAD",
+  "source_note": "Medical Question-Answer pairs from medical literature",
+  "license": "CC-BY-4.0",
+  "retrieved": "2026-08-01T19:43:16.318309",
+  "corpus_size_bytes": 272886,
+  "num_documents": 300,
+  "corpus_sha256": "a499c9a12c44f40d3bdf6bb6ed83844f5d12bb38b4cbe7c51614dd7f285c592b",
+  "corpus_file": "corpus.txt",
+  "is_specialist": true
 }
