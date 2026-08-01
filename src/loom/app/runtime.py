@@ -29,6 +29,7 @@ class InstalledControl:
     strength: float
     direction: list[float] = field(default_factory=list)
     side_effect: float | None = None
+    joint_scale: float | None = None   # how far the joint pass backed this control off
 
     def tensor(self, device, dtype):
         d = torch.tensor(self.direction, dtype=torch.float32, device=device)
