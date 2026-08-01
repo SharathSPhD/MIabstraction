@@ -1,0 +1,145 @@
+Training dense model...
+  Step 500: loss=0.4792
+  Step 1000: loss=0.4527
+  Step 1500: loss=0.4740
+  Step 2000: loss=0.4571
+  Step 2500: loss=0.4564
+  Step 3000: loss=0.4598
+  Step 3500: loss=0.4637
+  Step 4000: loss=0.4550
+  Step 4500: loss=0.4589
+  Step 5000: loss=0.4568
+  Step 5500: loss=0.4621
+  Step 6000: loss=0.4484
+  Step 6500: loss=0.4597
+  Step 7000: loss=0.4619
+  Step 7500: loss=0.4508
+  Step 8000: loss=0.4571
+  Step 8500: loss=0.4579
+  Step 9000: loss=0.4554
+  Step 9500: loss=0.4577
+  Step 10000: loss=0.4518
+  Step 10500: loss=0.4490
+  Step 11000: loss=0.4486
+  Step 11500: loss=0.4604
+  Step 12000: loss=0.4480
+  Step 12500: loss=0.4422
+  Step 13000: loss=0.4517
+  Step 13500: loss=0.4418
+  Step 14000: loss=0.4504
+  Step 14500: loss=0.4337
+  Step 15000: loss=0.4358
+Training sparse model (q=0.2)...
+  Step 500: loss=0.5251, sparsity=0.053
+  Step 1000: loss=0.4531, sparsity=0.107
+  Step 1500: loss=0.4590, sparsity=0.160
+  Step 2000: loss=0.4571, sparsity=0.213
+  Step 2500: loss=0.4567, sparsity=0.267
+  Step 3000: loss=0.4585, sparsity=0.320
+  Step 3500: loss=0.4638, sparsity=0.373
+  Step 4000: loss=0.4554, sparsity=0.427
+  Step 4500: loss=0.4625, sparsity=0.480
+  Step 5000: loss=0.4571, sparsity=0.533
+  Step 5500: loss=0.4621, sparsity=0.587
+  Step 6000: loss=0.4504, sparsity=0.640
+  Step 6500: loss=0.4550, sparsity=0.693
+  Step 7000: loss=0.4615, sparsity=0.747
+  Step 7500: loss=0.4513, sparsity=0.800
+  Step 8000: loss=0.4569, sparsity=0.800
+  Step 8500: loss=0.4577, sparsity=0.800
+  Step 9000: loss=0.4566, sparsity=0.800
+  Step 9500: loss=0.4597, sparsity=0.800
+  Step 10000: loss=0.4546, sparsity=0.800
+  Step 10500: loss=0.4490, sparsity=0.800
+  Step 11000: loss=0.4537, sparsity=0.800
+  Step 11500: loss=0.4644, sparsity=0.800
+  Step 12000: loss=0.4515, sparsity=0.800
+  Step 12500: loss=0.4450, sparsity=0.800
+  Step 13000: loss=0.4571, sparsity=0.800
+  Step 13500: loss=0.4533, sparsity=0.800
+  Step 14000: loss=0.4572, sparsity=0.800
+  Step 14500: loss=0.4441, sparsity=0.800
+  Step 15000: loss=0.4518, sparsity=0.800
+Training sparse model (q=0.1)...
+  Step 500: loss=0.4976, sparsity=0.060
+  Step 1000: loss=0.4672, sparsity=0.120
+  Step 1500: loss=0.4585, sparsity=0.180
+  Step 2000: loss=0.4577, sparsity=0.240
+  Step 2500: loss=0.4572, sparsity=0.300
+  Step 3000: loss=0.4573, sparsity=0.360
+  Step 3500: loss=0.4627, sparsity=0.420
+  Step 4000: loss=0.4555, sparsity=0.480
+  Step 4500: loss=0.4592, sparsity=0.540
+  Step 5000: loss=0.4568, sparsity=0.600
+  Step 5500: loss=0.4621, sparsity=0.660
+  Step 6000: loss=0.4492, sparsity=0.720
+  Step 6500: loss=0.4576, sparsity=0.780
+  Step 7000: loss=0.4639, sparsity=0.840
+  Step 7500: loss=0.4547, sparsity=0.900
+  Step 8000: loss=0.4570, sparsity=0.900
+  Step 8500: loss=0.4579, sparsity=0.900
+  Step 9000: loss=0.4569, sparsity=0.900
+  Step 9500: loss=0.4600, sparsity=0.900
+  Step 10000: loss=0.4546, sparsity=0.900
+  Step 10500: loss=0.4497, sparsity=0.900
+  Step 11000: loss=0.4528, sparsity=0.900
+  Step 11500: loss=0.4638, sparsity=0.900
+  Step 12000: loss=0.4523, sparsity=0.900
+  Step 12500: loss=0.4465, sparsity=0.900
+  Step 13000: loss=0.4581, sparsity=0.900
+  Step 13500: loss=0.4529, sparsity=0.900
+  Step 14000: loss=0.4584, sparsity=0.900
+  Step 14500: loss=0.4458, sparsity=0.900
+  Step 15000: loss=0.4535, sparsity=0.900
+Training sparse model (q=0.05)...
+  Step 500: loss=0.4916, sparsity=0.063
+  Step 1000: loss=0.4592, sparsity=0.127
+  Step 1500: loss=0.4630, sparsity=0.190
+  Step 2000: loss=0.4574, sparsity=0.253
+  Step 2500: loss=0.4566, sparsity=0.317
+  Step 3000: loss=0.4568, sparsity=0.380
+  Step 3500: loss=0.4629, sparsity=0.443
+  Step 4000: loss=0.4596, sparsity=0.507
+  Step 4500: loss=0.4602, sparsity=0.570
+  Step 5000: loss=0.4564, sparsity=0.633
+  Step 5500: loss=0.4617, sparsity=0.697
+  Step 6000: loss=0.4502, sparsity=0.760
+  Step 6500: loss=0.4560, sparsity=0.823
+  Step 7000: loss=0.4638, sparsity=0.887
+  Step 7500: loss=0.6713, sparsity=0.950
+  Step 8000: loss=0.4579, sparsity=0.950
+  Step 8500: loss=0.4587, sparsity=0.950
+  Step 9000: loss=0.4571, sparsity=0.950
+  Step 9500: loss=0.4606, sparsity=0.950
+  Step 10000: loss=0.4552, sparsity=0.950
+  Step 10500: loss=0.4506, sparsity=0.950
+  Step 11000: loss=0.4539, sparsity=0.950
+  Step 11500: loss=0.4659, sparsity=0.950
+  Step 12000: loss=0.4521, sparsity=0.950
+  Step 12500: loss=0.4465, sparsity=0.950
+  Step 13000: loss=0.4591, sparsity=0.950
+  Step 13500: loss=0.4539, sparsity=0.950
+  Step 14000: loss=0.4599, sparsity=0.950
+  Step 14500: loss=0.4472, sparsity=0.950
+  Step 15000: loss=0.4555, sparsity=0.950
+Extracting circuit for dense model...
+Extracting circuit for sparse model (q=0.2)...
+Extracting circuit for sparse model (q=0.1)...
+Extracting circuit for sparse model (q=0.05)...
+{
+  "hypothesis": "H5",
+  "supports": false,
+  "circuit_size_dense": 6,
+  "circuit_size_sparse": 6,
+  "faithfulness_dense": 1.0,
+  "faithfulness_sparse": 1.0,
+  "accuracy_dense": 1.0,
+  "accuracy_sparse": 1.0,
+  "best_sparse_q": 0.2,
+  "final_loss_dense": 0.4409002608060837,
+  "leak_budget": 0.0,
+  "config_hash": "7af92acb435f",
+  "runtime_s": 1543.7,
+  "device": "cuda",
+  "git_sha": "e5b4edf"
+}
