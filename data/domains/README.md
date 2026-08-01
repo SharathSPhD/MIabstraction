@@ -1,79 +1,89 @@
 # Domain-Specific Corpora for Loom
 
-This directory contains real open-source specialist-domain data for Loom demos. Each domain includes a corpus of authentic texts, a manifest describing the source and licensing, and contrast sets for feature extraction.
+This directory contains genuine open-source data for Loom application demos. Specialist-domain corpora are preferred; when unavailable, Wikipedia fallback is explicitly marked in manifests so demos can honestly disclose their data source.
+
+Each domain includes a corpus of authentic texts, a manifest describing the source and licensing, and contrast sets for feature extraction.
 
 ## Overview
 
-| Domain | Documents | Size | License | Usable Offline | Status |
-|--------|-----------|------|---------|----------------|--------|
-| Literature | 300 | 240 KB | CC-BY-SA-3.0 | Yes | Complete |
-| Medical | 150 | 101 KB | CC-BY-SA-3.0 | Yes | Complete |
-| Legal | 150 | 139 KB | CC-BY-SA-3.0 | Yes | Complete |
-| Finance | 150 | 132 KB | CC-BY-SA-3.0 | Yes | Complete |
-| History | 150 | 129 KB | CC-BY-SA-3.0 | Yes | Complete |
-| Engineering | 200 | 173 KB | CC-BY-SA-3.0 | Yes | Complete |
+| Domain | Docs | Size | License | Source | Offline |
+|--------|------|------|---------|--------|---------|
+| **Medical** | 300 | 273 KB | CC-BY-4.0 | MedQuAD (specialist) | Yes |
+| **Engineering** | 300 | 442 KB | CC-BY-4.0 | arXiv API (specialist) | Yes |
+| **Finance** | 300 | 350 KB | CC-BY-4.0 | finance-alpaca (specialist) | Yes |
+| *Literature* | 300 | 240 KB | CC-BY-SA | Wikipedia (fallback) | Yes |
+| *Legal* | 150 | 135 KB | CC-BY-SA | Wikipedia (fallback) | Yes |
+| *History* | 150 | 132 KB | CC-BY-SA | Wikipedia (fallback) | Yes |
+
+**Bold = specialist source. Italics = Wikipedia fallback.** Each manifest carries `is_specialist: true|false`, so models built on non-specialist domains can honestly disclose this.
 
 ## Domains
 
-### Literature
-**Source:** Wikipedia articles (WikiText-2 dataset)  
-**License:** CC-BY-SA-3.0  
-**Documents:** 300 Wikipedia articles  
-**Size:** ~240 KB  
+### Medical (Specialist ✓)
+**Source:** MedQuAD (Hugging Face `lavita/MedQuAD`)  
+**License:** CC-BY-4.0  
+**Documents:** 300 medical Q&A pairs  
+**Size:** 273 KB  
+**Specialist:** Yes
 
-**Demonstrates:** Storytelling, narrative structure, creative language, semantic coherence, stylistic consistency.
-
-**Suitable for:** Building models that generate or analyze creative writing, essays, and literary critique.
-
-### Medical
-**Source:** Wikipedia biomedical articles (WikiText-2 subset)  
-**License:** CC-BY-SA-3.0  
-**Documents:** 150 medical and health-related articles  
-**Size:** ~101 KB  
-
-**Demonstrates:** Technical terminology, precision in clinical language, accuracy in health information, structured domain knowledge.
+**Demonstrates:** Medical terminology, clinical precision, question-answer structure, evidence-based health information.
 
 **Suitable for:** Building medical Q&A systems, clinical documentation assistants, health literacy tools.
 
-### Legal
-**Source:** Wikipedia law and legal topic articles (WikiText-2 subset)  
+### Engineering (Specialist ✓)
+**Source:** arXiv API (Computer Science, EESS categories)  
+**License:** CC-BY-4.0  
+**Documents:** 300 paper abstracts  
+**Size:** 442 KB  
+**Specialist:** Yes
+
+**Demonstrates:** Algorithm analysis, formal notation, technical precision, research methodology, system design concepts.
+
+**Suitable for:** Building code documentation assistants, algorithm explanation tools, research summarization systems.
+
+### Finance (Specialist ✓)
+**Source:** finance-alpaca (Hugging Face `gbharti/finance-alpaca`)  
+**License:** CC-BY-4.0  
+**Documents:** 300 financial instruction-answer pairs  
+**Size:** 350 KB  
+**Specialist:** Yes
+
+**Demonstrates:** Financial terminology, quantitative reasoning, investment concepts, risk assessment.
+
+**Suitable for:** Building financial advisory assistants, investment analysis tools, market terminology models.
+
+### Literature (Wikipedia Fallback)
+**Source:** Wikipedia articles (WikiText-2 dataset)  
 **License:** CC-BY-SA-3.0  
-**Documents:** 150 legal and constitutional law articles  
-**Size:** ~139 KB  
+**Documents:** 300 Wikipedia articles  
+**Size:** 240 KB  
+**Specialist:** No — attempted Project Gutenberg, unavailable
 
-**Demonstrates:** Complex legal terminology, precise statute interpretation, citation patterns, structural legal reasoning.
+**Demonstrates:** Narrative structure, creative language, semantic coherence (at general encyclopedia level, not specialist literature).
 
-**Suitable for:** Building legal research assistants, contract analysis tools, compliance checkers.
+**Note:** Use for demos only; not suitable for literary analysis systems claiming specialist knowledge.
 
-### Finance
-**Source:** Wikipedia finance and economics articles (WikiText-2 subset)  
+### Legal (Wikipedia Fallback)
+**Source:** Wikipedia law/legal topics (WikiText-2 subset)  
 **License:** CC-BY-SA-3.0  
-**Documents:** 150 financial, investment, and economics articles  
-**Size:** ~132 KB  
+**Documents:** 150 Wikipedia articles  
+**Size:** 135 KB  
+**Specialist:** No — attempted pile-of-law and casehold, no longer available (dataset scripts unsupported)
 
-**Demonstrates:** Quantitative precision, risk assessment language, market analysis terminology, investment strategies.
+**Demonstrates:** Legal terminology at encyclopedia level (not authentic case law or statutes).
 
-**Suitable for:** Building financial advisory assistants, portfolio analysis tools, market sentiment analysis.
+**Note:** Use for demos only; not suitable for legal analysis claiming specialist grounding.
 
-### History
+### History (Wikipedia Fallback)
 **Source:** Wikipedia history articles (WikiText-2 subset)  
 **License:** CC-BY-SA-3.0  
-**Documents:** 150 historical and civilizational articles  
-**Size:** ~129 KB  
+**Documents:** 150 Wikipedia articles  
+**Size:** 132 KB  
+**Specialist:** No — attempted Wikisource and Chronicling America, require OAuth/specialized APIs
 
-**Demonstrates:** Temporal narrative structures, causal explanations, historical context, primary source integration.
+**Demonstrates:** Historical narrative at encyclopedia level (not primary sources).
 
-**Suitable for:** Building historical research tools, timeline generators, civilizational analysis systems.
-
-### Engineering
-**Source:** Wikipedia CS/engineering articles + technical documentation (WikiText-2 subset)  
-**License:** CC-BY-SA-3.0  
-**Documents:** 200 computer science and engineering articles  
-**Size:** ~173 KB  
-
-**Demonstrates:** Algorithm analysis, system architecture, technical precision, formal notation, optimization techniques.
-
-**Suitable for:** Building code documentation assistants, algorithm explanation tools, technical tutoring systems.
+**Note:** Use for demos only; not suitable for historical analysis systems.
 
 ## File Structure
 
@@ -92,24 +102,31 @@ Plain text file with documents separated by `\n\n`. Each domain contains 150-300
 **File is listed in .gitignore** because corpora are multi-MB when domains expand. Regenerate from script.
 
 ### manifest.json
-Metadata for reproducibility and attribution:
+Metadata for reproducibility, attribution, and transparency:
 ```json
 {
-  "source": "https://huggingface.co/datasets/wikitext",
-  "source_note": "Description of what the corpus contains",
-  "license": "CC-BY-SA-3.0",
-  "retrieved": "2026-08-01T19:35:00",
-  "corpus_size_bytes": 239549,
+  "source": "https://huggingface.co/datasets/lavita/MedQuAD",
+  "source_note": "Medical Question-Answer pairs from medical literature",
+  "license": "CC-BY-4.0",
+  "retrieved": "2026-08-01T19:43:16.318309",
+  "corpus_size_bytes": 272886,
   "num_documents": 300,
-  "corpus_sha256": "abc123...",
-  "corpus_file": "corpus.txt"
+  "corpus_sha256": "a499c9a12c44f40f3bdf6bb6ed83844f5d12bb38b4cbe7c51614dd7f285c592b",
+  "corpus_file": "corpus.txt",
+  "is_specialist": true,
+  "attempted_sources": null
 }
 ```
 
+Required fields:
 - `source`: URL or reference to the data source
-- `license`: Permissive open license (CC-BY*, Apache 2.0, MIT, etc.)
+- `license`: Permissive open license (CC-BY*, Apache 2.0, MIT, CC0-1.0, etc.)
 - `corpus_sha256`: Checksum to verify integrity
 - `num_documents`: Count for verification
+- `is_specialist`: **bool** — True if from specialist source, False if Wikipedia fallback
+- `attempted_sources`: (optional) List of attempted specialist sources with errors (if applicable)
+
+**Transparency contract:** When `is_specialist: false`, demos must disclose this in documentation so users know the model is built on general Wikipedia rather than specialist texts. The `attempted_sources` list records why specialist sources were unavailable.
 
 ### contrast.json
 In-domain and out-of-domain examples for Loom's contrastive feature extraction:

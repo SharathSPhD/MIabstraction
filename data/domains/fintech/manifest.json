@@ -1,10 +1,17 @@
 {
-  "source": "https://huggingface.co/datasets/wikitext",
-  "source_note": "Financial and economics texts extracted from Wikipedia",
-  "license": "CC-BY-SA-3.0",
-  "retrieved": "2026-08-01T19:38:22.535476",
-  "corpus_size_bytes": 132311,
-  "num_documents": 150,
-  "corpus_sha256": "e35c5b5514f8cf5784c17c53b556fbbb8bbb2d43f952a09b8fd49e2e43341990",
-  "corpus_file": "corpus.txt"
+  "source": "https://huggingface.co/datasets/gbharti/finance-alpaca",
+  "source_note": "Financial QA and instruction dataset",
+  "license": "CC-BY-4.0",
+  "retrieved": "2026-08-01T19:43:27.845564",
+  "corpus_size_bytes": 350445,
+  "num_documents": 300,
+  "corpus_sha256": "0e6cf8e9ba9a2d96377e8ff4faf4697e284a6defdb71b1060c55391b33873364",
+  "corpus_file": "corpus.txt",
+  "is_specialist": true,
+  "attempted_sources": [
+    {
+      "source": "financial_phrasebank",
+      "error": "Dataset scripts are no longer supported, but found financial_phrasebank.py"
+    }
+  ]
 }

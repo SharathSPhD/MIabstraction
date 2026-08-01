@@ -1,10 +1,17 @@
 {
   "source": "https://huggingface.co/datasets/wikitext",
-  "source_note": "Wikipedia articles from WikiText-2 dataset",
+  "source_note": "Wikipedia articles (fallback: Project Gutenberg unavailable)",
   "license": "CC-BY-SA-3.0",
-  "retrieved": "2026-08-01T19:38:19.131522",
+  "retrieved": "2026-08-01T19:43:28.708577",
   "corpus_size_bytes": 239549,
   "num_documents": 300,
   "corpus_sha256": "9014c17cc8ae6bde70ea19bf499f5cfc5b65d677664925c7ed5c2124cad1bb92",
-  "corpus_file": "corpus.txt"
+  "corpus_file": "corpus.txt",
+  "is_specialist": false,
+  "attempted_sources": [
+    {
+      "source": "merve/gutenberg",
+      "error": "Dataset 'merve/gutenberg' doesn't exist on the Hub or cannot be accessed."
+    }
+  ]
 }
