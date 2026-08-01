@@ -327,6 +327,8 @@ def collate_fn(batch):
     if isinstance(batch[0], dict):
         # BabyLM format: dict with 'text' key
         tokenizer = AutoTokenizer.from_pretrained("gpt2")
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
         texts = [b['text'] for b in batch]
         encoded = tokenizer(
             texts,
