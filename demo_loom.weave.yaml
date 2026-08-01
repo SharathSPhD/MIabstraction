@@ -4,13 +4,14 @@ model:
   size: small
 
 skills:
-  - name: induction_skill
-    kind: induction
+  - name: mess3_dynamics
+    kind: state_tracking
+    world: mess3
 
 controls:
-  - name: suppress_token_2
+  - name: suppress_token_1
     kind: suppress
-    token: 2
+    token: 1
     strength: 1.0
 
 monitors:
@@ -19,10 +20,8 @@ monitors:
     concept: belief_state
 
 gates:
-  induction_skill:
-    prefix_score: ">0.0"
-  suppress_token_2:
-    suppression_ratio: ">0.0"
-    side_effect: "<1.0"
+  suppress_token_1:
+    suppression_ratio: ">0.9"
+    side_effect: "<0.1"
   belief_state_monitor:
-    probe_r2: ">0.0"
+    probe_r2: ">0.9"
