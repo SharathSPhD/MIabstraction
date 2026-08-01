@@ -20,7 +20,14 @@ OUT = "build/Clinic-open_weight"
 
 
 def main() -> int:
-    report = build("examples/clinic.loom", TARGET, OUT, device="cuda", verify=True)
+    # The program is fixed; the substrate is an argument. Same source, different model,
+    # is the portability claim this script exists to test.
+    target = sys.argv[1] if len(sys.argv) > 1 else TARGET
+    slug = target.split("/")[-1].replace(".", "_")
+    out = sys.argv[2] if len(sys.argv) > 2 else f"build/Clinic-{slug}"
+    results_path = Path(f"results/loom_clinic_build_{slug}.json")
+
+    report = build("examples/clinic.loom", target, out, device="cuda", verify=True)
 
     print("\n" + "=" * 78)
     print(f"{report['app']} on {report['base_model']}  ({report['params']:,} params)")
@@ -51,8 +58,8 @@ def main() -> int:
         print(f"       evidence: {c['evidence'][:160]}")
 
     Path("results").mkdir(exist_ok=True)
-    Path("results/loom_clinic_build.json").write_text(json.dumps(report, indent=2))
-    print(f"\nwrote results/loom_clinic_build.json")
+    results_path.write_text(json.dumps(report, indent=2))
+    print(f"\nwrote {results_path}")
     return 0 if report.get("passed") else 1
 
 
