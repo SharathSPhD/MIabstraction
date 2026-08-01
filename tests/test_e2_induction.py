@@ -1,113 +1,67 @@
-"""Tests for E2 induction experiment."""
-import json
-from pathlib import Path
-
 import numpy as np
-import pytest
 import torch
-import yaml
 
-from miabstraction.config import ExperimentConfig
-from miabstraction.experiments.e2_induction import run
-
-
-@pytest.fixture
-def minimal_config_dict():
-    """Minimal E2 config for testing."""
-    return {
-        "name": "e2_induction",
-        "hypothesis": "H2",
-        "seed": 0,
-        "device": "cuda" if torch.cuda.is_available() else "cpu",
-        "model": {"d_model": 32, "n_layers": 2, "n_heads": 2, "max_len": 64},
-        "data": {
-            "n_seq": 500,
-            "seq_len": 32,
-            "vocab": 10,
-            "repeat_len": 4,
-        },
-        "train": {"steps": 200, "batch_size": 64, "lr": 0.001, "log_every": 50},
-        "analysis": {"n_attention_seq": 100},
-        "out_dir": "/tmp/test_e2",
-    }
+from miabstraction.experiments.e2_induction import (
+    attention_patterns,
+    copy_region_losses,
+    doubled_sequences,
+    find_transition,
+    gapped_doubled_sequences,
+    prefix_matching_score,
+)
+from miabstraction.models import TinyTransformer
 
 
-@pytest.fixture
-def config(minimal_config_dict, tmp_path):
-    """Create a test config and write to temp file."""
-    config_dict = minimal_config_dict.copy()
-    config_dict["out_dir"] = str(tmp_path)
-    config_file = tmp_path / "config.yaml"
-    with open(config_file, "w") as f:
-        yaml.dump(config_dict, f)
-    return ExperimentConfig.load(config_file)
+def test_doubled_sequences_structure():
+    rng = np.random.default_rng(0)
+    s = doubled_sequences(10, 8, 5, rng)
+    assert s.shape == (10, 16)
+    np.testing.assert_array_equal(s[:, :8], s[:, 8:])
 
 
-def test_e2_run_returns_result_dict(config):
-    """Experiment run returns a dict with required keys."""
-    result = run(config)
-    assert isinstance(result, dict)
-    assert "hypothesis" in result
-    assert result["hypothesis"] == "H2"
-    assert "supports" in result
-    assert isinstance(result["supports"], (bool, np.bool_))
-    assert "config_hash" in result
-    assert "runtime_s" in result
+def test_gapped_doubled_sequences_structure():
+    rng = np.random.default_rng(0)
+    seqs, gaps = gapped_doubled_sequences(50, 12, 6, 7, rng)
+    assert seqs.shape == (50, 30)
+    assert gaps.min() >= 0 and gaps.max() <= 6
+    for i in range(50):
+        g = gaps[i]
+        np.testing.assert_array_equal(seqs[i, :12], seqs[i, 12 + g : 24 + g])
 
 
-def test_e2_run_creates_result_json(config):
-    """Experiment writes result.json."""
-    result = run(config)
-    result_file = config.result_dir() / "result.json"
-    assert result_file.exists()
-    with open(result_file) as f:
-        stored = json.load(f)
-    assert stored["hypothesis"] == "H2"
-    assert "supports" in stored
+def test_attention_patterns_shapes_and_causality():
+    m = TinyTransformer(vocab=5, d_model=32, n_layers=2, n_heads=2, attn_only=True)
+    x = torch.randint(0, 5, (3, 12))
+    pats = attention_patterns(m, x)
+    assert len(pats) == 2
+    assert pats[0].shape == (3, 2, 12, 12)
+    upper = torch.triu(torch.ones(12, 12, dtype=torch.bool), diagonal=1)
+    assert pats[0][:, :, upper].abs().max().item() < 1e-6
+    assert torch.allclose(pats[0].sum(-1), torch.ones(3, 2, 12), atol=1e-5)
 
 
-def test_e2_run_creates_plot(config):
-    """Experiment creates phase transition plot."""
-    result = run(config)
-    plot_file = config.result_dir() / "phase_transition.png"
-    assert plot_file.exists()
-    assert plot_file.stat().st_size > 0
+def test_prefix_score_near_uniform_for_untrained():
+    torch.manual_seed(0)
+    m = TinyTransformer(vocab=5, d_model=32, n_layers=2, n_heads=2, attn_only=True,
+                        max_len=64)
+    seqs, gaps = gapped_doubled_sequences(16, 12, 6, 5, np.random.default_rng(1))
+    s = prefix_matching_score(m, torch.from_numpy(seqs), gaps, 12)
+    assert 0.0 <= s < 0.3
+    per_layer = prefix_matching_score(m, torch.from_numpy(seqs), gaps, 12,
+                                      per_layer=True)
+    assert len(per_layer) == 2
 
 
-def test_e2_run_detects_phase_transition_metrics(config):
-    """Result includes phase transition detection metrics."""
-    result = run(config)
-    # These should be present if transition detection ran
-    assert "prefix_matching_scores" in result or "transition_window" in result
+def test_copy_region_losses_returns_floats():
+    m = TinyTransformer(vocab=5, d_model=32, n_layers=1, n_heads=2, attn_only=True,
+                        max_len=64)
+    seqs, gaps = gapped_doubled_sequences(8, 12, 6, 5, np.random.default_rng(2))
+    lf, ls = copy_region_losses(m, torch.from_numpy(seqs), gaps, 12)
+    assert lf > 0 and ls > 0
 
 
-def test_e2_run_loss_metrics_present(config):
-    """Result includes loss tracking for repeat vs first-occurrence regions."""
-    result = run(config)
-    # Should track losses on different token types
-    assert "final_loss" in result or "loss_history" in result
-
-
-def test_e2_supports_true_if_transition_detected(config):
-    """H2 is supported iff clear phase transition is detected."""
-    result = run(config)
-    supports = result["supports"]
-    assert isinstance(supports, (bool, np.bool_))
-    # If supports=True, there should be evidence of a transition
-    if supports:
-        # Window should be short (< 20% of total steps)
-        if "transition_window_width" in result:
-            window_pct = result["transition_window_width"] / config.train["steps"]
-            assert window_pct < 0.2
-
-
-def test_e2_git_sha_recorded(config):
-    """Result records git SHA for provenance."""
-    result = run(config)
-    assert "git_sha" in result or "config_hash" in result
-
-
-def test_e2_device_recorded(config):
-    """Result records which device was used."""
-    result = run(config)
-    assert "device" in result
+def test_find_transition():
+    steps = [0, 100, 200, 300, 400]
+    scores = [0.05, 0.1, 0.15, 0.7, 0.8]
+    assert find_transition(steps, scores) == (200, 300)
+    assert find_transition(steps, [0.1] * 5) is None

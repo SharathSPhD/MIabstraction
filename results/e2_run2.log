@@ -1,16 +1,8 @@
 {
-  "prefix_score_per_layer": [
-    0.07344792783260345,
-    0.6071153879165649
-  ],
   "hypothesis": "H2",
   "supports": true,
   "final_prefix_score": 0.6071153879165649,
   "max_prefix_score": 0.6332487463951111,
-  "transition_window": [
-    300,
-    3400
-  ],
   "window_frac": 0.155,
   "co_timed": true,
   "final_loss_first_copy": 2.996757745742798,

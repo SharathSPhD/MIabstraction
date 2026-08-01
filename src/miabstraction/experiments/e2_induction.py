@@ -1,202 +1,126 @@
 """E2: induction-head phase transition (H2).
 
-Train a 2-layer attention-only transformer on sequences with repeated segments.
-Track: (a) loss on repeat-region vs first-occurrence tokens, (b) prefix-matching
-score (fraction of attention mass from layer-2 heads at repeat positions attending
-to the token after previous occurrence). Detect phase transition: window where
-score rises from <0.2 to >0.6, with window width < 20% of total steps.
+Train a 2-layer attention-only transformer on doubled sequences [x; x] (x random).
+The only generalizing strategy for the second half is induction: at position p >= T,
+attend to position p - T + 1 (the token after the previous occurrence) and copy it.
+
+We track (a) loss on the second half (in-context) vs first half, and (b) the
+prefix-matching score: attention mass on the induction target, max over layer-2 heads.
+H2 supported iff final score > 0.6, the <0.2 -> >0.6 rise happens within a window
+< 20% of training, and the second-half loss drop overlaps that window.
 """
 from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
 from ..config import ExperimentConfig
-from ..data.induction import generate_induction_sequences
-from ..models import TinyTransformer
+from ..models import TinyTransformer, train_lm
 
 
-class AttentionCapture:
-    """Context manager to capture attention weights from MultiheadAttention."""
-
-    def __init__(self, attention_module: nn.MultiheadAttention):
-        self.attention = attention_module
-        self.weights = None
-        self.hook = None
-
-    def __enter__(self):
-        def hook_fn(module, input, output):
-            # output from MultiheadAttention is (attn_out, attn_weights)
-            # when need_weights=True
-            if isinstance(output, tuple):
-                self.weights = output[1]  # (batch, n_heads, L, L)
-            return output
-
-        self.hook = self.attention.register_forward_hook(hook_fn)
-        return self
-
-    def __exit__(self, *args):
-        if self.hook:
-            self.hook.remove()
+def doubled_sequences(n_seq: int, half_len: int, vocab: int,
+                      rng: np.random.Generator) -> np.ndarray:
+    x = rng.integers(0, vocab, size=(n_seq, half_len), dtype=np.int64)
+    return np.concatenate([x, x], axis=1)
 
 
-def get_attention_weights(
-    model: TinyTransformer, tokens: torch.Tensor, device: str, layer_idx: int
-) -> np.ndarray:
-    """Extract attention weights from a specific layer.
+def gapped_doubled_sequences(
+    n_seq: int, copy_len: int, max_gap: int, vocab: int, rng: np.random.Generator
+) -> tuple[np.ndarray, np.ndarray]:
+    """[x, junk(g), x, junk(max_gap-g)] with per-sequence random gap g.
 
-    Args:
-        model: TinyTransformer
-        tokens: (batch, seq_len) token indices
-        device: cuda or cpu
-        layer_idx: which layer (0-indexed)
-
-    Returns:
-        attn_weights: (batch, n_heads, seq_len, seq_len) attention matrix
+    The variable gap defeats the fixed-relative-offset positional shortcut, so
+    only content-based induction solves the second copy. Returns (seqs, gaps);
+    total length = 2*copy_len + max_gap.
     """
-    model.eval()
+    L = 2 * copy_len + max_gap
+    seqs = rng.integers(0, vocab, size=(n_seq, L), dtype=np.int64)
+    gaps = rng.integers(0, max_gap + 1, size=n_seq)
+    for i in range(n_seq):
+        g = gaps[i]
+        seqs[i, copy_len + g : 2 * copy_len + g] = seqs[i, :copy_len]
+    return seqs, gaps
+
+
+def attention_patterns(model: TinyTransformer, tokens: torch.Tensor) -> list[torch.Tensor]:
+    """Per-layer attention weights (B, heads, L, L), mirroring model.forward."""
+    _, L = tokens.shape
+    pos = torch.arange(L, device=tokens.device)
+    x = model.tok(tokens) + model.pos(pos)[None]
+    mask = torch.triu(torch.full((L, L), float("-inf"), device=tokens.device), diagonal=1)
+    pats = []
     with torch.no_grad():
-        tokens = tokens.to(device)
-        # Forward pass with attention capture
-        layer = model.blocks[layer_idx]
-        attn_weights_list = []
-
-        # Manually forward through embedding and mask
-        _, L = tokens.shape
-        pos = torch.arange(L, device=device)
-        x = model.tok(tokens) + model.pos(pos)[None]
-        mask = torch.triu(
-            torch.full((L, L), float("-inf"), device=device), diagonal=1
-        )
-
-        # Forward through layers up to target layer
-        for i, blk in enumerate(model.blocks):
-            if i == layer_idx:
-                # Capture attention on this layer
-                h = blk.ln1(x)
-                with AttentionCapture(blk.attn) as cap:
-                    a, _ = blk.attn(h, h, h, attn_mask=mask, need_weights=True)
-                    attn_weights = cap.weights
-                x = x + a
-                attn_weights_list.append(attn_weights.cpu().numpy())
-            else:
-                x = blk(x, mask)
-                if i < layer_idx:
-                    attn_weights_list.append(None)
-
-    return attn_weights_list[-1] if attn_weights_list else None
+        for blk in model.blocks:
+            h = blk.ln1(x)
+            a, w = blk.attn(h, h, h, attn_mask=mask, need_weights=True,
+                            average_attn_weights=False)
+            pats.append(w)  # (B, heads, L, L)
+            x = x + a
+            if not blk.attn_only:
+                x = x + blk.mlp(blk.ln2(x))
+    return pats
 
 
-def compute_prefix_matching_score(
-    sequences: np.ndarray,
-    repeat_mask: np.ndarray,
-    attn_weights: np.ndarray,
-) -> float:
-    """Compute fraction of attention mass at repeat positions attending to
-    the token after previous occurrence.
-
-    Args:
-        sequences: (batch, seq_len) token IDs
-        repeat_mask: (batch, seq_len) bool indicating repeat positions
-        attn_weights: (batch, L, L) or (batch, heads, L, L) attention weights
-
-    Returns:
-        score: fraction of attention mass matching induction pattern
-    """
-    batch, seq_len = sequences.shape
-
-    # Handle attention weights shape
-    if attn_weights.ndim == 3:
-        # Shape is (batch, L, L) - averaged over heads
-        # Expand to (batch, 1, L, L) to work with the loop below
-        attn_weights = attn_weights[:, np.newaxis, :, :]
-        n_heads = 1
-    elif attn_weights.ndim == 4:
-        # Shape is (batch, heads, L, L)
-        n_heads = attn_weights.shape[1]
-    else:
-        return 0.0
-
-    score_sum = 0.0
-    count = 0.0
-
-    for b in range(batch):
-        for h in range(n_heads):
-            seq = sequences[b]
-            mask = repeat_mask[b]
-
-            # For each repeat position, check attention to prev occurrence + 1
-            for repeat_pos in np.where(mask)[0]:
-                # Get the token at this position
-                token_t = seq[repeat_pos]
-
-                # Find where this token appeared before (first occurrence)
-                first_occurrences = np.where(
-                    (seq[:repeat_pos] == token_t) & ~mask[:repeat_pos]
-                )[0]
-
-                if len(first_occurrences) == 0:
-                    continue
-
-                # Ideally attend to the token after the first occurrence
-                first_pos = first_occurrences[0]  # or max? Use first
-                if first_pos + 1 < seq_len:
-                    target_pos = first_pos + 1
-                    # Get attention mass to that position
-                    attn_mass = attn_weights[b, h, repeat_pos, target_pos]
-                    # Normalize by total attention mass at this position
-                    total_mass = attn_weights[b, h, repeat_pos, :].sum()
-                    if total_mass > 0:
-                        normalized_mass = attn_mass / total_mass
-                        score_sum += normalized_mass
-                        count += 1.0
-
-    if count == 0:
-        return 0.0
-    return score_sum / count
+def prefix_matching_score(
+    model: TinyTransformer,
+    tokens: torch.Tensor,
+    gaps: np.ndarray,
+    copy_len: int,
+    per_layer: bool = False,
+) -> float | list[float]:
+    """Mean attention mass on the induction target (prev occurrence + 1),
+    max over heads; per layer if requested, else for the best layer."""
+    pats = attention_patterns(model, tokens)
+    scores = []
+    for w in pats:  # (B, H, L, L)
+        masses = []
+        for i in range(w.shape[0]):
+            g = int(gaps[i])
+            # queries: second-copy positions predicting x[j+1], j = 1..copy_len-1
+            q = torch.arange(copy_len + g + 1, 2 * copy_len + g, device=w.device)
+            k = q - (copy_len + g) + 1  # = j + 1 in first copy
+            masses.append(w[i, :, q, k].mean(dim=0))  # (H,) mean over queries
+        m = torch.stack(masses).mean(0)  # (H,)
+        scores.append(float(m.max().item()))
+    return scores if per_layer else max(scores)
 
 
-def detect_phase_transition(scores: list[float], threshold_low: float = 0.2,
-                             threshold_high: float = 0.6) -> dict:
-    """Detect phase transition window in score curve.
+def copy_region_losses(
+    model: TinyTransformer, tokens: torch.Tensor, gaps: np.ndarray, copy_len: int
+) -> tuple[float, float]:
+    """(loss on first copy, loss on second copy) — second is the ICL region."""
+    with torch.no_grad():
+        logits = model(tokens[:, :-1])
+        ce = F.cross_entropy(
+            logits.transpose(1, 2), tokens[:, 1:], reduction="none"
+        )  # (B, L-1)
+    first, second = [], []
+    for i in range(tokens.shape[0]):
+        g = int(gaps[i])
+        first.append(ce[i, : copy_len - 1].mean())
+        # targets x[1..] at positions copy_len+g .. 2*copy_len+g-2 in ce index space
+        second.append(ce[i, copy_len + g : 2 * copy_len + g - 1].mean())
+    return float(torch.stack(first).mean()), float(torch.stack(second).mean())
 
-    Args:
-        scores: list of prefix-matching scores over training steps
-        threshold_low: score below which is "pre-transition"
-        threshold_high: score above which is "post-transition"
 
-    Returns:
-        dict with transition_window, window_width, max_score
-    """
-    scores_array = np.array(scores)
-    max_score = float(np.max(scores_array)) if len(scores_array) > 0 else 0.0
-
-    # Find shortest contiguous window where score goes from <threshold_low to >threshold_high
-    best_window = None
-    best_width = len(scores)
-
-    for start in range(len(scores)):
-        if scores[start] >= threshold_low:
-            # Find where it exceeds threshold_high
-            for end in range(start, len(scores)):
-                if scores[end] > threshold_high:
-                    width = end - start
-                    if width < best_width:
-                        best_window = (start, end)
-                        best_width = width
-                    break
-
-    return {
-        "transition_window": best_window,
-        "transition_window_width": best_width if best_window else None,
-        "max_prefix_matching_score": max_score,
-    }
+def find_transition(steps: list[int], scores: list[float],
+                    lo: float = 0.2, hi: float = 0.6) -> tuple[int, int] | None:
+    """Shortest [s_i, s_j] with score[i] < lo, score[j] > hi."""
+    best = None
+    for j, sj in enumerate(scores):
+        if sj <= hi:
+            continue
+        cands = [i for i in range(j) if scores[i] < lo]
+        if not cands:
+            continue
+        i = max(cands)
+        if best is None or steps[j] - steps[i] < best[1] - best[0]:
+            best = (steps[i], steps[j])
+    return best
 
 
 def run(cfg: ExperimentConfig) -> dict:
@@ -205,239 +129,89 @@ def run(cfg: ExperimentConfig) -> dict:
     torch.manual_seed(cfg.seed)
     dev = cfg.device if torch.cuda.is_available() else "cpu"
 
-    # Generate data
-    n_seq = cfg.data.get("n_seq", 2000)
-    seq_len = cfg.data.get("seq_len", 64)
-    vocab = cfg.data.get("vocab", 20)
-    repeat_len = cfg.data.get("repeat_len", 8)
-
-    sequences, repeat_mask = generate_induction_sequences(
-        n_seq=n_seq, seq_len=seq_len, vocab=vocab, repeat_len=repeat_len, rng=rng
+    vocab = cfg.data["vocab"]
+    copy_len = cfg.data["copy_len"]
+    max_gap = cfg.data["max_gap"]
+    seqs, _ = gapped_doubled_sequences(cfg.data["n_seq"], copy_len, max_gap, vocab, rng)
+    tokens = torch.from_numpy(seqs)
+    pseqs, pgaps = gapped_doubled_sequences(
+        cfg.analysis.get("n_probe_seq", 256), copy_len, max_gap, vocab, rng
     )
-    tokens = torch.from_numpy(sequences).long()
+    probe = torch.from_numpy(pseqs).to(dev)
 
-    # Model: 2-layer attention-only transformer
-    model_config = cfg.model.copy()
-    # Ensure attn_only is True
-    model_config["attn_only"] = True
-    model = TinyTransformer(
-        vocab=vocab,
-        **model_config,
-    )
+    model = TinyTransformer(vocab=vocab, **cfg.model)
+    log: dict[str, list] = {"step": [], "score": [], "loss_first": [], "loss_second": []}
 
-    # Training with callback to track prefix-matching scores
-    prefix_matching_scores = []
-    loss_history = []
-    repeat_loss_history = []
-    first_occurrence_loss_history = []
-
-    def training_callback(step: int, m: TinyTransformer):
-        """Callback to compute metrics during training."""
+    def callback(step: int, m: TinyTransformer) -> None:
         m.eval()
-        with torch.no_grad():
-            # Compute prefix-matching score on validation sequences
-            n_val = cfg.analysis.get("n_attention_seq", 100)
-            val_sequences, val_mask = generate_induction_sequences(
-                n_seq=n_val, seq_len=seq_len, vocab=vocab, repeat_len=repeat_len, rng=rng
-            )
-            val_tokens = torch.from_numpy(val_sequences).long()[:, :-1]
+        s = prefix_matching_score(m, probe, pgaps, copy_len)
+        lf, ls = copy_region_losses(m, probe, pgaps, copy_len)
+        log["step"].append(step)
+        log["score"].append(s)
+        log["loss_first"].append(lf)
+        log["loss_second"].append(ls)
+        m.train()
 
-            try:
-                # Get attention weights from layer 1 (second layer)
-                attn_weights = get_attention_weights(m, val_tokens, dev, layer_idx=1)
-                if attn_weights is not None:
-                    # Trim repeat_mask to match attention weights length
-                    val_mask_trimmed = val_mask[:, :-1]
-                    score = compute_prefix_matching_score(
-                        val_sequences[:, :-1], val_mask_trimmed, attn_weights
-                    )
-                    prefix_matching_scores.append(float(score))
-                else:
-                    prefix_matching_scores.append(0.0)
-            except Exception as e:
-                # If attention capture fails, log 0
-                print(f"Warning: attention capture failed at step {step}: {e}")
-                prefix_matching_scores.append(0.0)
+    steps = cfg.train["steps"]
+    train_lm(model, tokens, device=dev, callback=callback, **cfg.train)
 
-    log_every = cfg.train.get("log_every", 50)
-    train_config = {k: v for k, v in cfg.train.items() if k != "log_every"}
-    losses = train_lm_with_metrics(
-        model,
-        tokens,
-        repeat_mask,
-        device=dev,
-        callback=training_callback,
-        log_every=log_every,
-        **train_config,
-    )
-    loss_history = losses["total_loss"]
-    repeat_loss_history = losses["repeat_loss"]
-    first_occurrence_loss_history = losses["first_occurrence_loss"]
+    final_score = log["score"][-1]
+    window = find_transition(log["step"], log["score"])
+    window_frac = (window[1] - window[0]) / steps if window else None
 
-    # Detect phase transition
-    transition_info = detect_phase_transition(prefix_matching_scores)
+    # co-timing: >50% of the total second-half loss drop happens inside the window
+    co_timed = False
+    if window:
+        ls = np.array(log["loss_second"])
+        st = np.array(log["step"])
+        in_w = (st >= window[0]) & (st <= window[1])
+        total_drop = ls.max() - ls.min()
+        drop_in_window = (ls[in_w].max() - ls[in_w].min()) if in_w.any() else 0.0
+        co_timed = bool(total_drop > 0 and drop_in_window / total_drop > 0.5)
 
-    # Check if H2 is supported
-    supports = False
-    if transition_info["max_prefix_matching_score"] > 0.6:
-        if transition_info["transition_window_width"] is not None:
-            window_pct = transition_info["transition_window_width"] / cfg.train.get(
-                "steps", 1
-            )
-            if window_pct < 0.2:
-                supports = True
-
+    per_layer = prefix_matching_score(model, probe, pgaps, copy_len, per_layer=True)
+    supports = bool(final_score > 0.6 and window and window_frac < 0.2 and co_timed)
     result = {
+        "prefix_score_per_layer": per_layer,
         "hypothesis": cfg.hypothesis,
         "supports": supports,
-        "final_loss": float(np.mean(loss_history[-10:])) if loss_history else 0.0,
-        "final_repeat_loss": float(
-            np.mean(repeat_loss_history[-10:])
-        ) if repeat_loss_history else 0.0,
-        "final_first_occurrence_loss": float(
-            np.mean(first_occurrence_loss_history[-10:])
-        ) if first_occurrence_loss_history else 0.0,
-        "prefix_matching_scores": [float(s) for s in prefix_matching_scores],
-        "max_prefix_matching_score": float(transition_info["max_prefix_matching_score"]),
-        "transition_window": (
-            (int(transition_info["transition_window"][0]), int(transition_info["transition_window"][1]))
-            if transition_info["transition_window"]
-            else None
-        ),
-        "transition_window_width": (
-            int(transition_info["transition_window_width"])
-            if transition_info["transition_window_width"]
-            else None
-        ),
+        "final_prefix_score": final_score,
+        "max_prefix_score": float(max(log["score"])),
+        "transition_window": list(window) if window else None,
+        "window_frac": window_frac,
+        "co_timed": co_timed,
+        "final_loss_first_copy": log["loss_first"][-1],
+        "final_loss_second_copy": log["loss_second"][-1],
+        "uniform_loss_nats": float(np.log(vocab)),
+        "leak_budget": float(1 - final_score),
         "config_hash": cfg.hash(),
         "runtime_s": round(time.time() - t0, 1),
         "device": dev,
     }
-
     d = cfg.result_dir()
     (d / "result.json").write_text(json.dumps(result, indent=2))
-
-    # Create plot
-    _plot_phase_transition(
-        loss_history, repeat_loss_history, first_occurrence_loss_history,
-        prefix_matching_scores, transition_info, d
-    )
-
+    (d / "curves.json").write_text(json.dumps(log))
+    _plot(log, window, d)
     return result
 
 
-def train_lm_with_metrics(
-    model: TinyTransformer,
-    tokens: torch.Tensor,
-    repeat_mask: np.ndarray,
-    steps: int,
-    batch_size: int,
-    lr: float,
-    device: str,
-    log_every: int = 100,
-    callback=None,
-) -> dict:
-    """Train transformer, tracking losses on repeat vs first-occurrence tokens."""
-    model.to(device).train()
-    opt = torch.optim.AdamW(model.parameters(), lr=lr)
-    g = torch.Generator().manual_seed(0)
-
-    total_loss_history = []
-    repeat_loss_history = []
-    first_occurrence_loss_history = []
-
-    for step in range(steps):
-        idx = torch.randint(0, tokens.shape[0], (batch_size,), generator=g)
-        batch_tokens = tokens[idx].to(device)
-        batch_mask = repeat_mask[idx]
-
-        # Forward pass on input tokens (predict next token)
-        logits = model(batch_tokens[:, :-1])
-        targets = batch_tokens[:, 1:]
-
-        # Compute loss on all tokens
-        logits_flat = logits.reshape(-1, logits.shape[-1])
-        targets_flat = targets.reshape(-1)
-        loss = F.cross_entropy(logits_flat, targets_flat)
-
-        # Compute loss on repeat-region tokens vs first-occurrence tokens
-        repeat_mask_flat = batch_mask[:, 1:].reshape(-1)
-        if repeat_mask_flat.any():
-            repeat_loss = F.cross_entropy(
-                logits_flat[repeat_mask_flat], targets_flat[repeat_mask_flat]
-            )
-        else:
-            repeat_loss = torch.tensor(0.0, device=device)
-
-        non_repeat_mask = ~repeat_mask_flat
-        if non_repeat_mask.any():
-            first_occurrence_loss = F.cross_entropy(
-                logits_flat[non_repeat_mask], targets_flat[non_repeat_mask]
-            )
-        else:
-            first_occurrence_loss = torch.tensor(0.0, device=device)
-
-        opt.zero_grad()
-        loss.backward()
-        opt.step()
-
-        total_loss_history.append(loss.item())
-        repeat_loss_history.append(repeat_loss.item() if isinstance(repeat_loss, torch.Tensor) else repeat_loss)
-        first_occurrence_loss_history.append(
-            first_occurrence_loss.item() if isinstance(first_occurrence_loss, torch.Tensor) else first_occurrence_loss
-        )
-
-        if callback and (step % log_every == 0 or step == steps - 1):
-            callback(step, model)
-
-    return {
-        "total_loss": total_loss_history,
-        "repeat_loss": repeat_loss_history,
-        "first_occurrence_loss": first_occurrence_loss_history,
-    }
-
-
-def _plot_phase_transition(loss_history, repeat_loss_history, first_occurrence_loss_history,
-                            prefix_matching_scores, transition_info, d: Path):
-    """Create visualization of phase transition."""
+def _plot(log, window, d):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8))
-
-    # Plot 1: Losses
-    steps = np.arange(len(loss_history))
-    axes[0].plot(steps, loss_history, label="Overall loss", alpha=0.7)
-    axes[0].plot(steps, repeat_loss_history, label="Repeat-region loss", alpha=0.7)
-    axes[0].plot(steps, first_occurrence_loss_history, label="First-occurrence loss", alpha=0.7)
-    axes[0].set_xlabel("Training step")
-    axes[0].set_ylabel("Loss")
-    axes[0].set_title("E2: Loss Curves")
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
-
-    # Plot 2: Prefix-matching score
-    if prefix_matching_scores:
-        score_steps = np.arange(len(prefix_matching_scores))
-        axes[1].plot(score_steps, prefix_matching_scores, label="Prefix-matching score",
-                     marker="o", markersize=3, alpha=0.7)
-        axes[1].axhline(y=0.2, color="r", linestyle="--", alpha=0.5, label="Low threshold (0.2)")
-        axes[1].axhline(y=0.6, color="g", linestyle="--", alpha=0.5, label="High threshold (0.6)")
-
-        # Highlight transition window if found
-        if transition_info["transition_window"]:
-            start, end = transition_info["transition_window"]
-            axes[1].axvspan(start, end, alpha=0.2, color="orange", label="Transition window")
-
-    axes[1].set_xlabel("Validation step")
-    axes[1].set_ylabel("Prefix-matching score")
-    axes[1].set_title("E2: Induction Head Formation (Phase Transition)")
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
-    axes[1].set_ylim([0, 1.0])
-
-    fig.suptitle(f"E2 Induction-Head Phase Transition\nSupports H2: {transition_info['max_prefix_matching_score'] > 0.6 and (transition_info['transition_window_width'] is None or transition_info['transition_window_width'] < len(prefix_matching_scores) * 0.2)}")
-    fig.tight_layout()
+    fig, ax1 = plt.subplots(figsize=(9, 5))
+    ax1.plot(log["step"], log["score"], "b-", label="prefix-matching score")
+    ax1.set_xlabel("step")
+    ax1.set_ylabel("score", color="b")
+    ax1.set_ylim(0, 1)
+    ax2 = ax1.twinx()
+    ax2.plot(log["step"], log["loss_first"], "g--", label="first-half loss")
+    ax2.plot(log["step"], log["loss_second"], "r-", label="second-half (ICL) loss")
+    ax2.set_ylabel("loss (nats)")
+    if window:
+        ax1.axvspan(window[0], window[1], alpha=0.15, color="orange")
+    fig.legend(loc="center right")
+    fig.suptitle("E2: induction-head phase transition")
     fig.savefig(d / "phase_transition.png", dpi=150, bbox_inches="tight")
     plt.close(fig)

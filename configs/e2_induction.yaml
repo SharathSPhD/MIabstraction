@@ -6,18 +6,18 @@ model:
   d_model: 64
   n_layers: 2
   n_heads: 4
-  max_len: 64
+  max_len: 72
   attn_only: true
 data:
-  n_seq: 2000
-  seq_len: 64
+  n_seq: 200000
+  copy_len: 24
+  max_gap: 16
   vocab: 20
-  repeat_len: 8
 train:
-  steps: 10000
+  steps: 20000
   batch_size: 256
   lr: 0.001
   log_every: 100
 analysis:
-  n_attention_seq: 200
+  n_probe_seq: 128
 out_dir: results

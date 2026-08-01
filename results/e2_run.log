@@ -1,0 +1,17 @@
+{
+  "hypothesis": "H2",
+  "supports": false,
+  "final_prefix_score": 0.1080784797668457,
+  "max_prefix_score": 0.20665492117404938,
+  "transition_window": null,
+  "window_frac": null,
+  "co_timed": false,
+  "final_loss_first_half": 2.9976816177368164,
+  "final_loss_second_half": 5.519546539289877e-05,
+  "uniform_loss_nats": 2.995732273553991,
+  "leak_budget": 0.8919215202331543,
+  "config_hash": "fd5343a301c0",
+  "runtime_s": 71.3,
+  "device": "cuda",
+  "git_sha": "41a6493"
+}
