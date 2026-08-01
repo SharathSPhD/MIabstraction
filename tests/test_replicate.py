@@ -48,3 +48,26 @@ def test_unanimous_support_counts_as_replicated(fake_experiment):
     s = replicate(fake_experiment, [0, 1])
     assert s["n_supporting"] == 2
     assert s["replicates"] is True
+
+
+def test_invariant_metric_is_flagged(monkeypatch, tmp_path):
+    """A metric that never moves across seeds must be flagged, not reported as stable."""
+    import sys
+    import types
+
+    mod = types.ModuleType("miabstraction.experiments.const_exp")
+    mod.run = lambda cfg: {"hypothesis": "H5", "supports": True,
+                           "circuit_weight_ratio": 0.2086}  # same for every seed
+    monkeypatch.setitem(sys.modules, "miabstraction.experiments.const_exp", mod)
+    cfg_file = tmp_path / "const.yaml"
+    cfg_file.write_text(f"name: const_exp\nhypothesis: H5\nseed: 0\nout_dir: {tmp_path}\n")
+
+    s = replicate(str(cfg_file), [0, 1, 2])
+    assert s["metric_invariant_across_seeds"] is True
+    assert "tautological" in s["invariance_warning"]
+
+
+def test_varying_metric_not_flagged(fake_experiment):
+    s = replicate(fake_experiment, [0, 1, 2])
+    assert s["metric_invariant_across_seeds"] is False
+    assert s["invariance_warning"] is None

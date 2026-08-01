@@ -17,7 +17,7 @@ with numeric refutation thresholds), **config-driven** (all hyperparameters in
 | E2 `e2_induction` | H2 induction heads form as a phase transition | circuits / development | ✅ supported | score 0→0.61 in 15.5% of training, co-timed with ICL loss 3.00→0.08 nats |
 | E3 `e3_sae_control` | H3 SAE metrics don't separate trained from random | features (SAE reckoning) | ❌ refuted | FVU separated at 39σ — but in the *wrong direction* (see caveat) |
 | E4 `e4_probe_baseline` | H4 linear probes match SAE probes on known concepts | features vs baselines | ✅ supported | raw 0.90 vs SAE 0.84 (belief); 0.686 vs 0.629 (entropy) |
-| E5 `e5_sparsity` | H5 imposed weight sparsity shrinks circuits faithfully | weights (imposed ISA) | ✅ supported | circuit 4.8× smaller in weights at equal faithfulness |
+| E5 `e5_sparsity` | H5 imposed weight sparsity shrinks circuits faithfully | weights (imposed ISA) | ⚠️ supported, but metric is near-tautological | 80% of weights removable at 99.8% accuracy and 1.0 faithfulness — but the size ratio (0.209) just echoes the imposed q=0.2 |
 
 Full verdicts, leak budgets, and the interpretation live in [VALIDATION.md](VALIDATION.md).
 Every positive result here was one control away from being wrong — the controls, not the

@@ -41,7 +41,18 @@ def replicate(config_path: str, seeds: list[int]) -> dict:
                      metric: r.get(metric)})
 
     vals = [r[metric] for r in runs if isinstance(r[metric], (int, float))]
+    # Zero variance across seeds means the metric did not respond to anything the model
+    # learned — it is reporting a constant (E5's circuit_weight_ratio turned out to equal
+    # the imposed sparsity q by construction). Flag it rather than celebrate the stability.
+    invariant = len(vals) > 1 and max(vals) == min(vals)
     summary = {
+        "metric_invariant_across_seeds": invariant,
+        "invariance_warning": (
+            f"{metric} is identical across all seeds — it may be determined by a "
+            "hyperparameter rather than by the learned model. Verify it is not tautological."
+            if invariant
+            else None
+        ),
         "hypothesis": base.hypothesis,
         "config": config_path,
         "seeds": seeds,

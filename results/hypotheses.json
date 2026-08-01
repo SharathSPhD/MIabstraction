@@ -36,31 +36,31 @@
       "hypothesis": "H1",
       "likelihood_ratio": 9.499999999999998,
       "posterior_after_update": 0.9047619047619048,
-      "timestamp": "2026-08-01T08:51:04.802882+00:00"
+      "timestamp": "2026-08-01T09:48:19.506469+00:00"
     },
     {
       "hypothesis": "H2",
       "likelihood_ratio": 6.0,
       "posterior_after_update": 0.8571428571428571,
-      "timestamp": "2026-08-01T08:51:04.802909+00:00"
+      "timestamp": "2026-08-01T09:48:19.506481+00:00"
     },
     {
       "hypothesis": "H3",
       "likelihood_ratio": 0.18750000000000003,
       "posterior_after_update": 0.15789473684210528,
-      "timestamp": "2026-08-01T08:51:04.802913+00:00"
+      "timestamp": "2026-08-01T09:48:19.506483+00:00"
     },
     {
       "hypothesis": "H4",
       "likelihood_ratio": 4.5,
       "posterior_after_update": 0.8181818181818182,
-      "timestamp": "2026-08-01T08:51:04.802916+00:00"
+      "timestamp": "2026-08-01T09:48:19.506485+00:00"
     },
     {
       "hypothesis": "H5",
       "likelihood_ratio": 4.25,
       "posterior_after_update": 0.8095238095238095,
-      "timestamp": "2026-08-01T08:51:04.802919+00:00"
+      "timestamp": "2026-08-01T09:48:19.506486+00:00"
     }
   ]
 }

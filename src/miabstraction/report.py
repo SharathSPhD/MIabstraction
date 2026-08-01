@@ -50,20 +50,48 @@ def verdict_table(results: list[dict]) -> dict[str, dict]:
     return by_h
 
 
+def replication_status(results_dir: str | Path = "results") -> dict[str, dict]:
+    """Multi-seed replication summaries written by miabstraction.replicate."""
+    out: dict[str, dict] = {}
+    for p in Path(results_dir).rglob("*_replication.json"):
+        try:
+            r = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            continue
+        h = r.get("hypothesis")
+        if h:
+            out[h] = r
+    return out
+
+
+def _replication_cell(rep: dict | None) -> str:
+    if rep is None:
+        return "single seed"
+    mean, std = rep.get("metric_mean"), rep.get("metric_std")
+    seeds = f"{rep['n_supporting']}/{rep['n_seeds']} seeds"
+    if rep.get("metric_invariant_across_seeds"):
+        # Perfect stability is suspicious, not reassuring — say so in the table.
+        return f"⚠️ {seeds}, {rep['metric']}={mean:.4g} invariant (possibly tautological)"
+    if isinstance(mean, (int, float)):
+        return f"{seeds}, {rep['metric']}={mean:.4g}±{std:.2g}"
+    return seeds
+
+
 def render(results_dir: str | Path = "results") -> str:
     by_h = verdict_table(collect(results_dir))
+    reps = replication_status(results_dir)
     lines = [
         "# VALIDATION — abstraction-layer verdicts",
         "",
         "Auto-generated from `results/**/result.json` by `miabstraction.report`.",
         "",
-        "| Hypothesis | Layer | Verdict | Key numbers | Leak budget | Source |",
-        "|---|---|---|---|---|---|",
+        "| Hypothesis | Layer | Verdict | Key numbers | Leak budget | Replication | Source |",
+        "|---|---|---|---|---|---|---|",
     ]
     for h in sorted(LAYER):
         r = by_h.get(h)
         if r is None:
-            lines.append(f"| {h} | {LAYER[h]} | ⏳ pending | — | — | — |")
+            lines.append(f"| {h} | {LAYER[h]} | ⏳ pending | — | — | — | — |")
             continue
         verdict = "✅ supported" if r.get("supports") else "❌ not supported"
         keys = {
@@ -75,7 +103,8 @@ def render(results_dir: str | Path = "results") -> str:
         leak = r.get("leak_budget", "—")
         leak = f"{leak:.2f}" if isinstance(leak, float) else leak
         lines.append(
-            f"| {h} | {LAYER[h]} | {verdict} | {keystr} | {leak} | `{r['_path']}` |"
+            f"| {h} | {LAYER[h]} | {verdict} | {keystr} | {leak} | "
+            f"{_replication_cell(reps.get(h))} | `{r['_path']}` |"
         )
     lines.append("")
     return "\n".join(lines)

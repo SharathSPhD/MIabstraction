@@ -32,14 +32,28 @@ removed the shortcut and the induction head appeared. A behavioral metric certif
 capability the mechanism did not implement — exactly the interpretability illusion
 Jonas & Kording warn about, reproduced accidentally in a system whose ground truth we knew.
 
-**Imposed weight structure buys interpretability (H5, posterior 0.81).** Training with
-AbsTopK weight sparsity yields a minimal circuit **4.8× smaller in weights** (25,914 vs
-124,224) at identical faithfulness (1.0) and indistinguishable task accuracy (0.998 vs
-1.000) — a small-scale echo of Gao et al.'s ~16× at matched loss. This is the "the ISA is
-*imposed*, not discovered" result: the clean layer appears when the training objective is
-made to pay for it. Note what did *not* discriminate: **node counts were identical (6 vs 6)**.
-Only the weight-level ruler saw the difference, which is a caution about circuit-size claims
-reported at coarse granularity.
+**Imposed weight structure is cheap here, but the headline metric is nearly a tautology
+(H5, posterior 0.81 — read the caveat).** Training with AbsTopK sparsity yields a minimal
+circuit 4.8× smaller in weights (25,914 vs 124,224) at identical faithfulness (1.0) and
+indistinguishable accuracy (0.998 vs 1.000). H5 passes its preregistered bar. But
+replication exposed the catch: the weight ratio is **0.2086 across all three seeds, with
+zero variance** — and the imposed sparsity was **q = 0.20**. AbsTopK keeps exactly 20% of
+weights by construction, and both models retained the same 6 nodes, so the ratio is
+*forced by the mask*, not discovered in the learned structure. A metric that returns the
+same value no matter what the model learned is measuring our own hyperparameter.
+
+What survives that deflation is still worth stating, just far more modestly: at 80% of
+weights removed, this task keeps **99.8% accuracy and 1.0 mean-ablation faithfulness**, and
+the circuit's *node* set does not shrink at all (6 vs 6). So the honest claim is not
+"sparsity finds a smaller circuit" but "sparsity can be imposed nearly for free here, and
+the coarse structure is unchanged." Whether sparsity yields genuinely *simpler* mechanisms —
+Gao et al.'s actual claim — needs a size metric that is not a function of q: circuit
+*edges* that survive ablation, or description length of the extracted algorithm. That
+experiment has not been run, and until it is, H5's posterior overstates what was shown.
+
+The methodological lesson generalizes past this experiment: **zero variance across seeds is
+a warning, not a triumph.** A result that reproduces perfectly may be reproducing a
+constant.
 
 ### The layer that leaks
 

@@ -1,0 +1,24 @@
+{
+  "hypothesis": "H5",
+  "supports": true,
+  "circuit_size_dense": 6,
+  "circuit_size_sparse": 6,
+  "circuit_weights_dense": 124224,
+  "circuit_weights_sparse": 25914,
+  "circuit_weight_ratio": 0.20860703245749615,
+  "faithfulness_dense": 1.0,
+  "faithfulness_sparse": 1.0,
+  "accuracy_dense": 1.0,
+  "accuracy_sparse": 1.0,
+  "best_sparse_q": 0.2,
+  "sparsity_levels": [
+    0.2,
+    0.1,
+    0.05
+  ],
+  "final_loss_dense": 0.45348883330821993,
+  "leak_budget": 0.0,
+  "config_hash": "a66da6b0bda7",
+  "runtime_s": 1536.7,
+  "device": "cuda"
+}

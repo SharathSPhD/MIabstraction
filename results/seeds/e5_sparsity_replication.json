@@ -1,0 +1,28 @@
+{
+  "hypothesis": "H5",
+  "config": "configs/e5_sparsity.yaml",
+  "seeds": [
+    1,
+    2
+  ],
+  "metric": "circuit_weight_ratio",
+  "metric_mean": 0.20860703245749615,
+  "metric_std": 0.0,
+  "n_supporting": 2,
+  "n_seeds": 2,
+  "runs": [
+    {
+      "seed": 1,
+      "supports": true,
+      "circuit_weight_ratio": 0.20860703245749615
+    },
+    {
+      "seed": 2,
+      "supports": true,
+      "circuit_weight_ratio": 0.20860703245749615
+    }
+  ],
+  "replicates": true,
+  "metric_invariant_across_seeds": true,
+  "invariance_warning": "circuit_weight_ratio is identical across all seeds \u2014 it may be determined by a hyperparameter rather than by the learned model. Verify it is not tautological."
+}
