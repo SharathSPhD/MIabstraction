@@ -119,3 +119,96 @@ def loss_curve(history: list[dict]) -> str:
  <text x="{W/2}" y="{H-10}" text-anchor="middle" class="axis">training step</text>
 </svg><p class="cap">Solid: held-out loss on text the model never saw (contiguous tail of
 each corpus domain). Dashed: training loss.</p></div>'''
+
+
+def capability_graph(capabilities: list[dict]) -> str:
+    """L2: the compiler's understanding of what each clause means."""
+    if not capabilities:
+        return _placeholder("capability graph not yet generated")
+
+    rows = []
+    for cap in capabilities:
+        kind = cap.get("kind", "unknown")
+        icon = {"knowledge": "📚", "skill": "🔧", "style": "🎨",
+                "invariant": "⚙️", "prohibition": "🚫", "guardrail": "🛡️"}.get(kind, "•")
+        desc = cap.get("capability", "")
+        rows.append(
+            f'<tr><td class="cap-kind">{icon} {kind}</td>'
+            f'<td class="cap-desc">{desc}</td></tr>')
+
+    return f'''<div class="chartbox"><table class="cap-table">
+<tbody>{"".join(rows)}</tbody></table>
+<p class="cap">Each source clause becomes a capability with a defined meaning at L2.
+The compiler knows how to realize each one on different substrates.</p></div>'''
+
+
+def plan_detail(capabilities: list[dict]) -> str:
+    """L1: the strategy chosen for each capability and why."""
+    if not capabilities:
+        return _placeholder("plan not yet generated")
+
+    rows = []
+    for cap in capabilities:
+        strategy = cap.get("strategy", "unknown").replace("_", " ").title()
+        reason = cap.get("reason", "")
+        rejected = cap.get("rejected", [])
+        rejected_str = ""
+        if rejected:
+            alt_list = ", ".join(f"<em>{r.get('strategy', '').replace('_', ' ')}</em>"
+                                for r in rejected)
+            rejected_str = f'<br/><span class="note-small">Passed over: {alt_list}</span>'
+
+        rows.append(
+            f'<div class="plan-item"><b>{strategy}</b><br/>'
+            f'<span class="small">{reason}</span>{rejected_str}</div>')
+
+    return f'''<div class="chartbox"><div class="plan-list">{"".join(rows)}</div>
+<p class="cap">For each capability, the compiler consulted the substrate's capability table,
+chose the cheapest and sufficient realization strategy, and recorded the choice and reason.</p></div>'''
+
+
+def model_architecture(config: dict) -> str:
+    """L-1: the bare model architecture details."""
+    if not config:
+        return _placeholder("model architecture not yet generated")
+
+    d_model = config.get("d_model", 0)
+    n_layers = config.get("n_layers", 0)
+    n_heads = config.get("n_heads", 0)
+    max_len = config.get("max_len", 0)
+    vocab = config.get("vocab_total", 0)
+
+    params = d_model * n_layers * n_heads * 64 if all([d_model, n_layers, n_heads]) else 0
+
+    rows = [
+        ("Layers", f"{n_layers}"),
+        ("Model dimension (d_model)", f"{d_model}"),
+        ("Attention heads", f"{n_heads}"),
+        ("Context window", f"{max_len}"),
+        ("Vocabulary", f"{vocab:,}"),
+        ("Approximate parameters", f"{params:,}" if params else "—"),
+    ]
+
+    svg_content = ""
+    if n_layers > 0:
+        layer_h = 30
+        total_h = n_layers * layer_h + 60
+        svg_content = f'''<svg viewBox="0 0 400 {total_h}" style="width:100%;height:auto;margin:1rem 0">
+'''
+        for i in range(n_layers):
+            y = 40 + i * layer_h
+            col = PALETTE["thread"] if i % 2 == 0 else PALETTE["muted"]
+            svg_content += (f'<rect x="50" y="{y}" width="300" height="24" fill="{col}" '
+                          f'opacity="0.3" stroke="{col}" stroke-width="1"/>'
+                          f'<text x="20" y="{y+16}" class="tick">L{i}</text>'
+                          f'<text x="360" y="{y+16}" class="tick">{d_model}d</text>')
+        svg_content += '</svg>'
+
+    table = "\n".join(
+        f'<tr><td>{k}</td><td class="num">{v}</td></tr>' for k, v in rows)
+
+    return f'''<div class="chartbox"><table class="arch-table">
+<tbody>{table}</tbody></table>
+{svg_content}<p class="cap">The architecture is fixed by the substrate choice. On an open-weight target,
+the trained architecture cannot be changed; on from-scratch, the compiler may adapt it to
+satisfy conflicting capabilities.</p></div>'''

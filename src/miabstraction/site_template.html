@@ -84,6 +84,17 @@ figcaption,.cap{font-size:.86rem;color:var(--muted);padding-top:.6rem;max-width:
 .blabel{font:12px var(--sans);fill:var(--body)}
 .bval{font:11px var(--mono);fill:var(--muted)}
 
+.cap-table{width:100%;font-size:.9rem;margin:0}
+.cap-kind{width:6rem;font-size:.86rem;padding:.55rem .7rem}
+.cap-desc{padding:.55rem .7rem;border:none}
+.plan-list{display:flex;flex-direction:column;gap:.9rem;margin:1rem 0}
+.plan-item{background:#fff;border:1px solid var(--line);padding:.9rem;border-left:4px solid var(--thread)}
+.plan-item b{display:block;margin-bottom:.3rem;color:var(--ink)}
+.note-small{display:block;font-size:.8rem;color:var(--muted);margin-top:.4rem;font-style:italic}
+.arch-table{width:100%;font-size:.9rem}
+.arch-table td{border-bottom:1px solid var(--line);padding:.45rem .7rem}
+.arch-table td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+
 pre{background:#22262F;color:#E9EBF2;padding:1.1rem 1.3rem;overflow-x:auto;font-family:var(--mono);font-size:.83rem;line-height:1.6;border-left:4px solid var(--thread);margin:1.2rem 0}
 pre .c{color:#7E88A3} pre .k{color:#93BAFF} pre .s{color:#A9D9A0} pre .hl{color:#FFCF7A}
 
@@ -114,6 +125,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
   <a href="#why">Why</a>
   <a href="#language">The language</a>
   <a href="#compile">How it compiles</a>
+  <a href="#hood">Open the hood</a>
   <a href="#evidence">Evidence</a>
   <a href="#abi">ABI &amp; linker</a>
   <a href="#traps">What goes wrong</a>
@@ -354,6 +366,80 @@ compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
   can satisfy everything, and compensates the skill that lost — here by training longer and
   deeper. The compensation worked: copying scored <b>@@CU1@@</b> in the full model, better
   than the <b>0.779</b> it reached in the attention-only one it supposedly preferred.</p>
+</div></section>
+
+<section id="hood"><div class="wrap">
+  <div class="sectionHead"><span class="num">03b</span><div>
+    <h2>Open the hood: one program, all the way down</h2>
+    <p class="lede">A single source file compiled to a model. What was written, what the
+    compiler understood, what strategy it chose, and what machinery it created.</p>
+  </div></div>
+
+  <h3>L3 · The source code</h3>
+  <p>This is what a person writes — a declaration of what the model must know, how it must
+  behave, and what it must never do. Nothing about gradients, layers, learning rates, or
+  adapter ranks. The same program compiles to different models on different substrates.</p>
+  <pre><span class="c">// tutor.loom</span>
+<span class="k">app</span> Tutor {
+    <span class="k">knows</span>   <span class="k">from</span> <span class="s">"corpus/*.txt"</span>;
+    <span class="k">knows</span>   <span class="k">how to</span> <span class="s">explain step by step</span>;
+
+    <span class="k">speaks</span>  <span class="s">patient, concise</span>;
+
+    <span class="k">always</span>  <span class="s">cites the source it used</span>;
+    <span class="k">never</span>   <span class="s">discusses pricing</span>;
+    <span class="k">refuses</span> <span class="s">topics outside its corpus</span>;
+
+    <span class="k">expect</span>  <span class="s">answers("what is a karaka?") mentions "role"</span>;
+    <span class="k">expect</span>  <span class="s">refuses("what is your pricing?")</span>;
+}
+
+<span class="k">build</span> Tutor <span class="k">on</span> <span class="s">scratch</span>(<span class="k">size</span> = <span class="s">small</span>);
+<span class="k">build</span> Tutor <span class="k">on</span> <span class="s">"meta-llama/Llama-3.2-1B"</span>;</pre>
+
+  <h3>L2 · What the compiler understood</h3>
+  <p>Each clause in the source becomes a capability at L2 — an architecture-free statement of
+  what the model must do. The compiler knows that capabilities exist as measurable, steerable
+  structures inside a transformer.</p>
+  @@HOOD_GRAPH@@
+
+  <h3>L1 · The plan: strategy per capability</h3>
+  <p>For each capability, the compiler consulted the substrate's capability table, chose the
+  strategy that is cheapest and sufficient, and recorded both the choice and the reason. On
+  this open-weight substrate, several capabilities lower to runtime steering (no training),
+  while knowledge acquisition goes through continued pretraining.</p>
+  @@HOOD_PLAN@@
+
+  <h3>L0 & L-1 · The substrate operations and bare architecture</h3>
+  <p>The plan lowers to operations on the available hardware. Below that is the model itself
+  — the fixed architecture when building on an open-weight substrate, or a chosen architecture
+  when building from scratch. Each layer is where the compiler installs controls, reads monitors,
+  or trains skills.</p>
+  @@HOOD_ARCH@@
+
+  <div class="note"><b>The substrate owns the machinery; you own the requirements.</b> The
+  source file does not mention that the model has 128 dimensions or 6 layers, because you
+  should not have to. When building from scratch, the compiler chooses the architecture to
+  satisfy your capabilities. When targeting an open-weight model, the architecture is fixed,
+  and the compiler adapts the strategy to work within those constraints.</div>
+
+  <h3>What a person writes vs. what the compiler does</h3>
+  <div class="tablewrap"><table>
+  <thead><tr><th>You write</th><th>The compiler understands</th><th>The compiler then chooses</th></tr></thead>
+  <tbody>
+  <tr><td><code>knows from "corpus/*.txt"</code></td><td>knowledge(corpus)</td>
+    <td>continued pretraining (substrate has loaded weights)</td></tr>
+  <tr><td><code>knows how to explain step by step</code></td><td>skill(explanation)</td>
+    <td>install compiled circuit (skill verified, fast)</td></tr>
+  <tr><td><code>speaks patient, concise</code></td><td>style(traits)</td>
+    <td>steer a measured direction (no training needed)</td></tr>
+  <tr><td><code>always cites source</code></td><td>invariant(citation)</td>
+    <td>monitor + steer with side-effect budget (bounded)</td></tr>
+  <tr><td><code>never discusses pricing</code></td><td>prohibition(topic)</td>
+    <td>suppress topic direction (calibrated strength)</td></tr>
+  <tr><td><code>refuses out-of-corpus</code></td><td>guardrail(class)</td>
+    <td>amplify refusal feature (dose-calibrated)</td></tr>
+  </tbody></table></div>
 </div></section>
 
 <section id="evidence"><div class="wrap">

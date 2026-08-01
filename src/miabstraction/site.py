@@ -86,6 +86,8 @@ def build_html() -> str:
     link = _j("results/loom_link_demo.json")
     found = _j("results/loom_foundation_demo.json")
     port = _j("results/loom_port_demo.json")
+    demo = _j("results/loom_curriculum_demo.json")
+    plan = _j("build/Tutor-open_weight/plan.json")
 
     if found.get("completed"):
         f_status = ('<span class="chip pass">run complete</span>' if found.get("passed")
@@ -94,6 +96,9 @@ def build_html() -> str:
         f_status = '<span class="chip pend">training now</span>'
     p_status = ('<span class="chip pass">verified</span>' if port
                 else '<span class="chip pend">pending re-run</span>')
+
+    # Read the example source file
+    example_src = (ROOT / "examples/tutor.loom").read_text()
 
     tokens = dict(
         WHEN=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
@@ -112,6 +117,10 @@ def build_html() -> str:
         CHART_PRICE=charts.price_curve(
             link.get("L1_no_clobber", {}).get("price_curve", [])),
         CHART_LOSS=charts.loss_curve(found.get("history", [])),
+        HOOD_SOURCE=example_src,
+        HOOD_GRAPH=charts.capability_graph(plan.get("capabilities", [])),
+        HOOD_PLAN=charts.plan_detail(plan.get("capabilities", [])),
+        HOOD_ARCH=charts.model_architecture(demo.get("model_config", {})),
         IMG_E1=_img("results/final/e1_mess3/belief_geometry.png",
                     "Belief-state geometry",
                     "Left: the mathematically correct set of belief states for this "
