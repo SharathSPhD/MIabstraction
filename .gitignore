@@ -14,3 +14,4 @@ docs/*.md
 !docs/INTEGRATION.md
 !docs/LOOM_STDLIB.md
 SPEC.md
+private/

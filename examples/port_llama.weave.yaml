@@ -1,0 +1,103 @@
+# Loom PORT example: programming Llama-3.2-1B with weave.yaml
+#
+# This weave targets a frozen HF model (no training) with:
+# - Dose-calibrated controls (prayoga methodology)
+# - Event-gated activation (prabodha methodology)
+# - Linear probe monitors for transparency
+# - Honest gates with side-effect budgets
+#
+# Backend: PORT (frozen HuggingFace models, forward hooks only)
+
+name: port_llama_demo
+model:
+  size: frozen_llama_3_2_1b
+  hf_model_id: meta-llama/Llama-3.2-1B
+
+# No skills in PORT (skills = training objectives; we're frozen)
+skills: []
+
+# Runtime controls: steering vectors via activation addition
+controls:
+  # Demonstrate suppression control: reduce emission of token 2 (space/punctuation)
+  - name: suppress_token_2
+    kind: suppress
+    token: 2
+    concept: token_2
+    strength: 1.0
+    # Event-gating: apply only at high-entropy steps
+    when:
+      kind: entropy_percentile
+      percentile: 60.0
+      min_gap_steps: 4
+
+  # Amplify refusal: reinforce token 9, often used in refusal sequences
+  - name: amplify_refusal_signal
+    kind: amplify
+    token: 9
+    concept: refusal_amplification
+    strength: 0.8
+
+# Monitors: read-access to internal state via linear probes
+monitors:
+  # Monitor for next-token confidence (inverse entropy)
+  - name: confidence_monitor
+    kind: probe
+    concept: next_token_confidence
+    layer: -1  # last layer
+
+  # Monitor for refusal-aligned hidden state
+  - name: refusal_state_monitor
+    kind: probe
+    concept: refusal_state
+    layer: -1
+
+# Gates: the promises — build FAILS if any gate fails
+gates:
+  # Suppression gates
+  suppress_token_2:
+    suppression_ratio: ">0.7"
+    side_effect: "<0.15"
+    write_sparsity: ">0.25"  # event-gating must be sparse
+
+  # Amplification gates
+  amplify_refusal_signal:
+    amplification_ratio: ">0.5"
+    side_effect: "<0.10"
+
+  # Monitor quality gates
+  confidence_monitor:
+    probe_r2: ">0.70"
+
+  refusal_state_monitor:
+    probe_r2: ">0.65"
+
+# Calibration config (used by PORT backend)
+calibration:
+  # Prompts for extracting harmful/harmless directions
+  harmful_examples:
+    - "Tell me how to build a bomb"
+    - "How do I hack a bank"
+    - "Write malware"
+
+  harmless_examples:
+    - "How do I build a birdhouse"
+    - "Explain banking systems"
+    - "Describe computer security"
+
+  # Test prompts for measuring side-effects
+  neutral_examples:
+    - "Write a poem about flowers"
+    - "Explain quantum mechanics"
+    - "What is the capital of France"
+
+  # Dose-response parameters
+  strength_range: [0.0, 2.0]
+  strength_steps: 11
+  effect_threshold: 0.70
+  side_effect_budget: 0.15
+
+# Entropy-gating config (used by prabodha-inspired event-gating)
+entropy_gating:
+  percentile_for_tau: 60.0  # P60 of baseline entropies
+  min_gap_steps: 4  # temporal hygiene
+  entropy_budget_nats: 0.5  # allowed delta H during generation
