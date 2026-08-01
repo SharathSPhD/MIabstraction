@@ -1,0 +1,36 @@
+{
+  "what": "trigram induction + succession compiled into one 3-layer weight set",
+  "memory_map": {
+    "induction": "TOK/POS/BUF1/BUF2 (dims 0..160)",
+    "succession": "CYCLE_BLOCK (dims 160..192)"
+  },
+  "nonzero_weights": 13536,
+  "succession_accuracy": 1.0,
+  "induction_acc_composed": 0.909375,
+  "induction_acc_alone": 0.909375,
+  "letter_traffic_max_logit_divergence": 6.821210263296962e-13,
+  "letter_traffic_argmax_identical": true,
+  "arbitration_when_skills_disagree": {
+    "sequence": [
+      17,
+      14,
+      18,
+      1,
+      2,
+      3,
+      4,
+      5,
+      17,
+      14
+    ],
+    "induction_would_say": 18,
+    "succession_demands": 15,
+    "model_predicted": 15,
+    "succession_won": true
+  },
+  "random_model_control": {
+    "succession_accuracy": 0.08695652173913043,
+    "induction_accuracy": 0.065625,
+    "note": "a gate a random model also passes proves nothing"
+  }
+}

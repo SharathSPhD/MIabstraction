@@ -37,6 +37,7 @@ TOK = slice(0, 32)
 POS = slice(32, 96)
 BUF1 = slice(96, 128)
 BUF2 = slice(128, 160)
+CYCLE_BLOCK = slice(160, 192)   # the succession skill's private frame; see compile_composed
 MAX_VOCAB = 31   # H(32) rows 1..31 are zero-mean
 MAX_LEN = 63     # H(64) rows 1..63
 
@@ -139,5 +140,55 @@ def compile_induction(
     # ---- unembedding: read TOK block against the token codebook
     W_U = np.zeros((vocab, D)); W_U[:, TOK] = tok
     _set(model.head.weight, W_U)
+    model.eval()
+    return model
+
+
+def compile_composed(
+    vocab: int = 20,
+    n_cycle: int = 6,
+    max_len: int = 56,
+    score_scale: float = 12.0,
+    logit_scale: float = 8.0,
+    cycle_scale: float | None = None,
+) -> TinyTransformer:
+    """Two skills, one weight set: trigram induction plus a succession rule.
+
+    The last `n_cycle` tokens of the vocabulary form a cycle alphabet; on those tokens
+    the model predicts the next symbol in the cycle, whatever the context says. All
+    other tokens behave exactly as under `compile_induction`: the succession skill
+    occupies CYCLE_BLOCK, coordinates the induction circuit never reads or writes,
+    which are zero on traffic containing no cycle token — equal logits in exact
+    arithmetic, ~1e-14 of float summation residue in practice (LayerNorm's scalar
+    shift read against a zero-mean code), and identical argmax everywhere.
+
+    The mechanism is deliberately the shallowest one that is still a mechanism: the
+    embedding of a cycle token carries its successor's code in the private block, the
+    unembedding reads that block against the codebook for cycle rows only, and nothing
+    in between touches it. Arbitration with induction is by scale — the succession
+    read must outvote the copied-token write on the one kind of traffic where the two
+    skills disagree, which is what `cycle_scale` buys and the adversarial test proves.
+    """
+    if not 2 <= n_cycle <= min(vocab, MAX_VOCAB):
+        raise ValueError(f"n_cycle must be in [2, {min(vocab, MAX_VOCAB)}]")
+    model = compile_induction(vocab=vocab, max_len=max_len,
+                              score_scale=score_scale, logit_scale=logit_scale)
+    tok = _codes(vocab, 32)
+    cycle = list(range(vocab - n_cycle, vocab))
+    scale = cycle_scale if cycle_scale is not None else 2.5 * logit_scale
+
+    # Embedding: a cycle token announces its successor in the private block. The code
+    # is a zero-mean Hadamard row like every other, so LayerNorm stays a pure rescale.
+    E = model.tok.weight.detach().cpu().numpy().copy()
+    for i, v in enumerate(cycle):
+        E[v, CYCLE_BLOCK] = tok[cycle[(i + 1) % n_cycle]]
+    _set(model.tok.weight, E)
+
+    # Unembedding: only cycle rows read the private block, scaled to outvote the
+    # induction circuit's copied-token write when the two disagree.
+    W = model.head.weight.detach().cpu().numpy().copy()
+    for v in cycle:
+        W[v, CYCLE_BLOCK] = tok[v] * scale
+    _set(model.head.weight, W)
     model.eval()
     return model
