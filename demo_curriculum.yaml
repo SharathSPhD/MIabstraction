@@ -1,0 +1,23 @@
+name: curriculum_demo
+model: {size: medium}
+
+skills:
+  - name: induction
+    kind: induction
+  - name: state_tracking
+    kind: state_tracking
+    world: mess3
+  - name: classify
+    kind: classify
+    concept: majority
+
+gates:
+  induction:
+    prefix_score: ">0.5"
+    icl_loss: "<0.5"
+  state_tracking:
+    probe_r2: ">0.9"
+  classify:
+    accuracy: ">0.95"
+
+seed: 42

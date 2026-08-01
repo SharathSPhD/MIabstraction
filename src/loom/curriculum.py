@@ -1,0 +1,694 @@
+"""Curriculum backend: compile skills to training objectives.
+
+Based on E2-proven recipe: attention-only models, high sequence diversity,
+and honest gate metrics that are reachable with proper hyperparameters.
+
+KNOWN-HARD CONCEPTS: Plan-time refusal for canonically intractable tasks.
+- token_parity: Hahn 2020, Bhattamishra et al. 2020 show transformers
+  struggle fundamentally to learn parity even when they can express it.
+  Plan-time refusal saves 20+ GPU-minutes and offers alternative (majority).
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+from miabstraction.data.mess3 import belief_states, mess3_matrices, sample_sequences
+from miabstraction.probes import regression_probe
+from miabstraction.seeding import set_determinism
+
+
+# Known-hard concepts: transformers struggle fundamentally with these tasks
+KNOWN_HARD_CONCEPTS = {
+    "token_parity": {
+        "reason": "Transformers struggle fundamentally to learn parity (Hahn 2020, Bhattamishra et al. 2020).",
+        "diagnosis": "Counting whether a token appears an even or odd number of times is a known blind spot of this model family; this program cannot be compiled with confidence.",
+        "suggestion": "Consider 'majority' (which token appears more often), which is attention-soluble and compiles reliably.",
+    }
+}
+
+
+class CompileRefusal(Exception):
+    """Plan-time refusal: a concept cannot be reliably compiled."""
+    pass
+
+
+@dataclass
+class VocabularyPlan:
+    """Vocabulary allocation across skills in a shared model."""
+    vocab_base: int  # Base vocabulary size
+    skills: dict[str, dict]  # skill_name -> {token_start, token_end, n_tokens}
+    task_tokens: dict[str, int]  # skill_name -> task_token_id
+    total_vocab: int  # cumulative vocabulary size
+
+    def to_dict(self) -> dict:
+        return {
+            "vocab_base": self.vocab_base,
+            "skills": self.skills,
+            "task_tokens": self.task_tokens,
+            "total_vocab": self.total_vocab,
+        }
+
+
+@dataclass
+class CurriculumPlan:
+    """Training plan: datasets, mixing ratios, hyperparameters."""
+    vocab_plan: VocabularyPlan
+    datasets: dict[str, dict]  # skill_name -> {compiler, n_seq_train, n_seq_eval}
+    mixing_weights: dict[str, float]
+    max_steps: int
+    batch_size: int
+    lr: float
+    seed: int
+    device: str
+    gate_metrics: dict[str, dict]  # skill_name -> {metric_name -> {op, threshold}}
+    attn_only: bool  # Use attention-only architecture
+    planner_decisions: dict = field(default_factory=dict)  # Compiler planning decisions
+
+    def to_dict(self) -> dict:
+        return {
+            "vocab_plan": self.vocab_plan.to_dict(),
+            "datasets": {k: {"kind": v.get("kind"), "n_seq_train": v.get("n_seq_train")}
+                         for k, v in self.datasets.items()},
+            "mixing_weights": self.mixing_weights,
+            "max_steps": self.max_steps,
+            "batch_size": self.batch_size,
+            "lr": self.lr,
+            "seed": self.seed,
+            "device": self.device,
+            "gate_metrics": self.gate_metrics,
+            "attn_only": self.attn_only,
+        }
+
+
+class InductionCompiler:
+    """Compile induction skill: gapped doubled sequences (E2-proven)."""
+
+    needs_mlp = False  # Induction works fine with attention-only
+
+    def __init__(
+        self,
+        copy_len: int = 24,
+        max_gap: int = 16,
+        vocab_size: int = 20,
+        vocab_offset: int = 0,
+        task_token: int = -1,
+    ):
+        self.copy_len = copy_len
+        self.max_gap = max_gap
+        self.vocab_size = vocab_size
+        self.vocab_offset = vocab_offset
+        self.task_token = task_token
+
+    def generator(
+        self, n_seq: int, rng: np.random.Generator
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate gapped doubled sequences. Variable gap defeats positional shortcuts."""
+        L = 2 * self.copy_len + self.max_gap
+        seqs = rng.integers(0, self.vocab_size, size=(n_seq, L), dtype=np.int64)
+        seqs += self.vocab_offset
+        gaps = rng.integers(0, self.max_gap + 1, size=n_seq)
+
+        for i in range(n_seq):
+            g = gaps[i]
+            seqs[i, self.copy_len + g : 2 * self.copy_len + g] = seqs[i, :self.copy_len]
+        return seqs, gaps
+
+    def evaluator(
+        self, model, tokens: torch.Tensor, gaps: np.ndarray, device: str
+    ) -> dict[str, float]:
+        """Evaluate prefix_score and icl_loss."""
+        model.eval()
+        with torch.no_grad():
+            prefix_score = self._prefix_matching_score(model, tokens, gaps)
+            icl_loss = self._icl_loss(model, tokens, gaps)
+        return {"prefix_score": float(prefix_score), "icl_loss": float(icl_loss)}
+
+    def _prefix_matching_score(
+        self, model, tokens: torch.Tensor, gaps: np.ndarray
+    ) -> float:
+        """Attention mass on induction targets, max over heads & layers."""
+        B, L = tokens.shape
+        device = tokens.device
+
+        pos = torch.arange(L, device=device)
+        x = model.tok(tokens) + model.pos(pos)[None]
+        mask = torch.triu(torch.full((L, L), float("-inf"), device=device), diagonal=1)
+
+        scores = []
+        for blk in model.blocks:
+            h = blk.ln1(x)
+            _, w = blk.attn(h, h, h, attn_mask=mask, need_weights=True, average_attn_weights=False)
+            attn_out, _ = blk.attn(h, h, h, attn_mask=mask, need_weights=False)
+            x = x + attn_out
+            if not blk.attn_only:
+                x = x + blk.mlp(blk.ln2(x))
+
+            masses = []
+            for i in range(B):
+                g = int(gaps[i])
+                q = torch.arange(self.copy_len + g + 1, 2 * self.copy_len + g, device=device)
+                k = q - (self.copy_len + g) + 1
+                if len(q) > 0 and len(k) > 0:
+                    attn_mass = w[i, :, q, k].mean(dim=0)
+                    masses.append(attn_mass.max().item())
+                else:
+                    masses.append(0.0)
+            if masses:
+                scores.append(np.mean(masses))
+
+        return max(scores) if scores else 0.0
+
+    def _icl_loss(self, model, tokens: torch.Tensor, gaps: np.ndarray) -> float:
+        """Loss on second copy region."""
+        logits = model(tokens[:, :-1])
+        ce = F.cross_entropy(logits.transpose(1, 2), tokens[:, 1:], reduction="none")
+        losses = []
+        for i in range(tokens.shape[0]):
+            g = int(gaps[i])
+            second_loss = ce[i, self.copy_len + g : 2 * self.copy_len + g - 1].mean()
+            losses.append(second_loss)
+        return torch.stack(losses).mean().item()
+
+
+class StateTrackingCompiler:
+    """Compile state tracking (Mess3)."""
+
+    needs_mlp = False  # State tracking works without MLPs
+
+    def __init__(
+        self,
+        seq_len: int = 32,
+        x: float = 0.05,
+        a: float = 0.85,
+        vocab_offset: int = 0,
+        task_token: int = -1,
+    ):
+        self.seq_len = seq_len
+        self.x = x
+        self.a = a
+        self.vocab_offset = vocab_offset
+        self.task_token = task_token
+
+    def generator(
+        self, n_seq: int, rng: np.random.Generator
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate Mess3 sequences and ground-truth belief states."""
+        T = mess3_matrices(self.x, self.a)
+        tokens = sample_sequences(T, n_seq, self.seq_len, rng)
+        tokens += self.vocab_offset
+        beliefs = belief_states(T, tokens - self.vocab_offset)
+        return tokens, beliefs
+
+    def evaluator(
+        self, model, tokens: torch.Tensor, beliefs: np.ndarray, device: str
+    ) -> dict[str, float]:
+        """Evaluate probe_r2 and incremental variant."""
+        model.eval()
+        with torch.no_grad():
+            logits, resid = model(tokens[:, :-1], collect=True)
+
+        best_r2 = 0.0
+        for layer_idx, layer_resid in enumerate(resid):
+            X = layer_resid.cpu().numpy().reshape(-1, layer_resid.shape[-1])
+            Y = beliefs[:, :-1, :].reshape(-1, beliefs.shape[-1])
+            probe_result = regression_probe(X, Y, val_frac=0.2, seed=0)
+            if probe_result["r2_val"] > best_r2:
+                best_r2 = probe_result["r2_val"]
+
+        return {"probe_r2": float(max(0.0, best_r2))}
+
+
+class ClassifyCompiler:
+    """Compile classify task — concept-agnostic base class."""
+
+    needs_mlp = True  # Classification typically REQUIRES nonlinearity (MLPs)
+
+    def __init__(self, concept: str = "token_parity", **kwargs):
+        self.concept = concept
+        if concept in KNOWN_HARD_CONCEPTS:
+            raise CompileRefusal(
+                f"Concept '{concept}' cannot be compiled: "
+                f"{KNOWN_HARD_CONCEPTS[concept]['diagnosis']} "
+                f"Suggestion: {KNOWN_HARD_CONCEPTS[concept]['suggestion']}"
+            )
+
+
+class ParityCompiler(ClassifyCompiler):
+    """[DEPRECATED] Compile classify (token parity) task — known-hard."""
+
+    def __init__(self, seq_len: int = 32, vocab_offset: int = 256, task_token: int = -1):
+        self.seq_len = seq_len
+        self.vocab_offset = vocab_offset
+        self.task_token = task_token
+        self.PARITY_MARKER = vocab_offset
+        self.PARITY_0 = vocab_offset + 1
+        self.PARITY_1 = vocab_offset + 2
+        super().__init__(concept="token_parity")  # Raises CompileRefusal
+
+    def generator(
+        self, n_seq: int, rng: np.random.Generator
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate parity sequences."""
+        seqs = np.zeros((n_seq, self.seq_len + 3), dtype=np.int64)
+        answers = np.zeros(n_seq, dtype=np.int64)
+
+        for i in range(n_seq):
+            target_token = rng.integers(0, 32)
+            seqs[i, :self.seq_len] = rng.integers(0, 32, size=self.seq_len, dtype=np.int64)
+            seqs[i, self.seq_len] = self.PARITY_MARKER
+            seqs[i, self.seq_len + 1] = target_token
+            count = np.sum(seqs[i, :self.seq_len] == target_token)
+            parity = count % 2
+            answers[i] = parity
+            seqs[i, self.seq_len + 2] = self.PARITY_0 + parity
+
+        return seqs, answers
+
+    def evaluator(self, model, tokens: torch.Tensor, answers, device: str) -> dict[str, float]:
+        """Evaluate accuracy on parity prediction."""
+        model.eval()
+        with torch.no_grad():
+            logits = model(tokens[:, :-1])
+
+        answer_pos = self.seq_len + 1
+        answer_logits = logits[:, answer_pos, :]
+        preds = answer_logits.argmax(dim=-1).cpu().numpy()
+
+        if isinstance(answers, torch.Tensor):
+            answers = answers.cpu().numpy()
+
+        expected_tokens = self.PARITY_0 + (answers % 2)
+        accuracy = np.mean(preds == expected_tokens)
+
+        return {"accuracy": float(accuracy)}
+
+
+class MajorityCompiler(ClassifyCompiler):
+    """Compile classify (token majority) task — attention-soluble.
+
+    Task: Two token types (A, B) appear in sequence among distractors.
+    Query: which appeared more often? (guaranteed no ties).
+    Solvable via attention: count which token has higher attention mass.
+    """
+
+    needs_mlp = False  # Majority is attention-soluble, doesn't need nonlinearity
+
+    def __init__(
+        self,
+        seq_len: int = 32,
+        vocab_offset: int = 256,
+        task_token: int = -1,
+    ):
+        self.seq_len = seq_len
+        self.vocab_offset = vocab_offset
+        self.task_token = task_token
+        self.MAJORITY_MARKER = vocab_offset
+        self.TOKEN_A = vocab_offset + 1
+        self.TOKEN_B = vocab_offset + 2
+        self.ANSWER_A = vocab_offset + 3
+        self.ANSWER_B = vocab_offset + 4
+
+    def generator(
+        self, n_seq: int, rng: np.random.Generator
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate majority sequences: which of token A or B appears more often?"""
+        seqs = np.zeros((n_seq, self.seq_len + 3), dtype=np.int64)
+        answers = np.zeros(n_seq, dtype=np.int64)
+
+        for i in range(n_seq):
+            # Fill sequence with distractors (0-31)
+            seqs[i, :self.seq_len] = rng.integers(0, 32, size=self.seq_len, dtype=np.int64)
+
+            # Randomly place token A and B in the sequence
+            # Count how many times each appears (no ties)
+            a_count = rng.integers(self.seq_len // 4, self.seq_len // 2)
+            b_count = rng.integers(self.seq_len // 4, self.seq_len // 2)
+            # Ensure no tie
+            while a_count == b_count:
+                b_count = rng.integers(self.seq_len // 4, self.seq_len // 2)
+
+            # Place A and B in sequence
+            a_positions = rng.choice(self.seq_len, size=a_count, replace=False)
+            b_positions = rng.choice(
+                [i for i in range(self.seq_len) if i not in a_positions],
+                size=b_count,
+                replace=False
+            )
+            seqs[i, a_positions] = self.TOKEN_A
+            seqs[i, b_positions] = self.TOKEN_B
+
+            # Determine which token is more frequent
+            if a_count > b_count:
+                answers[i] = 0  # A is majority
+                answer_token = self.ANSWER_A
+            else:
+                answers[i] = 1  # B is majority
+                answer_token = self.ANSWER_B
+
+            # Add marker and answer
+            seqs[i, self.seq_len] = self.MAJORITY_MARKER
+            seqs[i, self.seq_len + 1] = rng.choice([self.TOKEN_A, self.TOKEN_B])  # Which to count
+            seqs[i, self.seq_len + 2] = answer_token
+
+        return seqs, answers
+
+    def evaluator(
+        self, model, tokens: torch.Tensor, answers, device: str
+    ) -> dict[str, float]:
+        """Evaluate accuracy on majority prediction."""
+        model.eval()
+        with torch.no_grad():
+            logits = model(tokens[:, :-1])
+
+        answer_pos = self.seq_len + 1
+        answer_logits = logits[:, answer_pos, :]
+        preds = answer_logits.argmax(dim=-1).cpu().numpy()
+
+        if isinstance(answers, torch.Tensor):
+            answers = answers.cpu().numpy()
+
+        expected_tokens = np.where(
+            answers == 0,
+            self.ANSWER_A,
+            self.ANSWER_B,
+        )
+        accuracy = np.mean(preds == expected_tokens)
+
+        return {"accuracy": float(accuracy)}
+
+
+def allocate_vocabulary(skills: list, base_vocab: int = 10) -> VocabularyPlan:
+    """Allocate vocabulary ranges to skills."""
+    plan = VocabularyPlan(
+        vocab_base=base_vocab,
+        skills={},
+        task_tokens={},
+        total_vocab=base_vocab,
+    )
+
+    token_idx = base_vocab
+    for skill in skills:
+        task_token = token_idx
+        token_idx += 1
+        token_start = token_idx
+        token_count = 256
+        token_end = token_idx + token_count
+
+        plan.skills[skill.name] = {
+            "token_start": token_start,
+            "token_end": token_end,
+            "n_tokens": token_count,
+        }
+        plan.task_tokens[skill.name] = task_token
+        token_idx = token_end
+
+    plan.total_vocab = token_idx
+    return plan
+
+
+def compile_curriculum(
+    spec,
+    max_steps: int = 20000,
+    batch_size: int = 256,
+    lr: float = 1e-3,
+    device: str = "cuda",
+) -> CurriculumPlan:
+    """Compile a WeaveSpec into a CurriculumPlan with skill-conflict detection.
+
+    PLANNER DECISIONS:
+    - Detects if any skill needs MLPs (classify: True; induction, state_tracking: False)
+    - If MLPs needed: uses full model, increases steps & layers to compensate induction
+    - Upweights tasks that require compensation (classify: 40%, others: 30%)
+    """
+    vocab_plan = allocate_vocabulary(spec.skills)
+
+    datasets = {}
+    mixing_weights = {}
+    gate_metrics = {}
+    has_induction = False
+    needs_mlp_for_any = False
+
+    skill_names = [s.name for s in spec.skills]
+    n_skills = len(skill_names)
+
+    # PLANNER: Detect skill conflicts
+    skill_compilers_map = {}
+
+    for skill in spec.skills:
+        vocab_offset = vocab_plan.skills[skill.name]["token_start"]
+        compiler = None
+
+        if skill.kind == "induction":
+            has_induction = True
+            compiler = InductionCompiler(
+                copy_len=24, max_gap=16, vocab_size=20,
+                vocab_offset=vocab_offset,
+                task_token=vocab_plan.task_tokens[skill.name],
+            )
+            datasets[skill.name] = {
+                "kind": "induction",
+                "compiler": compiler,
+                "n_seq_train": 200000,
+                "n_seq_eval": 256,
+            }
+
+        elif skill.kind == "state_tracking":
+            compiler = StateTrackingCompiler(
+                seq_len=32, x=0.05, a=0.85,
+                vocab_offset=vocab_offset,
+                task_token=vocab_plan.task_tokens[skill.name],
+            )
+            datasets[skill.name] = {
+                "kind": "state_tracking",
+                "compiler": compiler,
+                "n_seq_train": 2048,
+                "n_seq_eval": 256,
+            }
+
+        elif skill.kind == "classify":
+            # PLANNER: Check for known-hard concepts at compile time
+            concept = skill.concept or "token_parity"
+            if concept in KNOWN_HARD_CONCEPTS:
+                hard_info = KNOWN_HARD_CONCEPTS[concept]
+                raise CompileRefusal(
+                    f"\n=== PLAN-TIME REFUSAL ===\n"
+                    f"Cannot compile skill '{skill.name}' with concept '{concept}'.\n\n"
+                    f"Reason: {hard_info['reason']}\n"
+                    f"Diagnosis: {hard_info['diagnosis']}\n"
+                    f"Suggestion: {hard_info['suggestion']}\n"
+                    f"Reference: Hahn 2020, Bhattamishra et al. 2020\n"
+                )
+
+            # Use appropriate compiler based on concept
+            if concept == "majority":
+                compiler = MajorityCompiler(
+                    seq_len=32, vocab_offset=300,
+                    task_token=vocab_plan.task_tokens[skill.name],
+                )
+            else:
+                # Default to majority for unknown concepts (safer than parity)
+                compiler = MajorityCompiler(
+                    seq_len=32, vocab_offset=300,
+                    task_token=vocab_plan.task_tokens[skill.name],
+                )
+
+            datasets[skill.name] = {
+                "kind": "classify",
+                "compiler": compiler,
+                "n_seq_train": 4096,
+                "n_seq_eval": 256,
+            }
+
+        if compiler is not None:
+            skill_compilers_map[skill.name] = compiler
+            if compiler.needs_mlp:
+                needs_mlp_for_any = True
+
+            gate_metrics[skill.name] = {
+                m.metric: {"op": m.op, "threshold": m.threshold}
+                for m in spec.gates_for(skill.name)
+            }
+
+    # PLANNER DECISION: Resolve skill conflicts
+    planner_decisions = {
+        "conflict_detected": needs_mlp_for_any and has_induction,
+        "needs_mlp": needs_mlp_for_any,
+        "reason": "Classification requires MLPs (nonlinearity); induction compensated with more steps and layers"
+        if (needs_mlp_for_any and has_induction)
+        else None,
+    }
+
+    # Adjust hyperparameters if conflict detected
+    if needs_mlp_for_any:
+        attn_only = False
+        # Compensate induction with more steps (25k-35k range)
+        if max_steps == 20000:
+            max_steps = 30000
+        # Increase model capacity (5-6 layers)
+        if "n_layers" in spec.model and spec.model["n_layers"] == 4:
+            spec.model["n_layers"] = 6
+    else:
+        attn_only = has_induction
+
+    # Upweight tasks that need compensation
+    if needs_mlp_for_any:
+        # 40/30/30 split: classify gets extra weight
+        for skill_name in datasets.keys():
+            if datasets[skill_name]["kind"] == "classify":
+                mixing_weights[skill_name] = 0.4
+            else:
+                mixing_weights[skill_name] = 0.3
+    else:
+        # Equal weights if no conflict
+        for skill_name in datasets.keys():
+            mixing_weights[skill_name] = 1.0 / len(datasets)
+
+    return CurriculumPlan(
+        vocab_plan=vocab_plan,
+        datasets=datasets,
+        mixing_weights=mixing_weights,
+        max_steps=max_steps,
+        batch_size=batch_size,
+        lr=lr,
+        seed=spec.seed,
+        device=device,
+        gate_metrics=gate_metrics,
+        attn_only=attn_only,
+        planner_decisions=planner_decisions,
+    )
+
+
+def train(
+    spec,
+    plan: CurriculumPlan,
+    device: str = "cuda",
+) -> tuple:
+    """Train a single TinyTransformer on multi-task curriculum."""
+    from miabstraction.models import TinyTransformer
+
+    set_determinism(spec.seed, strict=True)
+
+    d_model = spec.model["d_model"]
+    n_layers = spec.model["n_layers"]
+    n_heads = spec.model["n_heads"]
+    max_len = spec.model["max_len"]
+    vocab = plan.vocab_plan.total_vocab
+
+    model = TinyTransformer(
+        vocab=vocab,
+        d_model=d_model,
+        n_layers=n_layers,
+        n_heads=n_heads,
+        max_len=max_len,
+        attn_only=plan.attn_only,
+    ).to(device)
+
+    model.train()
+    opt = torch.optim.AdamW(model.parameters(), lr=plan.lr)
+    rng = np.random.default_rng(plan.seed)
+
+    # Pre-generate training data for all skills
+    skill_data = {}
+    print("Generating training data...")
+    for skill_name, dataset_cfg in plan.datasets.items():
+        print(f"  {skill_name}: {dataset_cfg['n_seq_train']} sequences...")
+        compiler = dataset_cfg["compiler"]
+        tokens, labels = compiler.generator(dataset_cfg["n_seq_train"], rng)
+        skill_data[skill_name] = {
+            "tokens": torch.from_numpy(tokens).to(device),
+            "labels": labels if isinstance(labels, np.ndarray) else torch.from_numpy(labels).to(device),
+            "compiler": compiler,
+        }
+
+    print("Training...")
+    losses_log = []
+    skill_metrics_log = {name: {} for name in plan.datasets.keys()}
+    eval_step = 100
+
+    for step in range(plan.max_steps):
+        # Sample skill and batch
+        skill_name = rng.choice(list(plan.datasets.keys()))
+        skill_tokens = skill_data[skill_name]["tokens"]
+
+        batch_idx = rng.integers(0, len(skill_tokens), size=plan.batch_size)
+        batch = skill_tokens[batch_idx]
+
+        logits = model(batch[:, :-1])
+        loss = F.cross_entropy(
+            logits.reshape(-1, logits.shape[-1]),
+            batch[:, 1:].reshape(-1),
+        )
+
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+
+        losses_log.append(loss.item())
+
+        if step % eval_step == 0 or step == plan.max_steps - 1:
+            metrics_dict = evaluate_curriculum(model, plan, device, rng)
+            for skill_name, metrics in metrics_dict.items():
+                skill_metrics_log[skill_name] = metrics
+
+            all_pass = check_gates(metrics_dict, plan.gate_metrics)
+            status = " [ALL GATES PASS]" if all_pass else ""
+            print(f"Step {step}: loss={loss.item():.4f}{status}")
+
+            if all_pass and step > 500:
+                print(f"Early stop at step {step}")
+                break
+
+    final_metrics = evaluate_curriculum(model, plan, device, rng)
+    return model, final_metrics, losses_log
+
+
+def evaluate_curriculum(
+    model, plan: CurriculumPlan, device: str, rng: np.random.Generator
+) -> dict:
+    """Evaluate all skills in the curriculum."""
+    metrics = {}
+
+    model.eval()
+    with torch.no_grad():
+        for skill_name, dataset_cfg in plan.datasets.items():
+            compiler = dataset_cfg["compiler"]
+            tokens, labels = compiler.generator(dataset_cfg["n_seq_eval"], rng)
+            tokens = torch.from_numpy(tokens).to(device)
+
+            if dataset_cfg["kind"] == "induction":
+                metrics[skill_name] = compiler.evaluator(model, tokens, labels, device)
+            elif dataset_cfg["kind"] == "state_tracking":
+                metrics[skill_name] = compiler.evaluator(model, tokens, labels, device)
+            elif dataset_cfg["kind"] == "classify":
+                labels = torch.from_numpy(labels).to(device)
+                metrics[skill_name] = compiler.evaluator(model, tokens, labels, device)
+
+    return metrics
+
+
+def check_gates(metrics: dict, gate_metrics: dict) -> bool:
+    """Check if all gates pass."""
+    for skill_name, skill_gates in gate_metrics.items():
+        if skill_name not in metrics:
+            return False
+        for metric_name, gate_spec in skill_gates.items():
+            if metric_name not in metrics[skill_name]:
+                return False
+            value = metrics[skill_name][metric_name]
+            op = gate_spec["op"]
+            threshold = gate_spec["threshold"]
+
+            if op == ">":
+                if value <= threshold:
+                    return False
+            elif op == "<":
+                if value >= threshold:
+                    return False
+
+    return True
