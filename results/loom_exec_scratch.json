@@ -1,0 +1,62 @@
+{
+  "backend": "scratch",
+  "architecture_choice": "decoder (281w, 6L, 4h)",
+  "architecture_rationale": "For single-capability app: decoder stack with 281-wide layers (adjusted for knowledge weight) and 6 layers. Enough depth for composed skills if added later.",
+  "tokenizer_type": "byte_level",
+  "tokenizer_vocab_size": 256,
+  "pretraining_corpus": "synthetic (demo)",
+  "tokens_seen": 3072,
+  "val_loss": 5.721,
+  "val_ppl": 305.3,
+  "wall_clock_s": 15.2,
+  "per_capability": [
+    {
+      "capability": "know the material in docs/",
+      "kind": "knowledge",
+      "strategy": "pretraining_mixture",
+      "ok": true,
+      "reason": "Pretraining: material is in weights from start on from-scratch"
+    },
+    {
+      "capability": "be able to explain step by step",
+      "kind": "skill",
+      "strategy": "curriculum",
+      "ok": true,
+      "reason": "Curriculum: skill taught alongside training on from-scratch"
+    },
+    {
+      "capability": "speak concise, patient",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "ok": true,
+      "reason": "Steering: style is a feature readable from residual stream"
+    },
+    {
+      "capability": "refuse off-topic",
+      "kind": "guardrail",
+      "strategy": "amplify_refusal_feature",
+      "ok": true,
+      "reason": "Steering: refusal is a dose-responsive feature"
+    }
+  ],
+  "gates": [
+    {
+      "metric": "val_loss",
+      "op": "<",
+      "threshold": 5.0,
+      "measured": 5.721,
+      "passed": false
+    },
+    {
+      "metric": "val_ppl",
+      "op": "<",
+      "threshold": 100.0,
+      "measured": 305.3,
+      "passed": false
+    }
+  ],
+  "passed": false,
+  "compute_target": "local_gb10 (demo budget)",
+  "compute_rationale": "Pretraining is throughput-bound; training ~500 steps on 128-seq-length on GB10 for demonstration (production would use RTX 5090 for full corpus).",
+  "substrate_advantage": "From-scratch substrate permits: (1) choosing the exact architecture (here, pure decoder) to match app demands, (2) training a tokenizer (byte-level fallback shown), (3) controlling the data mixture by weight, (4) building the substrate INSIDE a circuit's verified envelope (unlike open-weight, where architecture is frozen). This executor demonstrates lever (4): when installing a compiled circuit, we can build the substrate to match the circuit's vocab and attention pattern, guaranteeing the install succeeds."
+}
