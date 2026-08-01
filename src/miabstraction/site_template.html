@@ -3,374 +3,534 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MIabstraction — programming the transformer</title>
+<title>Loom — programming the transformer</title>
 <style>
 :root{
-  --paper:#FAFAF8; --panel:#F2F1EC; --ink:#20242E; --muted:#6A6E7A;
-  --thread:#3B4CC0; --thread-deep:#2A3690; --thread-tint:#E7E9F8;
-  --pass:#2E7D4F; --pass-bg:#E4F0E8; --fail:#B3402E; --fail-bg:#F6E5E1;
-  --warn:#9A6B12; --warn-bg:#F5EDDA; --line:#DDDCD4;
+  --paper:#FBFAF7; --panel:#F2F1EC; --ink:#1F232B; --body:#373C46; --muted:#6B6F79;
+  --thread:#3B4CC0; --deep:#28327E; --tint:#EAECF9;
+  --pass:#2E7D4F; --pass-bg:#E6F1EA; --fail:#B3402E; --fail-bg:#F7E7E3;
+  --warn:#8F6410; --warn-bg:#F6EEDC; --line:#DEDDD5;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:4rem}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 var(--sans)}
-main{max-width:76rem;margin:0 auto;padding:0 1.5rem 6rem}
-h1,h2,h3{font-family:var(--serif);line-height:1.2;text-wrap:balance}
-h1{font-size:2.6rem;margin:.2em 0 .3em}
-h2{font-size:1.9rem;margin:2.6em 0 .5em;padding-top:.5em;border-top:3px solid var(--ink)}
-h3{font-size:1.25rem;margin:1.8em 0 .4em;color:var(--thread-deep)}
-h4{margin:.2em 0 .5em;font-size:1rem}
-p,li{max-width:68ch}
+body{margin:0;background:var(--paper);color:var(--body);font:16.5px/1.7 var(--sans)}
+.wrap{max-width:78rem;margin:0 auto;padding:0 1.5rem}
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.22;text-wrap:balance;color:var(--ink)}
+h1{font-size:3rem;margin:.1em 0 .25em;letter-spacing:-.01em}
+h2{font-size:2.05rem;margin:0 0 .15em}
+h3{font-size:1.35rem;margin:2.2em 0 .4em}
+h4{font-size:1.05rem;margin:1.6em 0 .3em}
+p,li{max-width:70ch}
+li{margin:.3em 0}
 a{color:var(--thread)}
-code,.num{font-family:var(--mono);font-size:.92em}
-.num{font-variant-numeric:tabular-nums}
-.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--thread)}
-.lede{font-size:1.15rem;max-width:64ch;color:#3A3F4C}
+code{font-family:var(--mono);font-size:.9em;background:var(--panel);padding:.08em .32em;border-radius:2px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--thread)}
+.lede{font-size:1.22rem;line-height:1.62;max-width:66ch;color:#2F343E}
 .muted{color:var(--muted)}
-nav{position:sticky;top:0;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:5;padding:.55rem 1.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.85rem}
-nav a{text-decoration:none;color:var(--ink)}
-nav a:hover,nav a:focus-visible{color:var(--thread)}
-nav b{color:var(--thread-deep);font-family:var(--serif)}
-header.hero{padding:3.5rem 0 1rem}
-.statusline{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0;font-size:.85rem}
-.chip{display:inline-block;padding:.12rem .6rem;border-radius:2px;font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.small{font-size:.9rem}
+
+nav{position:sticky;top:0;z-index:20;background:rgba(251,250,247,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:1.1rem;flex-wrap:wrap;align-items:center;padding-block:.55rem;font-size:.86rem}
+nav b{font-family:var(--serif);color:var(--deep);font-size:1rem}
+nav a{text-decoration:none;color:var(--body)}
+nav a:hover{color:var(--thread)}
+
+header.hero{padding:4rem 0 2rem;border-bottom:1px solid var(--line)}
+.heroGrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:3rem;align-items:start}
+@media(max-width:60rem){.heroGrid{grid-template-columns:1fr}}
+.statusCard{background:#fff;border:1px solid var(--line);padding:1.1rem 1.3rem}
+.statusCard h4{margin:0 0 .6rem;font-size:.95rem}
+.statusRow{display:flex;justify-content:space-between;gap:1rem;padding:.3rem 0;border-bottom:1px solid var(--panel);font-size:.88rem}
+.statusRow:last-child{border:0}
+.statusRow b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+
+section{padding:3.4rem 0;border-bottom:1px solid var(--line)}
+.sectionHead{display:flex;gap:1rem;align-items:baseline;margin-bottom:1.4rem}
+.sectionHead .num{font-family:var(--mono);font-size:.85rem;color:var(--thread);padding-top:.35rem}
+
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1.6rem}
+.card{background:#fff;border:1px solid var(--line);padding:1.1rem 1.3rem}
+.card.accent{border-top:3px solid var(--thread)}
+.card.bad{border-top:3px solid var(--fail)}
+.card.good{border-top:3px solid var(--pass)}
+.card h4{margin-top:0}
+.card p:last-child{margin-bottom:0}
+
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:.45rem .7rem}
+td{padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;margin:1.1rem 0}
+tr.pend td{color:var(--muted)}
+
+.chip{display:inline-block;padding:.1rem .55rem;border-radius:2px;font-family:var(--mono);font-size:.74rem;white-space:nowrap}
 .chip.pass{background:var(--pass-bg);color:var(--pass)}
 .chip.fail{background:var(--fail-bg);color:var(--fail)}
 .chip.warn{background:var(--warn-bg);color:var(--warn)}
 .chip.pend{background:var(--panel);color:var(--muted)}
-table{border-collapse:collapse;width:100%;font-size:.92rem}
-th{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:.4rem .7rem}
-td{padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
-.tablewrap{overflow-x:auto;margin:1rem 0}
-figure{margin:1.6rem 0;background:#fff;border:1px solid var(--line);padding:.8rem}
+
+figure{margin:1.5rem 0;background:#fff;border:1px solid var(--line);padding:.9rem}
 figure img{max-width:100%;height:auto;display:block}
-figcaption{font-size:.83rem;color:var(--muted);padding-top:.6rem;max-width:75ch}
-.pbar{display:grid;grid-template-columns:11rem 1fr 3rem;gap:.8rem;align-items:center;margin:.35rem 0}
-.pl{font-family:var(--mono);font-size:.78rem}
-.pt{background:var(--panel);height:.85rem;position:relative}
-.pt i{display:block;height:100%}
-.pt i.hi{background:var(--pass)} .pt i.mid{background:var(--warn)} .pt i.lo{background:var(--fail)}
-.pt::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px dashed var(--muted)}
-.pv{font-family:var(--mono);font-size:.82rem;text-align:right}
-.stack{display:flex;flex-direction:column;gap:0;margin:1.4rem 0;max-width:30rem}
-.stack .lay{border:1.5px solid var(--ink);padding:.5rem .9rem;background:#fff;font-size:.9rem;position:relative}
+figcaption,.cap{font-size:.86rem;color:var(--muted);padding-top:.6rem;max-width:74ch;margin:0}
+.chartbox{background:#fff;border:1px solid var(--line);padding:1rem 1.2rem;margin:1.3rem 0}
+.chartbox svg{width:100%;height:auto;display:block}
+.chartbox.missing{display:flex;align-items:center;justify-content:center;color:var(--muted);font-style:italic;border-style:dashed}
+.tick{font:11px var(--mono);fill:var(--muted)}
+.axis{font:12px var(--sans);fill:var(--muted)}
+.blabel{font:12px var(--sans);fill:var(--body)}
+.bval{font:11px var(--mono);fill:var(--muted)}
+
+pre{background:#22262F;color:#E9EBF2;padding:1.1rem 1.3rem;overflow-x:auto;font-family:var(--mono);font-size:.83rem;line-height:1.6;border-left:4px solid var(--thread);margin:1.2rem 0}
+pre .c{color:#7E88A3} pre .k{color:#93BAFF} pre .s{color:#A9D9A0} pre .hl{color:#FFCF7A}
+
+.flow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch;margin:1.4rem 0}
+.flow .st{background:#fff;border:1.5px solid var(--ink);padding:.55rem .85rem;font-size:.86rem;min-width:9rem;flex:1 1 9rem}
+.flow .st b{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--deep);margin-bottom:.15rem}
+.flow .arr{align-self:center;color:var(--thread);font-size:1.15rem}
+
+.stack{display:flex;flex-direction:column;max-width:26rem;margin:1.2rem 0}
+.stack .lay{border:1.5px solid var(--ink);padding:.45rem .85rem;background:#fff;font-size:.88rem}
 .stack .lay+.lay{border-top:0}
-.stack .lay.new{background:var(--thread-tint);border-left:4px solid var(--thread)}
-.stack .lay small{display:block;color:var(--muted);font-size:.76rem}
-.stackrow{display:flex;gap:2.5rem;flex-wrap:wrap;align-items:flex-start}
-.pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1.4rem 0}
-.pipe .st{background:#fff;border:1.5px solid var(--ink);padding:.5rem .8rem;font-size:.85rem;min-width:8.5rem}
-.pipe .st b{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--thread-deep)}
-.pipe .arr{align-self:center;color:var(--thread);font-size:1.2rem}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));gap:1rem;margin:1.2rem 0}
-.card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--thread);padding:1rem 1.2rem}
-.card.trap{border-top-color:var(--fail)}
-.card h4{font-family:var(--serif)}
-.loomcard{background:#fff;border:1px solid var(--line);padding:.9rem 1.1rem}
-.loomcard.building{border-style:dashed;color:var(--muted)}
-.mini td{padding:.25rem .5rem;font-size:.82rem;border-bottom:1px solid var(--panel)}
-.mini td.num{text-align:right}
-pre.weave{background:#252A38;color:#E8EAF2;padding:1.1rem 1.3rem;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.55;border-left:4px solid var(--thread)}
-pre.weave .c{color:#7C86A2} pre.weave .k{color:#8FB8FF} pre.weave .s{color:#A9D9A0}
-blockquote{border-left:3px solid var(--thread);margin:1.4rem 0;padding:.3rem 0 .3rem 1.1rem;color:#3A3F4C;font-family:var(--serif);font-size:1.05rem}
-.finding{background:var(--thread-tint);border-left:4px solid var(--thread);padding:.9rem 1.2rem;margin:1.3rem 0;max-width:72ch}
-.finding b{font-family:var(--serif)}
-footer{border-top:3px solid var(--ink);margin-top:4rem;padding-top:1rem;font-size:.83rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
-.legend{font-size:.8rem;color:var(--muted)}
+.stack .lay.new{background:var(--tint);border-left:4px solid var(--thread)}
+.stack .lay.gap{border-style:dashed;color:var(--muted);background:var(--panel)}
+.stack .lay small{display:block;color:var(--muted);font-size:.75rem}
+
+blockquote{border-left:3px solid var(--thread);margin:1.5rem 0;padding:.2rem 0 .2rem 1.2rem;font-family:var(--serif);font-size:1.08rem;color:#2F343E}
+.note{background:var(--tint);border-left:4px solid var(--thread);padding:.9rem 1.2rem;margin:1.3rem 0;max-width:74ch}
+.note.warnbox{background:var(--warn-bg);border-color:var(--warn)}
+.note b{font-family:var(--serif)}
+footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 :focus-visible{outline:2px solid var(--thread);outline-offset:2px}
 </style>
 </head>
 <body>
-<nav aria-label="sections">
-  <b>MIabstraction</b>
-  <a href="#question">Question</a>
-  <a href="#method">Method</a>
-  <a href="#results">Results</a>
-  <a href="#lessons">Lessons</a>
-  <a href="#loom">Loom</a>
-  <a href="#steer">Steering</a>
-  <a href="https://github.com/SharathSPhD/MIabstraction">Repo ↗</a>
-</nav>
-<main>
 
-<header class="hero" id="top">
-  <div class="eyebrow">Live project mirror · build @@SHA@@ · @@NCOMMITS@@ commits · regenerated @@WHEN@@</div>
-  <h1>Programming the transformer</h1>
-  <p class="lede">Can the internals of a transformer be treated the way a compiler treats a
-  CPU — with variables, instructions, a debugger, and eventually a language a non-expert can
-  program in? This project answers empirically: five preregistered experiments validate which
-  layers of the hypothetical "abstraction stack" are real, and <strong>Loom</strong>, a
-  prototype programming layer, is being built on the layers that survived.</p>
+<nav aria-label="Sections"><div class="wrap">
+  <b>Loom</b>
+  <a href="#why">Why</a>
+  <a href="#language">The language</a>
+  <a href="#compile">How it compiles</a>
+  <a href="#evidence">Evidence</a>
+  <a href="#abi">ABI &amp; linker</a>
+  <a href="#traps">What goes wrong</a>
+  <a href="#ledger">Ledger</a>
+  <a href="#next">Next</a>
+  <a href="https://github.com/SharathSPhD/MIabstraction">GitHub ↗</a>
+</div></nav>
 
-  <h3>Current belief per hypothesis <span class="legend">(independent posteriors; dashed line = 0.5 prior)</span></h3>
-  @@POSTERIOR_BARS@@
-</header>
-
-<section id="question">
-<h2>1 · The question</h2>
-<p>Modern computing is a tower of abstractions: application → language → compiler → assembly
-→ instruction set → silicon. Every layer was <em>designed</em>. A transformer has no such
-tower — it jumps from linear algebra straight to application, and the middle is missing:</p>
-
-<div class="stackrow">
+<header class="hero"><div class="wrap heroGrid">
   <div>
-    <h4>CPU stack (designed)</h4>
-    <div class="stack">
-      <div class="lay">Application</div>
-      <div class="lay">Language / Compiler</div>
-      <div class="lay">Assembly / ISA</div>
-      <div class="lay">Microarchitecture</div>
-      <div class="lay">Silicon</div>
+    <div class="eyebrow">build @@SHA@@ · @@NCOMMITS@@ commits · regenerated @@WHEN@@</div>
+    <h1>Programming the transformer</h1>
+    <p class="lede">Today you build a language model by collecting data, running gradient
+    descent, and hoping. There is no layer in between where you state what the model must
+    do and get told whether you got it. <strong>Loom</strong> is an attempt at that layer:
+    you write a short program declaring the capabilities, controls, and evidence you
+    require, and a compiler either delivers a model that provably meets them or refuses
+    and tells you why.</p>
+    <p>Loom rests on five experiments that test which parts of a transformer's internals
+    are solid enough to build a language on. Two backends now compile that language: one
+    trains a model from scratch, one programs a frozen open-weight model. A third writes
+    circuits directly into weights with no training at all.</p>
+  </div>
+  <div class="statusCard">
+    <h4>Where the project stands</h4>
+    @@STATUS_ROWS@@
+    <p class="small muted" style="margin:.8rem 0 0">Every number on this page is read from
+    a committed result file at build time. Claims without an artifact render as
+    “not yet measured”, never as a number.</p>
+  </div>
+</div></header>
+
+<section id="why"><div class="wrap">
+  <div class="sectionHead"><span class="num">01</span><div>
+    <h2>Why a layer is missing</h2>
+    <p class="lede">Computing is a tower of abstractions, and every floor was designed on
+    purpose. The transformer stack has a hole where the middle floors should be.</p>
+  </div></div>
+
+  <div class="cols">
+    <div>
+      <h4>How ordinary software is built</h4>
+      <div class="stack">
+        <div class="lay">Application</div>
+        <div class="lay">Language &amp; libraries<small>you say what you want</small></div>
+        <div class="lay">Compiler + linker<small>translates, checks, refuses</small></div>
+        <div class="lay">Instruction set<small>a stable contract</small></div>
+        <div class="lay">Silicon</div>
+      </div>
+      <p class="small">Each floor can be used without understanding the one below. If you
+      write something impossible, the compiler says so before you ship.</p>
+    </div>
+    <div>
+      <h4>How a language model is built</h4>
+      <div class="stack">
+        <div class="lay">Application</div>
+        <div class="lay">Prompt<small>ask nicely, hope</small></div>
+        <div class="lay gap">nothing here<small>no variables, no functions, no linker, no way to state a requirement</small></div>
+        <div class="lay">Weights &amp; linear algebra</div>
+        <div class="lay">GPU</div>
+      </div>
+      <p class="small">You cannot say “this model must be able to do X” and have anything
+      check it. Training either works or it doesn't, and you find out afterwards.</p>
+    </div>
+    <div>
+      <h4>What Loom inserts</h4>
+      <div class="stack">
+        <div class="lay">Application</div>
+        <div class="lay new">weave.yaml<small>skills · controls · monitors · gates</small></div>
+        <div class="lay new">Loom compiler<small>plans, builds, verifies, refuses</small></div>
+        <div class="lay new">Units + ABI + linker<small>separately compiled, composable</small></div>
+        <div class="lay">Weights &amp; hooks</div>
+        <div class="lay">GPU (local or remote)</div>
+      </div>
+      <p class="small">The compiler owns the parts that require expertise. You own the
+      requirements.</p>
     </div>
   </div>
-  <div>
-    <h4>Transformer stack (today)</h4>
-    <div class="stack">
-      <div class="lay">Application</div>
-      <div class="lay">Prompt<small>hope, not control</small></div>
-      <div class="lay" style="border-style:dashed;color:var(--muted)">??? <small>the missing middle</small></div>
-      <div class="lay">Linear algebra</div>
-      <div class="lay">GPU</div>
-    </div>
+
+  <div class="note"><b>The bet, stated so it can fail.</b> A layer like this is only worth
+  having if the things it names are real. “A skill”, “a monitor”, “a control” must
+  correspond to structure that genuinely exists inside a transformer — otherwise the
+  language is decoration over a black box. Section 04 is five experiments testing exactly
+  that, and one of them came back negative.</div>
+</div></section>
+
+<section id="language"><div class="wrap">
+  <div class="sectionHead"><span class="num">02</span><div>
+    <h2>The language</h2>
+    <p class="lede">A weave is a short file describing what you need. It never mentions
+    gradients, layers, learning rates, or attention heads — those are the compiler's
+    business.</p>
+  </div></div>
+
+<pre><span class="c"># A model that copies patterns it has seen, tracks a changing situation,
+# answers a question about its input, and never says a particular token.</span>
+
+<span class="k">skills:</span>            <span class="c"># capabilities the model MUST have</span>
+  - <span class="k">name:</span> <span class="s">copy_patterns</span>    <span class="k">kind:</span> <span class="s">induction</span>
+  - <span class="k">name:</span> <span class="s">track_state</span>      <span class="k">kind:</span> <span class="s">state_tracking</span>   <span class="k">world:</span> <span class="s">mess3</span>
+  - <span class="k">name:</span> <span class="s">answer</span>           <span class="k">kind:</span> <span class="s">classify</span>         <span class="k">concept:</span> <span class="s">majority</span>
+
+<span class="k">controls:</span>          <span class="c"># things you can switch on at runtime</span>
+  - <span class="k">name:</span> <span class="s">never_token_2</span>    <span class="k">kind:</span> <span class="s">suppress</span>   <span class="k">token:</span> <span class="s">2</span>
+
+<span class="k">monitors:</span>          <span class="c"># things you can read out while it runs</span>
+  - <span class="k">name:</span> <span class="s">state_monitor</span>    <span class="k">kind:</span> <span class="s">probe</span>      <span class="k">concept:</span> <span class="s">belief_state</span>
+
+<span class="k">gates:</span>             <span class="hl"># the promise. the build FAILS unless every one of these holds</span>
+  <span class="k">copy_patterns:</span> <span class="s">{prefix_score: "&gt;0.5", icl_loss: "&lt;0.5"}</span>
+  <span class="k">track_state:</span>   <span class="s">{probe_r2: "&gt;0.9"}</span>
+  <span class="k">answer:</span>        <span class="s">{accuracy: "&gt;0.95"}</span>
+  <span class="k">never_token_2:</span> <span class="s">{suppression_ratio: "&gt;0.9", side_effect: "&lt;0.1"}</span></pre>
+
+  <h3>What each declaration means, and why it is allowed to exist</h3>
+  <div class="tablewrap"><table>
+  <thead><tr><th>You write</th><th>You get</th><th>Verified by</th><th>Why this is a real thing to name</th></tr></thead>
+  <tbody>
+  <tr><td><code>skills:</code></td><td>A capability trained or compiled into the model</td>
+    <td>A mechanism-level measurement, not just behaviour</td>
+    <td>Capabilities correspond to identifiable circuits that form at identifiable moments (experiment E2)</td></tr>
+  <tr><td><code>monitors:</code></td><td>A readout of internal state while the model runs</td>
+    <td>Probe accuracy against ground truth, never synthetic labels</td>
+    <td>The residual stream linearly encodes the state of the world it is modelling (E1)</td></tr>
+  <tr><td><code>controls:</code></td><td>A runtime switch that changes behaviour without retraining</td>
+    <td>Effect size <em>and</em> a side-effect budget — both, always</td>
+    <td>Behaviour is steerable along directions in activation space, with a dose-response curve</td></tr>
+  <tr><td><code>gates:</code></td><td>The contract. No gate, no build.</td>
+    <td>Measured on held-out data, with the control that would expose a false positive</td>
+    <td>Because every experiment here produced a confident wrong answer before its controls caught it</td></tr>
+  </tbody></table></div>
+
+  <div class="note"><b>Gates cannot be gamed by writing them loosely.</b> The compiler
+  refuses vacuous thresholds. <code>prefix_score: "&gt;-1"</code> is rejected at parse time —
+  any measurement would pass it, so it promises nothing. A skill with no gate at all is
+  also rejected: Loom will not build a capability it is not required to verify.</div>
+
+  <h3>When the compiler says no</h3>
+  <p>A refusal is a first-class output, and it is specific. Asking for a parity classifier
+  (“did this token appear an even or odd number of times?”) now fails <em>at compile time</em>,
+  before any GPU is used:</p>
+<pre>$ loom build parity.weave.yaml
+
+<span class="c">REFUSED — cannot compile 'answer' (concept: token_parity)</span>
+Counting whether something appears an even or odd number of times is a known
+blind spot for this model family. Three builds reached only chance accuracy.
+Consider concept: majority (which of two things occurred more often), which
+compiles reliably. <span class="c">[no GPU time was spent]</span></pre>
+  <p>That refusal came from three honest failed builds, kept in the repository as
+  <code>results/loom_curriculum_parity_refusal.json</code>. A compile-time error beats a
+  twenty-three-minute training run that ends in disappointment.</p>
+</div></section>
+
+<section id="compile"><div class="wrap">
+  <div class="sectionHead"><span class="num">03</span><div>
+    <h2>How a weave becomes a model</h2>
+    <p class="lede">Four backends, chosen by the compiler based on what you asked for and
+    what hardware is available.</p>
+  </div></div>
+
+  <div class="flow">
+    <div class="st"><b>parse</b>Read the weave. Reject vacuous gates and ungated skills.</div>
+    <div class="arr">→</div>
+    <div class="st"><b>plan</b>Pick backends per skill, resolve conflicts, choose the machine.</div>
+    <div class="arr">→</div>
+    <div class="st"><b>build</b>Train, construct, or hook — whatever the plan calls for.</div>
+    <div class="arr">→</div>
+    <div class="st"><b>verify</b>Measure every gate on held-out data, with controls.</div>
+    <div class="arr">→</div>
+    <div class="st"><b>ship or refuse</b>A verified artifact with its evidence, or a diagnosis.</div>
   </div>
-  <div>
-    <h4>The stack under test</h4>
-    <div class="stack">
-      <div class="lay">Application</div>
-      <div class="lay new">Loom program<small>skills · controls · monitors · gates</small></div>
-      <div class="lay new">Circuits<small>instructions — H2</small></div>
-      <div class="lay new">Representation geometry<small>variables — H1</small></div>
-      <div class="lay new">Features / probes<small>debugger — H3, H4</small></div>
-      <div class="lay new">Weight structure<small>machine code — H5</small></div>
-      <div class="lay">Transformer weights</div>
-      <div class="lay">GPU</div>
-    </div>
+
+  <div class="tablewrap"><table>
+  <thead><tr><th>Backend</th><th>What it does</th><th>Runs on</th><th>Status</th></tr></thead>
+  <tbody>
+  <tr><td><b>foundation</b></td>
+    <td>Pretrains a real language model from scratch on real text (BabyLM, 100M-word corpus)</td>
+    <td>RTX 5090 — throughput-bound, 32 GB is plenty</td><td>@@F_STATUS@@</td></tr>
+  <tr><td><b>curriculum</b></td>
+    <td>Turns declared skills into a mixed training curriculum and trains one model to hold all of them</td>
+    <td>GB10, minutes</td><td><span class="chip pass">all gates pass</span></td></tr>
+  <tr><td><b>constructed</b></td>
+    <td>Writes a circuit directly into attention weights. No training, no data, no gradient descent.</td>
+    <td>Anywhere, under a second</td><td><span class="chip pass">all gates pass</span></td></tr>
+  <tr><td><b>port</b></td>
+    <td>Programs a frozen open-weight model (Llama&nbsp;3.2, Gemma&nbsp;2) with monitors and dose-calibrated controls</td>
+    <td>GB10 — 128 GB unified memory holds big models</td><td>@@P_STATUS@@</td></tr>
+  </tbody></table></div>
+
+  <h3>The compiler chooses the machine</h3>
+  <p>Two very different GPUs are available, and they are good at different things. A
+  compiler that targets several processors should decide which one to use, so Loom does:
+  throughput-bound pretraining goes to the RTX 5090 over the network; work that needs to
+  hold a large frozen model in memory stays on the GB10's 128 GB. The decision and its
+  reason are recorded in the build report, not left to the user.</p>
+
+  <h3>The compiler resolves conflicts between what you asked for</h3>
+  <p>Skills can have incompatible requirements. Classification needs the non-linearity of
+  MLP layers; the copying circuit forms most cleanly in an attention-only model. Ask for
+  both and something has to give. The planner detects this, chooses the architecture that
+  can satisfy everything, and compensates the skill that lost — here by training longer and
+  deeper. The compensation worked: copying scored <b>@@CU1@@</b> in the full model, better
+  than the <b>0.779</b> it reached in the attention-only one it supposedly preferred.</p>
+</div></section>
+
+<section id="evidence"><div class="wrap">
+  <div class="sectionHead"><span class="num">04</span><div>
+    <h2>The evidence the language stands on</h2>
+    <p class="lede">Five preregistered experiments, each with a numeric threshold written
+    down before the run and a control designed to expose a false positive. One came back
+    negative and one turned out to be unanswerable as posed. Both are kept.</p>
+  </div></div>
+
+  <h3>E1 · The model builds a picture of the world, and you can read it</h3>
+  <p>A transformer trained to predict a hidden-Markov process ends up representing that
+  process's <em>belief state</em> — its running estimate of which hidden situation it is in —
+  laid out linearly in the residual stream, readable at <b>@@E1@@</b>. The fractal shape on
+  the left is the mathematically correct set of belief states; the right is what a linear
+  readout of the model's internals produces.</p>
+  @@IMG_E1@@
+  <p><b>Why the headline number is not the finding.</b> An <em>untrained</em> network of the
+  same shape scores <b>@@E1c@@</b> on the same probe, because random features over recent
+  tokens already carry most of the answer. The real measure is what the trained model adds
+  beyond a simple last-8-tokens baseline: <b>@@E1i@@</b> for the trained model against
+  <b>@@E1ic@@</b> for the untrained one — a factor of roughly 100. This is the basis for
+  <code>monitors:</code> being a real declaration rather than a hopeful one.</p>
+
+  <h3>E2 · Capabilities appear suddenly, not gradually</h3>
+  <p>The ability to copy a pattern seen earlier in the input does not fade in. It appears in
+  a narrow window — <b>@@E2w@@</b> of training — as a specific attention circuit forms, and
+  the model's in-context loss collapses at the same moment.</p>
+  @@IMG_E2@@
+  <p>The route to this result matters more than the result. The first version of the
+  experiment produced <em>perfect copying with zero copying circuitry</em>: repeating the
+  input at a fixed offset let the model solve the task from position alone. A behavioural
+  metric certified a capability the mechanism did not implement. Randomising the offset
+  removed the shortcut and the real circuit appeared. This is why Loom's skill gates
+  measure mechanism, not just behaviour.</p>
+
+  <h3>E3 &amp; E4 · The popular tool is not the reliable one</h3>
+  <p>Sparse autoencoders are the field's standard instrument for finding interpretable
+  features. Two checks:</p>
+  <div class="cols">
+    <div class="card bad"><h4>E3 · the metric measures the wrong thing</h4>
+    <p>Standard SAE quality scores separated a trained model from an untrained one at
+    <b>@@E3@@</b> — but in the <em>wrong direction</em>: the untrained model was easier to
+    reconstruct, because its activations are simpler. The metric is scoring how compressible
+    the activations are, not whether the model learned anything.</p></div>
+    <div class="card"><h4>E4 · the simple tool matches the fancy one</h4>
+    <p>On a concept you can already name, a plain logistic regression on raw activations
+    scored <b>@@E4r@@</b> against the SAE probe's <b>@@E4s@@</b>. Parity, not superiority —
+    replicated across seeds with a gap of 0.001 ± 0.002.</p></div>
   </div>
-</div>
+  <p>Consequence for the language: Loom's <code>monitors:</code> use plain probes. The
+  simplest instrument that matched everything else is the one that ships.</p>
 
-<p>The literature synthesis that seeded this project concluded the layer, if it exists, is
-<em>plural and leaky</em> — not one clean instruction set but several partial descriptions,
-each with a measurable failure fraction ("leak budget"). That claim was turned into five
-falsifiable hypotheses with numeric refutation thresholds, then tested on a single
-NVIDIA GB10 with small transformers whose ground truth we control.</p>
-</section>
+  <h3>E5 · The question that could not be answered as asked</h3>
+  <p>Training a model with most of its weights forced to zero was supposed to yield smaller,
+  cleaner circuits. It appeared to: the sparse model's circuit measured <b>@@E5@@</b> the
+  size of the dense one. But that ratio is almost exactly the sparsity setting we chose,
+  <b>@@E5q@@</b> — and it was <em>identical across every random seed</em>. A second,
+  independent size measure returned the same number. Every ruler we built was measuring our
+  own configuration knob.</p>
+  <div class="note warnbox"><b>Zero variance across seeds is a warning, not a triumph.</b> A
+  result that reproduces perfectly may be reproducing a constant. The experiment now flags
+  this itself, and the finding is recorded as undecidable rather than supported — its
+  confidence sits at the starting prior, because passing an uninformative test is not
+  evidence.</div>
+</div></section>
 
-<section id="method">
-<h2>2 · The method</h2>
-<div class="pipe">
-  <div class="st"><b>Spec</b>Falsifiable claims, thresholds preregistered</div><div class="arr">→</div>
-  <div class="st"><b>Config</b>Every hyperparameter in YAML, none in code</div><div class="arr">→</div>
-  <div class="st"><b>TDD</b>Tests before code, 130+ green</div><div class="arr">→</div>
-  <div class="st"><b>Run</b>GPU experiments, deterministic kernels</div><div class="arr">→</div>
-  <div class="st"><b>Audit</b>Adversarial agent re-derives every verdict</div><div class="arr">→</div>
-  <div class="st"><b>Replicate</b>Multi-seed; zero variance = red flag</div><div class="arr">→</div>
-  <div class="st"><b>Synthesize</b>Bayesian update → this page</div>
-</div>
-<p>Three auxiliary engines steered the work: a <strong>TRIZ contradiction analysis</strong>
-(interpretability ↔ capability; imposed ↔ discovered structure) generated the experiment
-variants; an <strong>active-inference selector</strong> ranked candidate experiments by
-expected information gain per GPU-minute; and a <strong>ralph loop</strong> re-entered every
-experiment until its verdict was grounded in a committed artifact — no result below was
-accepted on first pass.</p>
-</section>
+<section id="abi"><div class="wrap">
+  <div class="sectionHead"><span class="num">05</span><div>
+    <h2>Separate compilation: an ABI and a linker for weights</h2>
+    <p class="lede">The reason C mattered was not its syntax. It was that you could compile
+    a library once, verify it once, and link it into any program. This is the attempt to do
+    that for transformer weights.</p>
+  </div></div>
 
-<section id="results">
-<h2>3 · Results</h2>
-<div class="tablewrap">
-<table>
-<thead><tr><th>Experiment</th><th>Question</th><th>Verdict</th><th>Replication</th></tr></thead>
-<tbody>
-@@VERDICT_ROWS@@
-</tbody>
-</table>
-</div>
+  <p>The obstacle is a genuine trade-off. To link a circuit into a model and know it still
+  works, you must give it private space in the residual stream that nothing else touches.
+  But the residual stream's capacity comes precisely from <em>not</em> doing that — from
+  packing far more features than it has dimensions. Reserving space taxes the host model.</p>
 
-<h3>E1 — Geometry: the layer that held</h3>
-<p>A 4-layer transformer trained on the Mess3 hidden-Markov process embeds the process's
-belief-state simplex in its residual stream, linearly readable at
-<strong>R² = @@E1_R2@@</strong>. The decisive control: an <em>untrained</em> network already
-probes at @@E1_CTRL@@ (random features memorize recent tokens), and the last-8-tokens
-baseline explains @@E1_WIN@@. The signal is the <em>incremental</em> R² beyond that window —
-<strong>@@E1_INC@@ trained vs @@E1_INCC@@ untrained</strong>, a ~96× gap. The fractal
-geometry is visible by eye:</p>
-@@IMG_E1@@
+  <p>Analysing this as a physical contradiction rather than a trade-off points at a way out:
+  <strong>a linked unit should not live in the host's residual stream at all.</strong> It
+  brings its own memory, reads the host through a declared interface, and returns its
+  opinion through a narrow write. The host's cost is then the width of that write, incurred
+  only while the unit is actually saying something — not a permanent tax on capacity.</p>
 
-<h3>E2 — Circuits: real, discrete, and shortcut-prone</h3>
-<p>Induction (in-context copying) forms as a phase transition: prefix-matching attention
-rises to <strong>@@E2_SCORE@@</strong> inside @@E2_WF@@ of training, co-timed with the
-in-context loss collapsing to near zero — and it lives in layer 2 only
-(@@E2_L2@@ vs @@E2_L1@@ in layer 1), the classic two-layer composition. The route was the
-finding: the first design used fixed-offset repetition and got <em>perfect copying with zero
-induction attention</em> — a positional shortcut. Randomizing the gap destroyed the shortcut
-and the true circuit appeared.</p>
-@@IMG_E2@@
+  <div class="flow">
+    <div class="st"><b>read</b>the arguments — tokens, or the residual stream at a chosen layer</div>
+    <div class="arr">→</div>
+    <div class="st"><b>private frame</b>the unit's own weights, in its own dimensions</div>
+    <div class="arr">→</div>
+    <div class="st"><b>validity</b>does this unit apply here at all?</div>
+    <div class="arr">→</div>
+    <div class="st"><b>write</b>the return value — a bounded, centered contribution</div>
+  </div>
 
-<h3>E3 &amp; E4 — Features: descriptive, not canonical</h3>
-<p>E3 asked whether SAE quality metrics can even tell a trained model from a random one
-(they failed to in the literature). Here they separated at <strong>@@E3_SIG@@σ</strong> —
-but in the <em>wrong direction</em>: the random model reconstructs more easily
-(FVU @@E3_FR@@ vs @@E3_FT@@) because its activations are low-dimensional. The metric scores
-reconstructability, not learned structure. E4: on known concepts, a plain logistic probe on
-raw activations ties the SAE probe on belief-region (@@E4_RB@@ vs @@E4_SB@@) and loses
-slightly on entropy (@@E4_RE@@ vs @@E4_SE@@) — <strong>parity, not superiority</strong>,
-replicated at a gap of 0.001 ± 0.002.</p>
-@@IMG_E3@@
-@@IMG_E4@@
+  <h4>Does it actually cost less? Yes, and this is the measurement</h4>
+  @@CHART_CAPACITY@@
 
-<h3>E5 — Weights: undecidable as measured, and that is the result</h3>
-<p>Training at 80% weight sparsity kept @@E5_ACC@@ accuracy with a perfectly faithful
-extracted circuit — sparsity is nearly free. But the headline "4.8× smaller circuit"
-deflated on replication: the weight ratio (@@E5_WR@@), an independent edge-level ratio
-(@@E5_ER@@), and the <em>imposed sparsity knob</em> (q = @@E5_Q@@) are the same number,
-with zero variance across seeds. Every size metric we built measures the hyperparameter,
-not the learned mechanism. The experiment now self-reports this
-(<code>size_metrics_are_tautological</code>) and its posterior is pinned at the 0.5 prior —
-passing an uninformative test is not evidence.</p>
-@@IMG_E5@@
-</section>
+  <h4>Can a separately compiled unit be linked into a model that never trained with it?</h4>
+  <p>The host used here was trained on text with no long-range repetition, so it cannot copy:
+  its own score on the copying task is <b>@@L1a@@</b>. Linking the hand-built copying unit —
+  compiled independently, never co-trained — raises that to <b>@@L1b@@</b>. The linker solved
+  for the write strength itself (<b>@@L1g@@</b>), and the host paid <b>@@L1c@@</b> in
+  increased loss on its own data.</p>
+  @@CHART_PRICE@@
+  <p>At the strict budget the linker <em>refused</em>, which is the correct behaviour: no
+  write strength existed that made the unit useful without costing the host more than it was
+  allowed to spend. Told it could spend more, the same linker found the operating point and
+  linked successfully. The budget is a policy dial; the mechanism reports the price either
+  way.</p>
 
-<section id="lessons">
-<h2>4 · What almost fooled us</h2>
-<p>Every positive result was one control away from being wrong. These four failure modes
-were each caught live, on systems whose ground truth we knew — which is precisely why toy
-models first:</p>
-<div class="grid2">
-  <div class="card trap"><h4>The reservoir effect</h4>
-  <p>An <em>untrained</em> network probed belief state at R² 0.887 — random features over
-  recent tokens explain almost everything. Any probe result without an untrained control
-  and a trivial-baseline comparison is unfounded.</p></div>
-  <div class="card trap"><h4>The positional shortcut</h4>
-  <p>Perfect in-context copying with zero induction attention: fixed-offset repetition is
-  solvable from positional embeddings alone. A behavioral metric certified a capability the
-  mechanism did not implement.</p></div>
-  <div class="card trap"><h4>GPU non-determinism</h4>
-  <p>Identical runs moved a headline accuracy by 7 points (0.786 → 0.857) — enough to flip
-  a verdict. Seeding is not enough: the memory-efficient attention backward pass is
-  non-deterministic; the math backend must be pinned before CUDA initializes.</p></div>
-  <div class="card trap"><h4>The tautological metric</h4>
-  <p>"Sparse circuits are 4.8× smaller" was the sparsity knob echoed back. The tell:
-  <em>zero variance across seeds</em>. A result that reproduces perfectly may be
-  reproducing a constant.</p></div>
-</div>
-<div class="finding"><b>Standing rule, now enforced in code:</b> the pipeline flags
-seed-invariant metrics, refuses to count tautological passes as evidence, verifies that
-support rules in code match the preregistered thresholds, and never lets the test suite
-write into real results.</div>
-</section>
+  <h4>Four things the experiments forced into the design</h4>
+  <div class="cols">
+    <div class="card"><h4>Writes must be centered</h4><p>A unit's raw opinion swamped the
+    host — <b>+10 nats</b> at modest strength. Adding a constant to all logits changes
+    nothing, so only the <em>shape</em> of an opinion should transfer. Centering sends
+    exactly that.</p></div>
+    <div class="card"><h4>Confidence is not applicability</h4><p>A hand-built circuit with
+    sharp attention is confidently wrong off-distribution — it fired on <b>97.8%</b> of
+    ordinary text. Units must declare when they <em>apply</em>, based on the input, not on
+    how sure they sound. That dropped firing to 20.7%.</p></div>
+    <div class="card"><h4>Units return a validity flag</h4><p>Like an error code or an
+    optional type. The linker gates the write on validity, so a unit costs the host nothing
+    on the inputs it knows nothing about.</p></div>
+    <div class="card"><h4>Search where the answer lives</h4><p>Workable write strengths sat
+    two orders of magnitude below 1. A linear search reported “no setting works” while one
+    existed at 0.02. The solver is logarithmic now.</p></div>
+  </div>
 
-<section id="loom">
-<h2>5 · Loom — building the layer</h2>
-<p class="lede">Validation said which layers are load-bearing. Loom is the constructive
-step: a language in which a person who has never heard of gradients declares <em>what the
-model must do</em>, and a compiler either delivers a <strong>verified</strong> model or
-refuses with a diagnosis. The compiler's contract is the project's central lesson turned
-into software: no capability ships unverified.</p>
+  <h4>Writing a circuit directly into weights</h4>
+  <p>The <code>constructed</code> backend compiles the copying skill straight into attention
+  matrices — no training, no data. It scores <b>@@C1@@</b> on the mechanism measure, where
+  the <em>trained</em> model reached 0.607, using <b>@@C3@@</b> nonzero weights and under a
+  second of compute. The trade-off is honest: a perfect mechanism is not a calibrated
+  probability model, and its raw next-token loss is far worse than the trained version's.</p>
+</div></section>
 
-<pre class="weave"><span class="c"># hello_transformer.weave.yaml — a program, not a config:</span>
-<span class="c"># the author never mentions losses, layers, or learning rates</span>
-<span class="k">skills:</span>
-  - <span class="k">name:</span> <span class="s">copy_patterns</span>   <span class="k">kind:</span> <span class="s">induction</span>
-  - <span class="k">name:</span> <span class="s">track_state</span>     <span class="k">kind:</span> <span class="s">state_tracking</span>  <span class="k">world:</span> <span class="s">mess3</span>
-  - <span class="k">name:</span> <span class="s">parity</span>          <span class="k">kind:</span> <span class="s">classify</span>  <span class="k">concept:</span> <span class="s">token_parity</span>
-<span class="k">controls:</span>
-  - <span class="k">name:</span> <span class="s">never_token_2</span>   <span class="k">kind:</span> <span class="s">suppress</span>  <span class="k">token:</span> <span class="s">2</span>
-<span class="k">monitors:</span>
-  - <span class="k">name:</span> <span class="s">state_monitor</span>   <span class="k">kind:</span> <span class="s">probe</span>  <span class="k">concept:</span> <span class="s">belief_state</span>
-<span class="k">gates:</span>                    <span class="c"># the promise — build FAILS unless all hold</span>
-  <span class="k">copy_patterns:</span>  <span class="s">{prefix_score: ">0.5", icl_loss: "<0.5"}</span>
-  <span class="k">track_state:</span>    <span class="s">{probe_r2: ">0.9"}</span>
-  <span class="k">parity:</span>         <span class="s">{accuracy: ">0.95"}</span>
-  <span class="k">never_token_2:</span>  <span class="s">{suppression_ratio: ">0.9", side_effect: "<0.1"}</span></pre>
+<section id="traps"><div class="wrap">
+  <div class="sectionHead"><span class="num">06</span><div>
+    <h2>What goes wrong, and what now prevents it</h2>
+    <p class="lede">Each of these produced a confident, plausible, wrong answer. Each is now
+    blocked by a test that fails if the hole reopens.</p>
+  </div></div>
+  <div class="tablewrap"><table>
+  <thead><tr><th>Failure</th><th>What it looked like</th><th>What now stops it</th></tr></thead>
+  <tbody>
+  <tr><td><b>Trivial baseline</b></td>
+    <td>A probe scored 0.90 — and so did an untrained network, because recent tokens already
+    contain the answer</td>
+    <td>Gates measure what the model adds <em>beyond</em> the trivial baseline</td></tr>
+  <tr><td><b>Shortcut solution</b></td>
+    <td>Perfect in-context copying with none of the circuitry that does copying</td>
+    <td>Skill gates measure mechanism; task designs are hardened against positional shortcuts</td></tr>
+  <tr><td><b>Non-determinism</b></td>
+    <td>The same configuration returned 0.786, 0.843, and 0.857 across identical runs — enough
+    to flip a verdict</td>
+    <td>Deterministic kernels pinned before CUDA starts; runs now reproduce exactly</td></tr>
+  <tr><td><b>Tautological metric</b></td>
+    <td>“Circuits are 4.8× smaller” was the sparsity setting reflected back, identical on
+    every seed</td>
+    <td>Seed-invariant metrics are flagged automatically and excluded from evidence</td></tr>
+  <tr><td><b>Vacuous promise</b></td>
+    <td>A gate of <code>&gt;-1</code> that any result passes</td>
+    <td>Refused at parse time, with an explanation</td></tr>
+  <tr><td><b>Silent placeholder</b></td>
+    <td>A probe quietly fitted to random labels, reporting a confident and meaningless score</td>
+    <td>Ground-truth labels are a required argument; there is no fallback path</td></tr>
+  <tr><td><b>Unmeasured claim</b></td>
+    <td>A result file describing a training run that never happened</td>
+    <td>This page is generated from the ledger in §07 — a claim without an artifact cannot
+    render as a number</td></tr>
+  </tbody></table></div>
+</div></section>
 
-<div class="pipe">
-  <div class="st"><b>Parse</b>weave.yaml → typed spec; ungated skills refused</div><div class="arr">→</div>
-  <div class="st"><b>Plan</b>joint vocabulary, curriculum, backend per skill</div><div class="arr">→</div>
-  <div class="st"><b>Build</b>curriculum · constructed · runtime backends</div><div class="arr">→</div>
-  <div class="st"><b>Verify</b>every gate measured with its controls</div><div class="arr">→</div>
-  <div class="st"><b>Ship or refuse</b>report.json with evidence, or diagnosis</div>
-</div>
+<section id="ledger"><div class="wrap">
+  <div class="sectionHead"><span class="num">07</span><div>
+    <h2>Provenance ledger</h2>
+    <p class="lede">Every quantitative claim on this page, the file it is read from, and
+    whether that file exists. This table is the page's source of truth, not its summary.</p>
+  </div></div>
+  <div class="tablewrap"><table>
+  <thead><tr><th>Claim</th><th class="num">Value</th><th>Source artifact</th><th>Status</th></tr></thead>
+  <tbody>@@LEDGER_ROWS@@</tbody>
+  </table></div>
+</div></section>
 
-<h3>Backend status <span class="legend">(auto-updates as builds land)</span></h3>
-<div class="grid2">
-@@LOOM_DYNAMIC@@
-</div>
+<section id="next"><div class="wrap">
+  <div class="sectionHead"><span class="num">08</span><div>
+    <h2>What is being built next</h2>
+  </div></div>
+  <div class="cols">
+    <div class="card accent"><h4>Finish the from-scratch path</h4><p>A real pretraining run
+    on the 100M-word corpus, so <code>loom build</code> produces a language model you could
+    actually use, with its held-out perplexity as a gate.</p></div>
+    <div class="card accent"><h4>Compose two linked units</h4><p>Linking one unit works. The
+    claim that matters for separate compilation is that two independently compiled units
+    coexist without interfering. Currently refused at the strict budget; the composition
+    result is the next real test.</p></div>
+    <div class="card accent"><h4>A standard library</h4><p>Verified units you import rather
+    than build: a copying circuit, a state monitor, a safety-hardening control. The syntax
+    is designed; the units need their evidence attached.</p></div>
+    <div class="card accent"><h4>Real-scale monitors</h4><p>Move the read-out machinery onto
+    a frozen open-weight model where the interpretability controls have their intended
+    meaning, rather than only on models small enough to fully understand.</p></div>
+  </div>
+  <blockquote>The test of this is not whether the design is elegant. It is whether someone
+  who cannot define “residual stream” can state what they need, get a model that verifiably
+  does it, and get a refusal they can understand when they cannot.</blockquote>
+</div></section>
 
-<h3>The compiler writes machine code</h3>
-<p>The constructed backend is the sharpest claim made real: <code>kind: induction</code>
-compiled <em>directly into weights</em> — zero training, 0.4 seconds. The design is a
-three-layer program written into attention matrices: two "shift" heads copy the previous
-and the second-previous token into reserved subspaces of the residual stream, and a third
-head matches the current two-token context against those buffers — trigram matching, which
-collapses spurious matches from ~1 per sequence to ~0.06. Two tricks make hand-written
-weights survive a real transformer: <strong>zero-mean Hadamard block codes</strong> (so
-LayerNorm degenerates into a harmless rescale) and near-hard attention via large score
-scales. The hand-built circuit scores <strong>0.979</strong> on the mechanism metric where
-the <em>trained</em> model scored 0.607 — with 13,152 nonzero weights (2.8% of the model).
-The honest trade-off: blunt calibration (0.98 nats vs the trained 0.08) — a perfect
-mechanism is not yet a calibrated probability model.</p>
-
-<h3>The red team, and what it changed</h3>
-<p>An adversarial agent attacked the paradigm and found five holes — including a critical
-one: the monitor library silently fitted probes to <em>random labels</em> when ground truth
-wasn't supplied, reporting confident R² while reading nothing. Exactly the
-confident-wrong-answer failure this project catalogued in phase one, reproduced inside our
-own compiler. Three findings are fixed and locked by regression tests (vacuous gates like
-<code>&gt;-1</code> refused at parse time; ground truth now mandatory for monitors;
-controls that would silently do nothing refuse to install). Two are documented as v0
-limits: suppression is token-level not concept-level, and gates certify the distribution
-they were measured on.</p>
-
-<h3>When the compiler says no</h3>
-<p>The curriculum backend's multi-skill build passed induction (0.909 — MLP compensation
-chosen by the planner <em>improved</em> on the attention-only 0.779) and state-tracking
-(0.911), but parity stalled at chance through three escalating attempts — consistent with
-the literature: parity is the canonical SGD-hard function for transformers. So it became a
-<em>language rule</em>: <code>concept: token_parity</code> now refuses at compile time
-with a plain-English diagnosis and a suggestion of a compilable alternative. A type error
-beats a failed 23-minute build. The refusal artifacts are kept as first-class results.</p>
-
-<h3>How each validated layer became a language feature</h3>
-<div class="tablewrap">
-<table>
-<thead><tr><th>Evidence</th><th>Loom feature</th><th>Guarantee inherited from validation</th></tr></thead>
-<tbody>
-<tr><td>H1 geometry (R²=@@E1_R2@@)</td><td><code>monitors: probe</code> — named readable state</td><td>gates use incremental-R², immune to the reservoir effect</td></tr>
-<tr><td>H2 circuits (score @@E2_SCORE@@)</td><td><code>skills: induction</code></td><td>gate is mechanism-level and shortcut-hardened (variable gaps)</td></tr>
-<tr><td>H4 probe parity</td><td>probes, not SAEs, as the default debugger</td><td>simplest instrument that matched every alternative</td></tr>
-<tr><td>E5 sparsity ~free</td><td>headroom for <code>constructed</code> weights backend</td><td>size claims must pass the tautology check</td></tr>
-<tr><td>Steering literature + E4</td><td><code>controls: suppress/amplify</code></td><td>side-effect budget is a mandatory gate, not an option</td></tr>
-</tbody>
-</table>
-</div>
-</section>
-
-<section id="steer">
-<h2>6 · Steering — the open decisions</h2>
-<ul>
-<li><strong>H5 needs a non-weight-counting ruler.</strong> Causal edge pruning or
-description length of the extracted algorithm; until then the weights layer stays at its
-prior.</li>
-<li><strong>Scale jump:</strong> re-run E3/E4 on a real LM (Pythia-160M) where the
-random-model control has its intended meaning; port a Loom monitor to it.</li>
-<li><strong>Loom expressiveness:</strong> v0 has 3 skill kinds, 2 control kinds, 1 monitor
-kind. The next kinds should come from what a real user asks for, not from what is easy.</li>
-<li><strong>Constructed backend:</strong> if pure hand-compiled induction passes its gates,
-the "compiler emits machine code" claim is proven at toy scale; the follow-up is
-composing two constructed skills in one model.</li>
-</ul>
-<blockquote>The test of the paradigm is not whether experts find Loom elegant — it is
-whether a person who cannot define "residual stream" can get a model that verifiably does
-what they asked, and a refusal they can understand when it cannot.</blockquote>
-</section>
-
-<footer>
-  <span>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a></span>
-  <span>Regenerate with <code>python -m miabstraction.site</code> · build @@SHA@@ · @@WHEN@@</span>
-</footer>
-</main>
+<footer><div class="wrap">
+  <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
+  · regenerate with <code>python -m miabstraction.site</code> · build @@SHA@@ · @@WHEN@@</p>
+</div></footer>
 </body>
 </html>
