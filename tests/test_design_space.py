@@ -150,3 +150,23 @@ def test_every_stage_produces_a_usable_grid(stage):
     g = grids(stage, {"effort": "balanced", "trials_per_lever": 2, "bounds": {}})
     assert g and all(len(v) >= 1 for v in g.values())
     assert {lv.name for lv in levers_for(stage)} == set(g)
+
+
+def test_insistence_is_how_much_of_the_behaviour_must_be_achieved(tmp_path):
+    """The compiler used to hold this as a flat 0.05 nats — a constant nobody declared
+    that meant something different for a style than for a guardrail."""
+    from loom.app.design_space import recovery_target
+    assert recovery_target({"bounds": {}}) == 0.25
+    b = budget_of(BARE("tune insistence from 0.4 to 0.4;"), tmp_path)
+    assert recovery_target(b) == 0.4
+
+
+def test_insistence_is_clamped_to_a_fraction(tmp_path):
+    from loom.app.design_space import recovery_target
+    b = budget_of(BARE("tune insistence from 3 to 9;"), tmp_path)
+    assert 0.0 <= recovery_target(b) <= 1.0
+
+
+def test_insistence_is_a_recognised_knob(tmp_path):
+    b = budget_of(BARE("tune insistence from 0.5 to 0.5;"), tmp_path)
+    assert unrecognised(b) == []

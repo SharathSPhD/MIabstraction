@@ -22,7 +22,8 @@ import numpy as np
 import torch
 
 from .capability import App, Kind
-from .design_space import explain as explain_space, grids, unrecognised
+from .design_space import (explain as explain_space, grids,
+                           recovery_target, unrecognised)
 from .lora import (attach_lora, get_adapter_info, lora_parameters,
                    merge_or_detach)
 from .lowering import CATALOGUE, Choice, plan
@@ -365,7 +366,8 @@ def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
 
 def autotune_control(model, tok, cap, device, budget: float,
                      layers: list[int], multipliers: list[float],
-                     probes: list[str] | None = None) -> tuple[dict, dict]:
+                     probes: list[str] | None = None,
+                     recover: float = 0.25) -> tuple[dict, dict]:
     """Search layer x strength for one behavioural capability.
 
     The objective is the capability's own effect; the constraint is that the control may
@@ -432,6 +434,36 @@ def autotune_control(model, tok, cap, device, budget: float,
                 n += 1
         return total / max(n, 1)
 
+    def _objective_on(prompts: list[str]) -> float:
+        """The same score, measured against a different set of prompts."""
+        total, n = 0.0, 0
+        with torch.no_grad():
+            for prompt, answer in zip(prompts[:4], target_answers):
+                if not answer.strip():
+                    continue
+                pi = tok(prompt, return_tensors="pt")["input_ids"][0]
+                ai = tok(answer, add_special_tokens=False,
+                         return_tensors="pt")["input_ids"][0]
+                ids = torch.cat([pi, ai]).unsqueeze(0).to(device)
+                labels = ids.clone()
+                labels[0, :len(pi)] = -100
+                total += float(model(input_ids=ids, labels=labels).loss)
+                n += 1
+        return total / max(n, 1)
+
+    # How much is there to win? The instruction itself closes the whole gap by
+    # definition, so it sets the scale: with the system prompt the answer costs
+    # `floor` nats, without it `ceiling`. A control can only ever move between those.
+    #
+    # The target used to be a flat 0.05 nats, a constant nobody declared that meant
+    # different things for a style and a guardrail. Expressing it as a share of this gap
+    # makes "target met" mean one interpretable thing — the control recovered this much
+    # of what the instruction would have done — and scales it per capability.
+    ceiling = _objective() if target_answers else 0.0
+    floor = _objective_on(pos) if target_answers else 0.0
+    gap = max(ceiling - floor, 0.0)
+    target = max(gap * recover, 1e-4) if gap > 0 else 0.05
+
     def run(cfg: dict):
         layer = cfg["layer"]
         if layer not in P_cache:
@@ -463,11 +495,15 @@ def autotune_control(model, tok, cap, device, budget: float,
     res = search(
         levers=[Lever("layer", layers, "where the behaviour is legible"),
                 Lever("multiplier", multipliers, "how hard to push")],
-        run=run, target=0.05, maximize=True, stop_early=False)
+        run=run, target=target, maximize=True, stop_early=False)
 
+    scale = {"instructed_cost": round(floor, 4), "uninstructed_cost": round(ceiling, 4),
+             "gap": round(gap, 4), "must_recover": recover,
+             "target_nats": round(target, 4)}
     if res.best is None:
         failed = res.to_dict()
         failed["direction_from"] = how
+        failed["scale"] = scale
         return {}, failed
 
     layer = res.best.config["layer"]
@@ -479,6 +515,8 @@ def autotune_control(model, tok, cap, device, budget: float,
                "side_effect": res.best.metrics["degeneration"]}
     tuning = res.to_dict()
     tuning["direction_from"] = how
+    tuning["scale"] = scale
+    tuning["recovered"] = (round(res.best.score / gap, 4) if gap > 0 else None)
     return control, tuning
 
 
@@ -557,7 +595,8 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
 
         elif cap.kind in KIND_TO_CONTRAST:
             control, tuning = autotune_control(model, tok, cap, device, budget,
-                                               layers, multipliers, probes=probes)
+                                               layers, multipliers, probes=probes,
+                                               recover=recovery_target(search_budget))
             entry["autotune"] = tuning
             entry["realized"] = bool(control)
             if control:

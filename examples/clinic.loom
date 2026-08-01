@@ -23,6 +23,12 @@ app Clinic {
     tune    adaptation from 1 to 6;
     tune    steering from 0.5 to 3;
 
+    // How much of each behaviour has to actually be achieved. 0.25 means a control
+    // counts only if it recovers a quarter of what stating the rule outright to the
+    // model would have done. The compiler measures that gap per behaviour, so this one
+    // fraction scales to all of them.
+    tune    insistence from 0.25 to 0.25;
+
     // What it means for this to have worked. The first is measured on held-out
     // material; the second on a probe the model was never trained to answer.
     expect  knows the material better than the base model;

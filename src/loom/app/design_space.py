@@ -97,7 +97,25 @@ KNOB_DOMAINS: dict[str, tuple[float, float]] = {
     "adaptation": (1.0, 8.0),    # how far the model itself may be moved
     "steering": (0.5, 4.0),      # how hard behaviour may be pushed at runtime
     "patience": (1.0, 10.0),     # how long the build may spend
+    "insistence": (0.0, 1.0),    # how much of the behaviour must actually be achieved
 }
+
+
+def recovery_target(budget: dict, default: float = 0.25) -> float:
+    """How much of the instructed behaviour a control has to reproduce to count.
+
+    The compiler used to hold this as a flat 0.05 nats — a constant nobody declared,
+    which meant something different for a style than for a guardrail. It is really a
+    statement about how badly you want the behaviour, so it belongs to the program:
+    `tune insistence from 0.4 to 0.4` says "recover at least 40% of what stating the
+    instruction outright would have done". The gap the instruction achieves is measured
+    per capability, so the same fraction scales to each one.
+    """
+    b = budget.get("bounds", {}).get("insistence")
+    if isinstance(b, (tuple, list)) and len(b) == 2:
+        lo, hi = float(b[0]), float(b[1])
+        return max(0.0, min(1.0, min(lo, hi)))
+    return default
 
 
 def levers_for(stage: str) -> list[LeverSpec]:
@@ -193,9 +211,13 @@ def grids(stage: str, budget: dict, n_layers: int = 16) -> dict[str, list]:
 
 
 def unrecognised(budget: dict) -> list[str]:
-    """`tune` names in the program that no lever is bound by — reported, not fatal."""
-    known = {lv.knob for lv in DESIGN_SPACE if lv.knob} & set(KNOB_DOMAINS)
-    return sorted(set(budget.get("bounds", {})) - known)
+    """`tune` names the compiler does not consume — reported, not fatal.
+
+    The vocabulary is KNOB_DOMAINS, not the set of knobs that happen to bound a lever:
+    `insistence` sets how much of a behaviour must be achieved rather than narrowing any
+    lever's range, and a program using it is not making a mistake.
+    """
+    return sorted(set(budget.get("bounds", {})) - set(KNOB_DOMAINS))
 
 
 def explain(budget: dict, n_layers: int = 16) -> str:
