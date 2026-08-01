@@ -226,12 +226,18 @@ try:
 
     if '{corpus_name}' == 'babylm_strict':
         try:
-            # Try to load train split; BabyLM-2026-Strict only has 'train'
+            # Load BabyLM but use only a subset for tractable runtime
+            # (full dataset is 11.6M sequences, use first 100K for demo)
             full_dataset = load_dataset(
                 "BabyLM-community/BabyLM-2026-Strict",
                 split="train",
                 trust_remote_code=True,
             )
+
+            # Use subset: 100K examples for demo (still 100M+ tokens)
+            subset_size = min(100000, len(full_dataset))
+            full_dataset = full_dataset.select(range(subset_size))
+
             # Split into train/val (90/10 split)
             train_size = int(0.9 * len(full_dataset))
             indices = list(range(len(full_dataset)))
@@ -243,7 +249,7 @@ try:
 
             dataset = full_dataset.select(train_indices)
             val_dataset = full_dataset.select(val_indices)
-            print(f"Split BabyLM into {{len(dataset)}} train, {{len(val_dataset)}} val sequences")
+            print(f"Split BabyLM subset into {{len(dataset)}} train, {{len(val_dataset)}} val sequences")
         except Exception as e:
             print(f"Warning: Could not split BabyLM corpus: {{e}}")
             raise
