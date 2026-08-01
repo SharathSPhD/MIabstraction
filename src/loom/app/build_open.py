@@ -260,7 +260,9 @@ def continued_pretraining(model, tok, pattern: str, device: str,
 def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
                        steps: int, lr: float, rank: int = 4,
                        keep: bool = True, objective=None,
-                       variety_budget: float = 0.15) -> dict:
+                       variety_budget: float = 0.15,
+                       save_adapter_to: str | None = None,
+                       base_name: str = "") -> dict:
     """Escalation: when steering cannot reach the target, train the behaviour in.
 
     Loss is computed on the response only. This is the second strategy in the catalogue
@@ -319,9 +321,25 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
         return {"ran": False, "reason": f"training cost {lost:.3f} of output variety; "
                                         "adapter discarded",
                 "variety_lost": round(lost, 4), "base_weights_unchanged": intact}
+    # Save before folding in, for the same reason continued_pretraining does: a
+    # behaviour verified on the in-process model but absent from the artifact is a
+    # measurement of something nobody can load.
+    saved = None
+    if keep and save_adapter_to:
+        p = Path(save_adapter_to)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"rank": rank, "alpha": 2.0 * rank, "base_model": base_name,
+                    "adapters": {h.layer_name: {"a": h.adapter_a.detach().cpu(),
+                                                "b": h.adapter_b.detach().cpu(),
+                                                "scale": h.scale,
+                                                "layout": type(h.module).__name__}
+                                 for h in handles}}, p)
+        saved = str(p)
+
     merge_or_detach(model, handles, mode="merge" if keep else "detach")
     torch.cuda.empty_cache()
-    return {"ran": True, "kept": keep, "steps": steps, "lr": lr, "rank": rank,
+    return {"ran": True, "kept": keep, "adapter_saved_to": saved,
+            "steps": steps, "lr": lr, "rank": rank,
             "n_examples": len(examples),
             "objective_after": (round(obj_after, 4) if obj_after is not None else None),
             "adapter_ratio": round(info["adapter_ratio"], 6),
@@ -363,7 +381,8 @@ REFUSAL_DEMOS = [
 
 def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]],
                         adaptation_grid: dict[str, list], gapinfo: dict,
-                        target: float) -> dict:
+                        target: float, save_adapter_to: str | None = None,
+                        base_name: str = "") -> dict:
     """Search the adaptation levers when steering cannot reach the target.
 
     The escalation used to be one fixed configuration — 30 steps at 5e-6 — which is a
@@ -409,7 +428,8 @@ def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]]
         applied = finetune_behaviour(
             model, tok, cap, device, examples,
             steps=int(res.best.config["steps"]), lr=float(res.best.config["lr"]),
-            rank=int(res.best.config["rank"]), keep=True)
+            rank=int(res.best.config["rank"]), keep=True,
+            save_adapter_to=save_adapter_to, base_name=base_name)
     torch.cuda.empty_cache()
     return {"ran": bool(applied.get("ran")), "autotune": res.to_dict(),
             "applied": applied or None,
@@ -733,7 +753,7 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             # wearing an optimization's name.
             nxt = next((st for st in CATALOGUE[cap.kind]
                         if st.name == "finetune_refusals"), None)
-            ceiling_prior, provenance = delivery_ceiling()
+            ceiling_prior, provenance = delivery_ceiling(base_model=target)
             skip, why_skip = should_skip_steering(gap, recover, ceiling_prior,
                                                   provenance)
             skip = skip and nxt is not None
@@ -758,9 +778,12 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             # way the decision cites a measurement, and the training that follows is a
             # search whose cost scales with the gap.
             if not tuning.get("target_met") and nxt is not None:
-                esc = autotune_escalation(model, tok, cap, device, REFUSAL_DEMOS,
-                                          grids("adaptation", search_budget),
-                                          gapinfo, target=target_nats)
+                esc = autotune_escalation(
+                    model, tok, cap, device, REFUSAL_DEMOS,
+                    grids("adaptation", search_budget), gapinfo, target=target_nats,
+                    save_adapter_to=str(Path(out_dir)
+                                        / f"adapter_{cap.kind.value}.pt"),
+                    base_name=target)
                 if esc.get("ran"):
                     taught.extend(r for _, r in REFUSAL_DEMOS)
                 entry["escalation"] = {

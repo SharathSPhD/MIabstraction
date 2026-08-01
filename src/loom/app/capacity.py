@@ -26,16 +26,29 @@ from .search import Lever
 LEDGER = Path("results/steering_capacity.json")
 
 
-def delivery_ceiling(path: Path | str = LEDGER) -> tuple[float | None, str]:
+def delivery_ceiling(path: Path | str = LEDGER,
+                     base_model: str | None = None) -> tuple[float | None, str]:
     """The most a searched steering control has ever delivered, in nats, with where
-    that number came from. (None, reason) when there is no measured ledger."""
+    that number came from. (None, reason) when there is no measured ledger.
+
+    The ceiling is substrate-specific and this check is load-bearing: measured on
+    Llama-3.2-1B the ceiling was 0.0179 nats, while the same search on Qwen2.5-1.5B
+    delivered 0.0266 and met its target — a ceiling carried across families would have
+    skipped a search that wins. So a ledger measured on a different base model is not
+    evidence here, and the compiler searches instead.
+    """
     p = Path(path)
     if not p.exists():
         return None, f"no measured steering-capacity ledger at {p}"
     try:
-        rows = json.loads(p.read_text()).get("capabilities", [])
+        data = json.loads(p.read_text())
     except (json.JSONDecodeError, OSError) as e:
         return None, f"no measured steering-capacity ledger: {p} unreadable ({e})"
+    measured_on = data.get("base_model")
+    if base_model is not None and measured_on != base_model:
+        return None, (f"the ledger at {p} was measured on {measured_on}, which is "
+                      f"not evidence about {base_model}")
+    rows = data.get("capabilities", [])
     delivered = [r["delivered_nats"] for r in rows
                  if isinstance(r.get("delivered_nats"), (int, float))]
     if not delivered:

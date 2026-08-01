@@ -12,8 +12,9 @@ import json
 import sys
 from pathlib import Path
 
-SRC = Path("results/loom_clinic_build.json")
-OUT = Path("results/steering_capacity.json")
+SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("results/loom_clinic_build.json")
+OUT = (Path(sys.argv[2]) if len(sys.argv) > 2
+       else Path("results/steering_capacity.json"))
 
 
 def main() -> int:

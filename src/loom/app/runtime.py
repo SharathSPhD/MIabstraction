@@ -176,8 +176,13 @@ def load_artifact(path: str | Path, device: str = "cuda") -> LoomModel:
         module = AutoModelForCausalLM.from_pretrained(base, dtype=torch.bfloat16)
         module.to(device).eval()
         tok = AutoTokenizer.from_pretrained(base)
-        applied = _reapply_adapter(module, root / "adapter.pt", base)
-        report = {**report, "adapter_reapplied": applied}
+        # Every adapter the build saved, not just the knowledge one: an escalated
+        # guardrail lives in adapter_guardrail.pt, and an artifact that reapplied only
+        # adapter.pt would verify as refusing in the report while the loaded model
+        # refuses nothing.
+        applied = [p.name for p in sorted(root.glob("adapter*.pt"))
+                   if _reapply_adapter(module, p, base)]
+        report = {**report, "adapters_reapplied": applied}
         return LoomModel(module, tok, controls, plan, report, device)
 
     raise FileNotFoundError(

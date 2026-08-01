@@ -16,9 +16,10 @@ from loom.app.capacity import (delivery_ceiling, escalation_levers,
                                should_skip_steering)
 
 
-def _capacity_file(tmp_path, rows):
+def _capacity_file(tmp_path, rows, base_model="meta-llama/Llama-3.2-1B-Instruct"):
     p = tmp_path / "steering_capacity.json"
     p.write_text(json.dumps({"source": "results/loom_clinic_build.json",
+                             "base_model": base_model,
                              "capabilities": rows}))
     return p
 
@@ -34,6 +35,24 @@ def test_delivery_ceiling_is_the_max_measured_delivery(tmp_path):
     # not a constant someone chose.
     assert "steering_capacity" in provenance
     assert "0.0179" in provenance
+
+
+def test_a_ledger_from_another_substrate_is_not_evidence(tmp_path):
+    # Measured on Llama, the ceiling was 0.0179 nats; measured on Qwen2.5-1.5B the
+    # same search delivered 0.0266 and MET its target. A ceiling from one family used
+    # to veto a search on another would have skipped a search that wins.
+    p = _capacity_file(tmp_path, [{"delivered_nats": 0.0179, "gap_nats": 0.0182}],
+                       base_model="meta-llama/Llama-3.2-1B-Instruct")
+    ceiling, provenance = delivery_ceiling(p, base_model="Qwen/Qwen2.5-1.5B-Instruct")
+    assert ceiling is None
+    assert "Llama-3.2-1B" in provenance and "not evidence" in provenance
+
+
+def test_a_ledger_from_the_same_substrate_is_evidence(tmp_path):
+    p = _capacity_file(tmp_path, [{"delivered_nats": 0.0179, "gap_nats": 0.0182}],
+                       base_model="meta-llama/Llama-3.2-1B-Instruct")
+    ceiling, _ = delivery_ceiling(p, base_model="meta-llama/Llama-3.2-1B-Instruct")
+    assert ceiling == pytest.approx(0.0179)
 
 
 def test_no_ledger_means_no_prior(tmp_path):
