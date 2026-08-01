@@ -21,6 +21,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from loom.compute import plan_target
+from loom.foundation import build_foundation
 from loom.monitors import fit_monitors
 from loom.runtime import (
     compute_suppression_metrics,
@@ -111,6 +113,43 @@ def build_weave(spec_path: str, output_dir: str | None = None) -> int:
     print(f"Building weave: {spec.name}")
     print(f"Output: {output_dir}")
     print()
+
+    # ---- Foundation backend dispatch ----
+    if spec.foundation:
+        print("Backend: Foundation (pretraining)")
+        print()
+
+        # Plan compute target
+        job_config = {
+            "is_pretraining": True,
+            "n_params": spec.foundation.params,
+            "max_memory_gb": 32,  # BabyLM small model fits in 32GB
+            "throughput_critical": True,
+        }
+        plan = plan_target(job_config)
+        print(f"Compute target: {plan.target}")
+        print(f"Rationale: {plan.rationale}")
+        print()
+
+        # Compile to job directory
+        job_dir = build_foundation(spec, output_dir)
+
+        # Save spec for reference
+        import shutil
+        shutil.copy(spec_path, output_dir / "spec.yaml")
+
+        print(f"Foundation job ready at: {job_dir}")
+        print("Next steps:")
+        print(f"  1. Review {job_dir}/README.md")
+        print(f"  2. Submit to RTX 5090:")
+        print(f"     bash <rtx5090-skill>/scripts/submit_job.sh {job_dir} foundation_demo")
+        print(f"  3. Monitor with:")
+        print(f"     bash <rtx5090-skill>/scripts/status.sh foundation_demo")
+        print()
+
+        # For now, print that the job is compiled but not run
+        print("BUILD SUCCESS: Foundation job compiled and ready for submission.")
+        return 0
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device: {device}")

@@ -51,6 +51,15 @@ class Monitor:
 
 
 @dataclass
+class Foundation:
+    """Foundation pretraining job: corpus, tokenizer, model params, budget."""
+    corpus: str              # e.g. "babylm_strict"
+    tokenizer: str = "gpt2"  # "gpt2" | "bpe_train" (train a small BPE)
+    params: int = 30_000_000  # ~10-30M parameter model
+    budget_hours: float = 3.0  # max wall-clock hours
+
+
+@dataclass
 class Gate:
     """One promised metric: e.g. prefix_score > 0.5."""
     target: str          # skill/control name
@@ -128,6 +137,7 @@ class WeaveSpec:
     controls: list[Control] = field(default_factory=list)
     monitors: list[Monitor] = field(default_factory=list)
     gates: list[Gate] = field(default_factory=list)
+    foundation: Foundation | None = None  # Optional foundation pretraining spec
     seed: int = 0
     name: str = "weave"
 
@@ -169,8 +179,18 @@ def load_weave(path: str | Path) -> WeaveSpec:
         raise WeaveError(f"model.size must be one of {sorted(MODEL_SIZES)}.")
     model = dict(MODEL_SIZES[size])
 
+    # Parse optional foundation spec
+    foundation = None
+    foundation_raw = raw.get("foundation")
+    if foundation_raw:
+        try:
+            foundation = Foundation(**foundation_raw)
+        except TypeError as e:
+            raise WeaveError(f"Foundation spec error: {e}") from e
+
     spec = WeaveSpec(
         model=model,
+        foundation=foundation,
         skills=_build_items(raw.get("skills"), Skill, SKILL_KINDS, "Skill"),
         controls=_build_items(raw.get("controls"), Control, CONTROL_KINDS, "Control"),
         monitors=_build_items(raw.get("monitors"), Monitor, MONITOR_KINDS, "Monitor"),
@@ -183,19 +203,22 @@ def load_weave(path: str | Path) -> WeaveSpec:
         raise WeaveError("Every skill, control, and monitor needs a unique name.")
 
     for target, metrics in (raw.get("gates") or {}).items():
-        if target not in names:
+        if target not in names and not (foundation and target == "foundation"):
             raise WeaveError(
                 f"Gate target '{target}' does not match any declared skill/control/"
-                f"monitor. Declared: {sorted(names)}."
+                f"monitor or foundation. Declared: {sorted(names)}."
+                + (f" (foundation: {foundation})" if foundation else "")
             )
         for metric, expr in metrics.items():
             spec.gates.append(parse_gate_expr(target, metric, expr))
 
-    # The promise is not optional: every skill and control must be gated.
+    # The promise is not optional: every skill, control, and foundation must be gated.
     ungated = [
         n for n in ({s.name for s in spec.skills} | {c.name for c in spec.controls})
         if not spec.gates_for(n)
     ]
+    if foundation and not spec.gates_for("foundation"):
+        ungated.append("foundation")
     if ungated:
         raise WeaveError(
             f"No gates declared for: {sorted(ungated)}. Loom refuses to build "

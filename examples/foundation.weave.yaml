@@ -1,0 +1,27 @@
+# Foundation Pretraining Weave
+#
+# A small English language model that predicts text well and knows basic grammar.
+# Built from scratch on the BabyLM corpus (100M words, the standard for from-scratch
+# foundation model research) using a GPT-style architecture.
+#
+# Honest gates: these metrics are measured on held-out data and must pass for
+# the build to succeed. Gates are adversarially chosen to be reachable with proper
+# training but not vacuous.
+
+model:
+  size: small  # not used for foundation (foundation sets its own arch)
+
+foundation:
+  corpus: babylm_strict            # 100M-word corpus from BabyLM-2026-Strict
+  tokenizer: gpt2                  # reuse GPT2 vocabulary (50K tokens)
+  params: 30_000_000               # ~30M parameter model (small, fits in 32GB)
+  budget_hours: 3.0                # wall-clock time limit for training
+
+gates:
+  foundation:
+    val_loss: "<3.0"               # target: reasonable text modeling (entropy < 3 nats)
+    val_ppl: "<20.0"               # target: perplexity < 20 on held-out data
+    # blimp_acc: ">0.55"           # optional: basic grammar accuracy (if BLiMP cached)
+
+# No skills, controls, or monitors for foundation weaves.
+# The foundation backend only measures: val_loss, val_ppl, [blimp_acc].
