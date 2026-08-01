@@ -203,9 +203,16 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 <section id="language"><div class="wrap">
   <div class="sectionHead"><span class="num">02</span><div>
     <h2>The language</h2>
-    <p class="lede">A weave is a short file describing what you need. It never mentions
-    gradients, layers, learning rates, or attention heads — those are the compiler's
-    business.</p>
+    <p class="lede">You write source code that constructs a model: data, pretraining,
+    fine-tuning, alignment. The compiler type-checks it, lowers it to an intermediate
+    representation, and runs it against a real substrate — an architecture built from
+    scratch, or an existing open-weight model.</p>
+    <div class="note"><b>This is a correction.</b> An earlier version of this layer was
+    declarative: you stated the properties you wanted and the compiler decided everything
+    else. That is a build file, not a language. An adversarial audit of intent against
+    implementation found the gap — no statements, no composition, no post-training, and a
+    pretraining path welded to a single architecture. The design below is the corrected
+    one; the sections after it describe what is measured today.</div>
   </div></div>
 
 <pre><span class="c"># A model that copies patterns it has seen, tracks a changing situation,
