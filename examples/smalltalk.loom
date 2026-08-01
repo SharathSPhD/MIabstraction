@@ -1,0 +1,31 @@
+// smalltalk.loom - a small conversational model, built from nothing.
+
+target arch = decoder(layers=12, width=768, heads=12, ctx=1024);
+
+corpus speech = data.text("babylm:childes");
+corpus prose  = data.text("babylm:simple_wiki");
+corpus mix    = speech * 0.7 + prose * 0.3;
+
+tokenizer tk = tokenizer.bpe(mix, vocab=16000);
+
+model m = pretrain(arch, mix, tk) {
+    tokens    = 800M;
+    optimizer = adamw(lr=6e-4, wd=0.1);
+    schedule  = cosine(warmup=2%);
+};
+
+assert perplexity(m, mix.heldout) < 60;
+
+m = finetune(m, data.chat("dialogues.jsonl")) {
+    epochs = 2;
+    lr     = 2e-5;
+};
+
+m = align(m, data.prefs("preferences.jsonl")) {
+    algo = dpo;
+    beta = 0.1;
+};
+
+assert winrate(m, baseline=m.before_align) > 0.55;
+
+export m to "smalltalk-v1";

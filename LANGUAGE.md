@@ -1,28 +1,28 @@
-# Loom — a language for constructing language models
+# Loom — a language for programming transformers via semantic units
 
 ## What this is
 
-A high-level language whose programs *build LLMs*. You write source code describing data,
-pretraining, and post-training; a compiler type-checks it, lowers it to an intermediate
-representation, and executes it against a real substrate — either an architecture built
-from scratch or an existing open-weight model.
+A high-level language whose programs *program transformers*. You write source code declaring
+features (named directions in activation space), circuits (computational subgraphs), and
+interventions (steering/monitoring). A compiler type-checks, lowers to an intermediate
+representation, and executes against any transformer substrate.
 
 The relationship to C is structural, not cosmetic:
 
 | C | Loom |
 |---|---|
-| source statements | stages you write and sequence |
-| types (`int`, `char*`) | `corpus`, `tokenizer`, `target`, `model`, `evalset` |
-| functions | `pretrain`, `finetune`, `align`, `merge`, `graft`, `quantize` |
-| standard library | recipes: `std.pretrain.chinchilla`, `std.align.dpo` |
-| separate compilation + linker | verified units + the residual-stream ABI |
-| LLVM IR | the stage graph (typed DAG) |
-| target ISA (x86, ARM) | target architecture (a from-scratch decoder, Qwen, Gemma, Nemotron, DeepSeek, GLM, GPT-BERT) |
-| `assert.h` | `assert` statements — gates, measured, build-failing |
+| variables, expressions | features, circuits, monitors |
+| functions | install, amplify, suppress, read |
+| types | target, model, feature, circuit, monitor, evalset |
+| standard library | std.features.*, std.circuits.* (refusal, induction, copy, etc.) |
+| separate compilation + linker | verified circuits + residual-stream ABI |
+| LLVM IR | the stage graph (typed DAG of interventions) |
+| target ISA (x86, ARM) | target transformer (Nemotron, Qwen, Gemma, Mamba, decoder, encoder-decoder) |
+| `assert.h` | `assert` statements — gates on feature probes and steering effects |
 
-The last row of that table is the whole point. **The same program compiles to different
-transformer substrates**, because everything above `target` is written against
-architecture-independent operations. That is the abstraction layer.
+The core abstraction: **Features are architecture-independent; circuits compile to any substrate.**
+A feature is a linear direction in activation space that persists across model families. A circuit
+is the computational subgraph implementing a behavior. The abstraction layer is the residual stream.
 
 ## A complete program
 
