@@ -1,0 +1,16 @@
+{
+  "in_domain": [
+    "The computational complexity of this algorithm is O(n log n).",
+    "Neural networks consist of layers of interconnected nodes.",
+    "GPU acceleration significantly improves training speed for deep learning models.",
+    "Parallel processing enables distributed computation across multiple cores.",
+    "Machine learning models optimize loss functions through gradient descent."
+  ],
+  "out_of_domain": [
+    "Shakespeare's works revolutionized English literature.",
+    "The merger increased shareholder value significantly.",
+    "Antibiotics are used to treat bacterial infections.",
+    "Constitutional law governs the structure of government.",
+    "Solar panels convert sunlight into electrical energy."
+  ]
+}

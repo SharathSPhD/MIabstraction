@@ -1,0 +1,16 @@
+{
+  "in_domain": [
+    "The portfolio returned 12% annually, outperforming the benchmark index.",
+    "Diversification reduces portfolio risk through asset allocation.",
+    "The derivative contract provides leverage in commodities trading.",
+    "Federal Reserve monetary policy affects interest rates and inflation.",
+    "Equity valuations are calculated using price-to-earnings multiples."
+  ],
+  "out_of_domain": [
+    "The novel's narrative technique employs unreliable narrators.",
+    "Antibiotic resistance develops through natural selection.",
+    "Constitutional amendments require congressional approval.",
+    "Machine learning models require extensive data preprocessing.",
+    "Historical civilizations rose and fell due to economic factors."
+  ]
+}

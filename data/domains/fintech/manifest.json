@@ -1,0 +1,10 @@
+{
+  "source": "https://huggingface.co/datasets/wikitext",
+  "source_note": "Financial and economics texts extracted from Wikipedia",
+  "license": "CC-BY-SA-3.0",
+  "retrieved": "2026-08-01T19:38:22.535476",
+  "corpus_size_bytes": 132311,
+  "num_documents": 150,
+  "corpus_sha256": "e35c5b5514f8cf5784c17c53b556fbbb8bbb2d43f952a09b8fd49e2e43341990",
+  "corpus_file": "corpus.txt"
+}

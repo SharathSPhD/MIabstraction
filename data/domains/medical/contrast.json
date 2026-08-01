@@ -1,0 +1,16 @@
+{
+  "in_domain": [
+    "Hypertension is a chronic condition characterized by elevated blood pressure.",
+    "The diagnosis was confirmed through blood tests and imaging studies.",
+    "Treatment options include medication, lifestyle changes, and surgery.",
+    "The patient presented with acute symptoms requiring emergency intervention.",
+    "Pharmacological therapy is the first-line treatment for this condition."
+  ],
+  "out_of_domain": [
+    "The algorithm achieves 99.5% accuracy on the test set.",
+    "The court ruled that the contract was unenforceable due to fraud.",
+    "Stock prices rose 8% following the earnings announcement.",
+    "The novel explores themes of identity and belonging.",
+    "Renewable energy sources reduce carbon emissions effectively."
+  ]
+}
