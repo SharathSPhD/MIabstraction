@@ -1,0 +1,21 @@
+Sanskrit Grammar and Grammatical Roles
+
+In Sanskrit grammar, the concept of karaka is fundamental to understanding sentence structure and meaning. Karaka refers to the grammatical role or semantic function of a word or phrase in a sentence. There are six main karaka roles defined in Sanskrit linguistic theory:
+
+1. Karta (Agent): The karaka that denotes the doer of an action. The karta is typically expressed in the nominative case.
+
+2. Karma (Object): The karaka that denotes the object affected by the action. The karma is often expressed in the accusative case.
+
+3. Karana (Instrument): The karaka that denotes the means or instrument by which an action is performed. The karana is typically expressed in the instrumental case.
+
+4. Sampradana (Recipient): The karaka that denotes the recipient or beneficiary of an action. The sampradana is typically expressed in the dative case.
+
+5. Apadana (Source): The karaka that denotes the source or point of origin. The apadana is typically expressed in the ablative case.
+
+6. Adhikarana (Locative): The karaka that denotes the location or substratum. The adhikarana is typically expressed in the locative case.
+
+The karaka system provides a systematic way to analyze the semantic and syntactic relationships in Sanskrit sentences. Each karaka role has specific case markings and syntactic properties that help determine the grammatical structure of a sentence.
+
+Understanding karakas is essential for parsing and interpreting Sanskrit texts, as they provide insight into the relationships between words and the overall meaning of a sentence. Students of Sanskrit linguistics study karakas extensively to develop proficiency in analyzing complex Sanskrit constructions.
+
+The karaka system has also influenced modern linguistic theory, particularly in the development of semantic role labels and case grammar frameworks used in contemporary linguistic analysis.

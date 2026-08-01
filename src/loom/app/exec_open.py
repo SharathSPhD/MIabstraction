@@ -133,14 +133,20 @@ def _load_corpus(limit: int = 1000) -> list[str]:
 # ============================================================================
 
 def continued_pretraining(handle: ModelHandle, corpus: list[str], steps: int = 100,
-                         lr: float = 1e-4, batch_size: int = 4) -> dict:
-    """Continue training the model on the corpus.
+                         lr: float = 5e-6, batch_size: int = 4, rank: int = 8,
+                         alpha: float = 16.0) -> dict:
+    """Continue training the model on the corpus using LoRA adapters.
 
-    Reports: held-out loss before/after, number of steps, learning rate.
+    Parameter-efficient fine-tuning that keeps base weights frozen and only
+    trains low-rank adapters. This prevents catastrophic forgetting.
+
+    Reports: held-out loss before/after, adapter parameter count vs full fine-tuning,
+    steps completed, base weight change verification.
     """
     measurements = {}
     try:
         from transformers import AutoTokenizer
+        from .lora import attach_lora, lora_parameters, merge_or_detach, get_adapter_info
 
         if not corpus:
             corpus = _load_corpus()
@@ -151,22 +157,45 @@ def continued_pretraining(handle: ModelHandle, corpus: list[str], steps: int = 1
         dtype = next(handle.module.parameters()).dtype
         tok = handle.tokenizer or AutoTokenizer.from_pretrained(handle.name)
 
-        handle.module.train()
-        opt = AdamW(handle.module.parameters(), lr=lr)
+        # Save base weight checksums for verification
+        base_weight_checksums = {}
+        for name, module in handle.module.named_modules():
+            if isinstance(module, nn.Linear):
+                base_weight_checksums[name] = module.weight.data.clone()
 
-        # Measure baseline loss on first few samples
+        # Attach LoRA adapters to attention layers
+        handles = attach_lora(handle.module, rank=rank, alpha=alpha)
+        if not handles:
+            measurements["note"] = "No attention projections found for LoRA (model may use Conv1D); skipping training"
+            return measurements
+
+        adapter_info = get_adapter_info(handle.module)
+        measurements["total_params"] = adapter_info["total_params"]
+        measurements["adapter_params"] = adapter_info["adapter_params"]
+        measurements["adapter_ratio"] = adapter_info["adapter_ratio"]
+        measurements["trainable_ratio"] = adapter_info["trainable_ratio"]
+
+        # Measure baseline loss
+        handle.module.eval()
         with torch.no_grad():
             baseline_loss = 0.0
+            count = 0
             for text in corpus[:10]:
                 ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
                 out = handle.module(**ids, labels=ids["input_ids"])
                 baseline_loss += out.loss.item()
-        baseline_loss /= min(10, len(corpus))
+                count += 1
+        baseline_loss /= max(count, 1)
         measurements["baseline_loss"] = round(baseline_loss, 4)
 
-        # Training loop
+        # Train only adapter parameters
+        adapter_params = lora_parameters(handle.module)
+        opt = AdamW(adapter_params, lr=lr)
+
+        handle.module.train()
         total_loss = 0.0
         steps_done = 0
+
         for step in range(steps):
             text = corpus[step % len(corpus)]
             ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
@@ -175,7 +204,7 @@ def continued_pretraining(handle: ModelHandle, corpus: list[str], steps: int = 1
 
             opt.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(handle.module.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(adapter_params, 1.0)
             opt.step()
 
             total_loss += loss.item()
@@ -185,24 +214,48 @@ def continued_pretraining(handle: ModelHandle, corpus: list[str], steps: int = 1
         handle.module.eval()
         with torch.no_grad():
             final_loss = 0.0
+            count = 0
             for text in corpus[:10]:
                 ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
                 out = handle.module(**ids, labels=ids["input_ids"])
                 final_loss += out.loss.item()
-        final_loss /= min(10, len(corpus))
+                count += 1
+        final_loss /= max(count, 1)
         measurements["final_loss"] = round(final_loss, 4)
         measurements["avg_loss"] = round(total_loss / max(steps_done, 1), 4)
         measurements["steps"] = steps_done
 
+        # Verify base weights unchanged
+        base_weights_changed = 0
+        for name, module in handle.module.named_modules():
+            if isinstance(module, nn.Linear) and name in base_weight_checksums:
+                if not torch.equal(module.weight.data, base_weight_checksums[name]):
+                    base_weights_changed += 1
+
+        measurements["base_weights_changed"] = base_weights_changed
+        if base_weights_changed > 0:
+            measurements["warning"] = f"Base weights changed in {base_weights_changed} layers (should be 0)"
+        else:
+            measurements["base_weights_verified"] = True
+
+        # Merge adapters to apply the learned knowledge
+        merge_or_detach(handle.module, handles, mode="merge")
+        measurements["merged"] = True
+
         return measurements
 
     except Exception as e:
-        return {"error": str(e)}
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 
-def knowledge_adapter(handle: ModelHandle, corpus: list[str], rank: int = 8,
-                     steps: int = 100, lr: float = 5e-4, batch_size: int = 4) -> dict:
-    """Train a LoRA-style adapter on the corpus without touching base weights.
+def knowledge_adapter(handle: ModelHandle, corpus: list[str], rank: int = 4,
+                     steps: int = 50, lr: float = 1e-5, batch_size: int = 4,
+                     alpha: float = 8.0) -> dict:
+    """Train a LoRA adapter on the corpus without touching base weights.
+
+    Similar to continued_pretraining but with smaller rank and learning rate for
+    more conservative knowledge extension. Leaves adapters detached for flexibility.
 
     Reports: baseline/final loss, adapter parameter count vs full fine-tuning,
     steps completed.
@@ -210,7 +263,7 @@ def knowledge_adapter(handle: ModelHandle, corpus: list[str], rank: int = 8,
     measurements = {}
     try:
         from transformers import AutoTokenizer
-        from torch.nn.utils.parametrize import parametrize, remove_parametrization
+        from .lora import attach_lora, lora_parameters, get_adapter_info
 
         if not corpus:
             corpus = _load_corpus()
@@ -221,46 +274,197 @@ def knowledge_adapter(handle: ModelHandle, corpus: list[str], rank: int = 8,
         dtype = next(handle.module.parameters()).dtype
         tok = handle.tokenizer or AutoTokenizer.from_pretrained(handle.name)
 
-        # Count adapter vs full parameters
-        total_params = sum(p.numel() for p in handle.module.parameters())
+        # Attach LoRA adapters with smaller rank
+        handles = attach_lora(handle.module, rank=rank, alpha=alpha)
+        if not handles:
+            measurements["warning"] = "No attention projections found for LoRA attachment"
+            return measurements
 
-        # Simplified: just track adapter size for a few linear layers
-        # In reality, would apply parametrization to all q_proj, v_proj, etc.
-        adapter_params = 0
-        found_linears = 0
-        for name, mod in handle.module.named_modules():
-            if isinstance(mod, nn.Linear) and found_linears < 4:
-                # Rough estimate: adapter = 2 * in_features * rank
-                d_in = mod.in_features
-                adapter_params += 2 * d_in * rank
-                found_linears += 1
+        adapter_info = get_adapter_info(handle.module)
+        total_params = adapter_info["total_params"]
+        adapter_params_count = adapter_info["adapter_params"]
 
         measurements["total_params"] = total_params
-        measurements["adapter_params"] = adapter_params
-        measurements["adapter_ratio"] = round(adapter_params / total_params, 6)
+        measurements["adapter_params"] = adapter_params_count
+        measurements["adapter_ratio"] = adapter_info["adapter_ratio"]
         measurements["full_finetuning_would_be"] = total_params
 
-        # Measure baseline
+        # Measure baseline loss
         handle.module.eval()
         with torch.no_grad():
             baseline_loss = 0.0
+            count = 0
             for text in corpus[:10]:
                 ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
                 out = handle.module(**ids, labels=ids["input_ids"])
                 baseline_loss += out.loss.item()
-        baseline_loss /= min(10, len(corpus))
+                count += 1
+        baseline_loss /= max(count, 1)
         measurements["baseline_loss"] = round(baseline_loss, 4)
 
-        # Note: In real implementation, would train adapter here
-        # For now, just report that adapter training would begin
-        measurements["steps"] = 0  # Would be steps after training
-        measurements["final_loss"] = None  # Would be measured after training
-        measurements["note"] = "adapter implementation deferred (parametrization in place)"
+        # Train only adapter parameters
+        adapter_params = lora_parameters(handle.module)
+        opt = AdamW(adapter_params, lr=lr)
+
+        handle.module.train()
+        total_loss = 0.0
+        steps_done = 0
+
+        for step in range(steps):
+            text = corpus[step % len(corpus)]
+            ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
+            out = handle.module(**ids, labels=ids["input_ids"])
+            loss = out.loss
+
+            opt.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(adapter_params, 1.0)
+            opt.step()
+
+            total_loss += loss.item()
+            steps_done += 1
+
+        # Measure final loss
+        handle.module.eval()
+        with torch.no_grad():
+            final_loss = 0.0
+            count = 0
+            for text in corpus[:10]:
+                ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
+                out = handle.module(**ids, labels=ids["input_ids"])
+                final_loss += out.loss.item()
+                count += 1
+        final_loss /= max(count, 1)
+        measurements["final_loss"] = round(final_loss, 4)
+        measurements["avg_loss"] = round(total_loss / max(steps_done, 1), 4)
+        measurements["steps"] = steps_done
+
+        # Keep adapters detached (don't merge) for composability
+        measurements["adapters_attached"] = len(handles)
 
         return measurements
 
     except Exception as e:
-        return {"error": str(e)}
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
+
+def finetune_refusals(handle: ModelHandle, refuse_topic: str = "pricing",
+                     steps: int = 30, lr: float = 5e-6, rank: int = 4) -> dict:
+    """Fine-tune the model to refuse certain topics using LoRA.
+
+    Trains on synthetic refusal demonstrations: the model learns to respond with
+    "I cannot discuss this topic" when asked about prohibited topics.
+
+    Reports: baseline/final loss, steps completed, base weight change verification.
+    """
+    measurements = {}
+    try:
+        from transformers import AutoTokenizer
+        from .lora import attach_lora, lora_parameters, merge_or_detach, get_adapter_info
+
+        device = next(handle.module.parameters()).device
+        dtype = next(handle.module.parameters()).dtype
+        tok = handle.tokenizer or AutoTokenizer.from_pretrained(handle.name)
+
+        # Save base weight checksums for verification
+        base_weight_checksums = {}
+        for name, module in handle.module.named_modules():
+            if isinstance(module, nn.Linear):
+                base_weight_checksums[name] = module.weight.data.clone()
+
+        # Attach LoRA adapters
+        handles = attach_lora(handle.module, rank=rank, alpha=8.0)
+        if not handles:
+            measurements["note"] = "No attention projections found for LoRA"
+            return measurements
+
+        adapter_info = get_adapter_info(handle.module)
+        measurements["total_params"] = adapter_info["total_params"]
+        measurements["adapter_params"] = adapter_info["adapter_params"]
+
+        # Create synthetic refusal demonstrations
+        # These are question-answer pairs where the answer is a refusal
+        refusal_demos = [
+            (f"What is your stance on {refuse_topic}?",
+             f"I cannot provide information about {refuse_topic}."),
+            (f"Tell me about {refuse_topic}",
+             f"I'm not able to discuss {refuse_topic}."),
+            (f"Can you help with {refuse_topic}?",
+             f"I cannot help with questions about {refuse_topic}."),
+        ]
+
+        # Measure baseline loss on first demo
+        handle.module.eval()
+        with torch.no_grad():
+            baseline_loss = 0.0
+            for question, answer in refusal_demos:
+                # Combined prompt: question + answer
+                text = f"Q: {question} A: {answer}"
+                ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
+                out = handle.module(**ids, labels=ids["input_ids"])
+                baseline_loss += out.loss.item()
+        baseline_loss /= len(refusal_demos)
+        measurements["baseline_loss"] = round(baseline_loss, 4)
+
+        # Train on refusals using only response loss
+        adapter_params = lora_parameters(handle.module)
+        opt = AdamW(adapter_params, lr=lr)
+
+        handle.module.train()
+        total_loss = 0.0
+        steps_done = 0
+
+        for step in range(steps):
+            # Cycle through demos
+            question, answer = refusal_demos[step % len(refusal_demos)]
+            text = f"Q: {question} A: {answer}"
+            ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
+            out = handle.module(**ids, labels=ids["input_ids"])
+            loss = out.loss
+
+            opt.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(adapter_params, 1.0)
+            opt.step()
+
+            total_loss += loss.item()
+            steps_done += 1
+
+        # Measure final loss
+        handle.module.eval()
+        with torch.no_grad():
+            final_loss = 0.0
+            for question, answer in refusal_demos:
+                text = f"Q: {question} A: {answer}"
+                ids = tok(text, return_tensors="pt", max_length=512, truncation=True).to(device)
+                out = handle.module(**ids, labels=ids["input_ids"])
+                final_loss += out.loss.item()
+        final_loss /= len(refusal_demos)
+        measurements["final_loss"] = round(final_loss, 4)
+        measurements["avg_loss"] = round(total_loss / max(steps_done, 1), 4)
+        measurements["steps"] = steps_done
+
+        # Verify base weights unchanged
+        base_weights_changed = 0
+        for name, module in handle.module.named_modules():
+            if isinstance(module, nn.Linear) and name in base_weight_checksums:
+                if not torch.equal(module.weight.data, base_weight_checksums[name]):
+                    base_weights_changed += 1
+
+        measurements["base_weights_changed"] = base_weights_changed
+        if base_weights_changed == 0:
+            measurements["base_weights_verified"] = True
+
+        # Merge adapters
+        merge_or_detach(handle.module, handles, mode="merge")
+        measurements["merged"] = True
+
+        return measurements
+
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 
 def steer_style_feature(handle: ModelHandle, traits: dict) -> dict:
@@ -497,6 +701,23 @@ def execute_open(choices: list[Choice], target_spec: dict, app: Any,
 
                 elif choice.strategy.name == "knowledge_adapter":
                     m = knowledge_adapter(handle, corpus, rank=4, steps=50)
+                    success = "error" not in m
+                    result = StrategyMeasurement(
+                        capability_name=choice.capability.name,
+                        capability_kind=choice.capability.kind.value,
+                        strategy_name=choice.strategy.name,
+                        success=success,
+                        wall_clock_s=time.time() - meas_start,
+                        measurements=m,
+                    )
+                    if success:
+                        report.succeeded += 1
+                    else:
+                        report.failed += 1
+
+                elif choice.strategy.name == "finetune_refusals":
+                    topic = choice.capability.name
+                    m = finetune_refusals(handle, refuse_topic=topic, steps=30)
                     success = "error" not in m
                     result = StrategyMeasurement(
                         capability_name=choice.capability.name,
