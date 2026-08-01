@@ -7,3 +7,7 @@ __pycache__/
 .DS_Store
 results/**/*.pt
 checkpoints/
+
+# research inputs and spec stay local-only
+docs/
+SPEC.md
