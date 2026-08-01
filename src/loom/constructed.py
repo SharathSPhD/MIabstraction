@@ -1,8 +1,28 @@
-"""Loom constructed backend: pure hand construction with Hadamard zero-mean codes.
+"""Constructed backend: compile an induction skill DIRECTLY into transformer weights.
 
-Zero-mean orthogonal embeddings survive LayerNorm direction-preserving transformation.
-Larger vocab (20) + copy_len (24) reduce spurious matches to ~1.2 per sequence.
-Layer-by-layer verification before composition.
+No training. The compiler writes machine code:
+
+  layer 0 (shift-1 head):  buf1[p] <- token[p-1]
+  layer 1 (shift-2 head):  buf2[p] <- token[p-2]   (reads pos only; independent of L0)
+  layer 2 (induction):     attend j where (buf1[j], buf2[j]) == (token[p], buf1[p]),
+                           i.e. the position right after an earlier occurrence of the
+                           current TWO-token context; copy token[j] to the logits.
+
+Trigram matching is the load-bearing choice: 1-gram induction (match prev-token only)
+collides ~copy_len/vocab times per sequence, capping argmax accuracy near 0.5. Matching
+two context tokens drops expected collisions to ~copy_len/vocab², so attention mass
+concentrates on the true induction target.
+
+LayerNorm survival: every code is a zero-mean ±1 Hadamard row confined to its own
+coordinate block, so mean(x)=0 exactly and pre-LN reduces to a pure rescale — direction
+is preserved, and large attention-score scales make the rescale irrelevant.
+
+Residual-stream memory map (d_model = 192):
+  [  0: 32)  TOK   token identity        H(32) rows 1..vocab
+  [ 32: 96)  POS   position              H(64) rows 1..max_len
+  [ 96:128)  BUF1  previous token        H(32) rows (same codebook as TOK)
+  [128:160)  BUF2  token two back        H(32) rows
+  [160:192)  unused (zeros)
 """
 from __future__ import annotations
 
@@ -12,192 +32,112 @@ import torch.nn as nn
 
 from miabstraction.models import TinyTransformer
 
+D = 192
+TOK = slice(0, 32)
+POS = slice(32, 96)
+BUF1 = slice(96, 128)
+BUF2 = slice(128, 160)
+MAX_VOCAB = 31   # H(32) rows 1..31 are zero-mean
+MAX_LEN = 63     # H(64) rows 1..63
 
-def hadamard_matrix(n: int) -> np.ndarray:
-    """Generate n×n Hadamard matrix (n must be power of 2)."""
+
+def _hadamard(n: int) -> np.ndarray:
     if n == 1:
-        return np.array([[1]])
-    h = hadamard_matrix(n // 2)
-    return np.vstack([
-        np.hstack([h, h]),
-        np.hstack([h, -h])
-    ]).astype(np.float32)
+        return np.array([[1.0]])
+    h = _hadamard(n // 2)
+    return np.block([[h, h], [h, -h]])
 
 
-def zero_mean_orthogonal_codes(vocab: int, d_model: int, offset: int = 0) -> torch.Tensor:
-    """Generate vocab zero-mean orthogonal codes using Hadamard matrix.
+def _codes(n: int, dim: int) -> np.ndarray:
+    """n zero-mean orthogonal ±1 codes of length dim (Hadamard rows, row 0 skipped)."""
+    H = _hadamard(dim)
+    assert n <= dim - 1
+    return H[1 : n + 1]
 
-    Each code is a row of a Hadamard matrix (±1 entries), zero-mean,
-    placed at dimensions [offset, offset+vocab) in d_model space.
-    Verify numerically that codes are orthogonal and zero-mean.
-    """
-    # Generate Hadamard matrix: next power of 2 >= vocab + 1 (to skip all-ones row)
-    h_size = 2 ** int(np.ceil(np.log2(vocab + 1)))
-    H = hadamard_matrix(h_size)
 
-    # Skip the all-ones row (first row) and take next vocab rows
-    # These are guaranteed to be zero-mean
-    codes = H[1:vocab+1].astype(np.float32)
+def _shift_matrix(codes: np.ndarray, shift: int) -> np.ndarray:
+    """M with M @ c_p = c_{p-shift} (zero for p < shift). Codes are rows."""
+    dim = codes.shape[1]
+    M = np.zeros((dim, dim))
+    for p in range(shift, codes.shape[0]):
+        M += np.outer(codes[p - shift], codes[p]) / dim
+    return M
 
-    # Verify zero-mean: mean across h_size dimension should be ~0
-    row_means = codes.mean(axis=1)
-    assert np.abs(row_means).max() < 1e-5, f"Hadamard codes not zero-mean! Max mean: {np.abs(row_means).max()}"
 
-    # Verify orthogonal: dot products should be ~0
-    for i in range(min(3, vocab)):
-        for j in range(i+1, min(5, vocab)):
-            dot = np.dot(codes[i], codes[j])
-            assert np.abs(dot) < 1e-4, f"Codes {i},{j} not orthogonal! Dot: {dot}"
+def _block(mat_small: np.ndarray, rows: slice, cols: slice) -> np.ndarray:
+    """Embed a small matrix into a (D, D) zero matrix at [rows, cols]."""
+    M = np.zeros((D, D))
+    M[rows, cols] = mat_small
+    return M
 
-    # Embed in d_model-dimensional space
-    embed = torch.zeros(vocab, d_model)
-    for i in range(vocab):
-        # Place code in [offset, offset+h_size) range, padded with zeros
-        embed[i, offset:offset+h_size] = torch.from_numpy(codes[i])
 
-    # Verify global zero-mean (critical for LayerNorm)
-    global_mean = embed.mean()
-    # Global mean may not be exactly zero due to padding, but should be close
-    # (it will be zero if d_model >= offset + h_size, and zero-mean codes get zero padding)
-
-    return embed
+def _set(t: torch.Tensor, arr: np.ndarray) -> None:
+    with torch.no_grad():
+        t.copy_(torch.from_numpy(arr).to(t.dtype))
 
 
 def compile_induction(
     vocab: int = 20,
-    d_model: int = 128,
-    max_len: int = 64,
+    max_len: int = 56,
+    score_scale: float = 12.0,
+    logit_scale: float = 8.0,
 ) -> TinyTransformer:
-    """Construct 2-layer induction head using zero-mean orthogonal Hadamard codes.
+    """Emit a 3-layer, 1-head, attention-only TinyTransformer implementing induction."""
+    if vocab > MAX_VOCAB or max_len > MAX_LEN:
+        raise ValueError(f"constructed induction supports vocab<={MAX_VOCAB}, "
+                         f"max_len<={MAX_LEN}")
+    model = TinyTransformer(vocab=vocab, d_model=D, n_layers=3, n_heads=1,
+                            max_len=max_len, attn_only=True)
+    tok = _codes(vocab, 32)
+    pos = _codes(max_len, 64)
 
-    Larger vocab (20) and copy_len (24) reduce spurious token matches to ~1.2.
-    Layer-by-layer verified before composition.
+    # ---- embeddings: block-confined zero-mean codes
+    E_tok = np.zeros((vocab, D)); E_tok[:, TOK] = tok
+    E_pos = np.zeros((max_len, D)); E_pos[:, POS] = pos
+    _set(model.tok.weight, E_tok)
+    _set(model.pos.weight, E_pos)
 
-    Args:
-        vocab: vocabulary size (20 reduces spurious matches)
-        d_model: embedding dimension (128 is tight for this vocab/max_len)
-        max_len: maximum sequence length (64 typical for copy_len=24)
+    # ---- neutralize LayerNorms into pure rescale (weight=1, bias=0)
+    for blk in model.blocks:
+        nn.init.ones_(blk.ln1.weight); nn.init.zeros_(blk.ln1.bias)
+    nn.init.ones_(model.ln_f.weight); nn.init.zeros_(model.ln_f.bias)
 
-    Returns:
-        TinyTransformer with hand-constructed induction circuit.
-    """
-    assert d_model >= vocab + 2 * max_len, \
-        f"d_model={d_model} insufficient for vocab={vocab}, max_len={max_len}"
+    S1 = _shift_matrix(pos, 1)
+    S2 = _shift_matrix(pos, 2)
+    I32 = np.eye(32)
 
-    model = TinyTransformer(
-        vocab=vocab,
-        d_model=d_model,
-        n_layers=2,
-        n_heads=2,
-        max_len=max_len,
-        attn_only=True,
-    )
+    def wire_shift_layer(blk, shift_mat: np.ndarray, buf: slice) -> None:
+        """Q reads shifted own position; K reads position; V reads token -> buf."""
+        WQ = _block(shift_mat, POS, POS) * score_scale
+        WK = _block(np.eye(64), POS, POS)
+        WV = _block(I32, TOK, TOK)          # value carries the token code (TOK rows)
+        in_proj = np.concatenate([WQ, WK, WV], axis=0)
+        _set(blk.attn.in_proj_weight, in_proj)
+        nn.init.zeros_(blk.attn.in_proj_bias)
+        # out_proj routes the TOK rows of the value into the buffer block
+        WO = np.zeros((D, D)); WO[buf, TOK] = I32
+        _set(blk.attn.out_proj.weight, WO)
+        nn.init.zeros_(blk.attn.out_proj.bias)
 
-    # Subspace allocation (block-wise, each block zero-mean internally)
-    tok_start, tok_end = 0, vocab
-    pos_start, pos_end = vocab, vocab + 2*max_len
-    buf_start, buf_end = pos_end, d_model
+    wire_shift_layer(model.blocks[0], S1, BUF1)
+    wire_shift_layer(model.blocks[1], S2, BUF2)
 
-    # ========== EMBEDDINGS: HADAMARD-BASED ZERO-MEAN CODES ==========
-    # Token embeddings: zero-mean orthogonal from Hadamard
-    # This survives LayerNorm without direction loss
-    model.tok.weight.data = zero_mean_orthogonal_codes(vocab, d_model, tok_start)
+    # ---- layer 2: trigram-matching induction head
+    # q_p carries (token[p] -> BUF1-rows, buf1[p] -> BUF2-rows); compared against
+    # k_j = (buf1[j] in BUF1-rows, buf2[j] in BUF2-rows).
+    # Score ~ tok[p]·buf1[j] + buf1[p]·buf2[j]: maximal iff trigram context matches.
+    WQ = (_block(I32, BUF1, TOK) + _block(I32, BUF2, BUF1)) * score_scale
+    WK = _block(I32, BUF1, BUF1) + _block(I32, BUF2, BUF2)
+    WV = _block(I32, TOK, TOK)
+    _set(model.blocks[2].attn.in_proj_weight, np.concatenate([WQ, WK, WV], axis=0))
+    nn.init.zeros_(model.blocks[2].attn.in_proj_bias)
+    # write the copied token code strongly back into TOK (dominates own-token code)
+    WO = np.zeros((D, D)); WO[TOK, TOK] = I32 * logit_scale
+    _set(model.blocks[2].attn.out_proj.weight, WO)
+    nn.init.zeros_(model.blocks[2].attn.out_proj.bias)
 
-    # Position embeddings: one-hot orthogonal (already zero-mean)
-    pos_embed = torch.zeros(max_len, d_model)
-    for i in range(max_len):
-        if pos_start + i < d_model:
-            pos_embed[i, pos_start + i] = 1.0
-    model.pos.weight.data = pos_embed
-
-    # ========== LAYER 1: Previous-Token Head ==========
-    # Learns to attend to position p-1 (shifted identity on positions)
-    layer1 = model.blocks[0]
-    nn.init.zeros_(layer1.attn.in_proj_weight)
-    nn.init.zeros_(layer1.attn.in_proj_bias)
-    nn.init.zeros_(layer1.attn.out_proj.weight)
-    nn.init.zeros_(layer1.attn.out_proj.bias)
-
-    # LayerNorm: with zero-mean codes, LN acts as direction-preserving rescale
-    nn.init.ones_(layer1.ln1.weight)  # weight = 1.0
-    nn.init.zeros_(layer1.ln1.bias)   # bias = 0.0
-
-    scale = 50.0  # High scale for attention sharpness (score gaps ≫ 1)
-    head_dim = d_model // 2
-    in_proj1 = torch.zeros(3 * d_model, d_model)
-
-    # Query: read position dimension to create queries at each position
-    for i in range(min(head_dim, pos_end - pos_start)):
-        if pos_start + i < d_model:
-            in_proj1[0 * d_model + i, pos_start + i] = scale
-
-    # Key: read position SHIFTED by 1
-    # This creates q[p] · k[p-1] dominance via inner product concentration
-    for i in range(1, min(head_dim, pos_end - pos_start)):
-        if pos_start + i - 1 < d_model:
-            in_proj1[1 * d_model + i, pos_start + i - 1] = scale
-
-    # Value: read token identity to copy attended token
-    for i in range(tok_end - tok_start):
-        if tok_start + i < d_model:
-            in_proj1[2 * d_model + i, tok_start + i] = 1.0
-
-    model.blocks[0].attn.in_proj_weight = nn.Parameter(in_proj1)
-
-    # out_proj: write attended token to buffer for layer 2
-    for i in range(min(head_dim, buf_end - buf_start)):
-        if buf_start + i < d_model:
-            out_proj_row = torch.zeros(d_model)
-            out_proj_row[i] = 1.0  # read from head 0 dimension i
-            layer1.attn.out_proj.weight.data[buf_start + i] = out_proj_row
-
-    # ========== LAYER 2: Induction Head ==========
-    # Learns to match current token with previous-token buffer and attend to match
-    layer2 = model.blocks[1]
-    nn.init.zeros_(layer2.attn.in_proj_weight)
-    nn.init.zeros_(layer2.attn.in_proj_bias)
-    nn.init.zeros_(layer2.attn.out_proj.weight)
-    nn.init.zeros_(layer2.attn.out_proj.bias)
-
-    nn.init.ones_(layer2.ln1.weight)
-    nn.init.zeros_(layer2.ln1.bias)
-
-    in_proj2 = torch.zeros(3 * d_model, d_model)
-
-    # Query: read buffer (previous token written by layer 1)
-    # Token matching: q[p] reads buffer[p] (contains token[p-1])
-    for i in range(min(tok_end - tok_start, head_dim // 2)):
-        if buf_start + i < d_model:
-            in_proj2[0 * d_model + i, buf_start + i] = scale
-
-    # Key: read buffer at all positions (contains previous tokens everywhere)
-    # Attention finds j where buffer[j] == q[p] (exact token match)
-    for i in range(min(tok_end - tok_start, head_dim // 2)):
-        if buf_start + i < d_model:
-            in_proj2[1 * d_model + i, buf_start + i] = scale
-
-    # Value: read token identity (copy the matched token)
-    for i in range(tok_end - tok_start):
-        if tok_start + i < d_model:
-            in_proj2[2 * d_model + i, tok_start + i] = 1.0
-
-    model.blocks[1].attn.in_proj_weight = nn.Parameter(in_proj2)
-
-    # out_proj: output attended token with strong scaling for next-token prediction
-    out_scale = 10.0
-    for i in range(min(tok_end - tok_start, head_dim)):
-        if tok_start + i < d_model:
-            out_proj_row = torch.zeros(d_model)
-            out_proj_row[i] = out_scale
-            layer2.attn.out_proj.weight.data[tok_start + i] = out_proj_row
-
-    # ========== UNEMBEDDING: Strong scaling for logits ==========
-    # Map token identity to output logits
-    head_weight = torch.zeros(vocab, d_model)
-    for i in range(vocab):
-        if tok_start + i < d_model:
-            head_weight[i, tok_start + i] = 10.0
-    model.head.weight.data = head_weight
-
+    # ---- unembedding: read TOK block against the token codebook
+    W_U = np.zeros((vocab, D)); W_U[:, TOK] = tok
+    _set(model.head.weight, W_U)
     model.eval()
     return model

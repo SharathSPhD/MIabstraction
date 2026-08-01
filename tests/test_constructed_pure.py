@@ -1,204 +1,93 @@
-"""Test pure hand-constructed induction head with Hadamard codes.
-
-Verification gates:
-- prefix_score > 0.5 (attention mass on correct positions)
-- icl_argmax_accuracy > 0.9 (next-token prediction on second copy)
-- icl_loss reported (should be well below 0.5 with strong unembedding)
-
-Uses vocab=20, copy_len=24 to minimize spurious matches (~1.2 per sequence).
-Verifies layer-by-layer before composition.
-"""
-import json
-from pathlib import Path
-
+"""Layer-by-layer verification of the hand-constructed induction circuit."""
 import numpy as np
 import pytest
 import torch
-import torch.nn.functional as F
 
-from loom.constructed import compile_induction
+from loom.constructed import (
+    _codes,
+    _shift_matrix,
+    compile_induction,
+)
 from miabstraction.experiments.e2_induction import (
     attention_patterns,
-    copy_region_losses,
     gapped_doubled_sequences,
     prefix_matching_score,
 )
 
-
-@pytest.mark.timeout(120)
-def test_layer1_prev_token_attention():
-    """Verify layer 1 attention is shifted identity on positions."""
-    model = compile_induction(vocab=20, d_model=256, max_len=64)
-
-    # Create simple test: [0, 1, 2, 3, ...]
-    tokens = torch.arange(20, dtype=torch.long)[None, :20]
-
-    pats = attention_patterns(model, tokens)
-    layer1_attn = pats[0][0, 0]  # batch 0, head 0
-
-    # Layer 1 should attend to p-1
-    for p in range(1, 20):
-        max_pos = layer1_attn[p].argmax().item()
-        assert max_pos == p - 1, f"Position {p}: attended to {max_pos}, expected {p-1}"
-        weight = layer1_attn[p, p-1].item()
-        assert weight > 0.9, f"Attention weight at p-1 should be high, got {weight}"
-
-    print("✓ Layer 1: Previous-token attention verified")
+VOCAB, COPY, GAP = 20, 22, 16          # total length 60 <= max_len 63
+MAXLEN = 60
 
 
-@pytest.mark.timeout(300)
-def test_constructed_induction_gates():
-    """Test pure hand construction on induction task with proper gates."""
-    print("\n" + "="*70)
-    print("PURE HAND-CONSTRUCTED INDUCTION HEAD TEST")
-    print("="*70)
+@pytest.fixture(scope="module")
+def model():
+    return compile_induction(vocab=VOCAB, max_len=MAXLEN)
 
-    model = compile_induction(vocab=20, d_model=256, max_len=64)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device).eval()
 
-    # Test data: vocab=20, copy_len=24 minimizes spurious matches
-    rng = np.random.default_rng(42)
-    copy_len = 24
-    max_gap = 12
-    n_test = 64
+@pytest.fixture(scope="module")
+def data():
+    seqs, gaps = gapped_doubled_sequences(64, COPY, GAP, VOCAB,
+                                          np.random.default_rng(0))
+    return torch.from_numpy(seqs), gaps
 
-    seqs, gaps = gapped_doubled_sequences(n_test, copy_len, max_gap, 20, rng)
-    tokens = torch.from_numpy(seqs).to(device)
 
-    print(f"\nTest data:")
-    print(f"  Vocab: 20, Copy length: {copy_len}, Max gap: {max_gap}")
-    print(f"  Expected spurious token matches: ~{copy_len/20:.2f} per sequence")
-    print(f"  Test sequences: {n_test}")
+def test_codes_zero_mean_orthogonal():
+    c = _codes(20, 32)
+    np.testing.assert_allclose(c.sum(axis=1), 0)
+    gram = c @ c.T
+    np.testing.assert_allclose(gram, np.eye(20) * 32)
 
-    # GATE 1: Prefix-matching score > 0.5
-    score = prefix_matching_score(model, tokens, gaps, copy_len)
-    score_pass = score > 0.5
-    print(f"\nGate 1: Prefix-matching score")
-    print(f"  Value: {score:.4f}")
-    print(f"  Requirement: > 0.5")
-    print(f"  Status: {'✓ PASS' if score_pass else '✗ FAIL'}")
 
-    # GATE 2: ICL argmax accuracy > 0.9
+def test_shift_matrix_shifts():
+    pos = _codes(10, 64)
+    S = _shift_matrix(pos, 1)
+    np.testing.assert_allclose(S @ pos[3], pos[2], atol=1e-9)
+    np.testing.assert_allclose(S @ pos[0], 0, atol=1e-9)
+
+
+def test_layer0_is_previous_token_head(model, data):
+    tokens, _ = data
+    w = attention_patterns(model, tokens[:8])[0]  # (B,1,L,L)
+    L = tokens.shape[1]
+    diag_mass = w[:, 0, torch.arange(1, L), torch.arange(0, L - 1)]
+    assert diag_mass.mean().item() > 0.95
+
+
+def test_layer1_is_shift2_head(model, data):
+    tokens, _ = data
+    w = attention_patterns(model, tokens[:8])[1]
+    L = tokens.shape[1]
+    diag_mass = w[:, 0, torch.arange(2, L), torch.arange(0, L - 2)]
+    assert diag_mass.mean().item() > 0.95
+
+
+def test_layer2_attends_to_induction_target(model, data):
+    tokens, gaps = data
+    score = prefix_matching_score(model, tokens, gaps, COPY)
+    assert score > 0.5, f"prefix score {score}"
+
+
+def test_icl_argmax_accuracy(model, data):
+    tokens, gaps = data
     with torch.no_grad():
         logits = model(tokens[:, :-1])
-        preds = logits.argmax(dim=-1)
-
-    icl_accuracy = 0.0
-    icl_count = 0
+    correct, total = 0, 0
     for b in range(tokens.shape[0]):
         g = int(gaps[b])
-        start_idx = copy_len + g - 1
-        end_idx = min(2*copy_len + g - 1, preds.shape[1])
-        if start_idx < preds.shape[1]:
-            start_tok = copy_len + g
-            end_tok = min(2*copy_len + g, tokens.shape[1])
-            pred_slice = preds[b, start_idx:end_idx]
-            tok_slice = tokens[b, start_tok:end_tok]
-            if len(pred_slice) > 0 and len(tok_slice) > 0:
-                min_len = min(len(pred_slice), len(tok_slice))
-                matches = (pred_slice[:min_len] == tok_slice[:min_len]).sum().item()
-                icl_accuracy += matches
-                icl_count += min_len
-
-    if icl_count > 0:
-        icl_accuracy /= icl_count
-
-    accuracy_pass = icl_accuracy > 0.9
-    print(f"\nGate 2: ICL argmax accuracy on second copy")
-    print(f"  Value: {icl_accuracy:.4f}")
-    print(f"  Requirement: > 0.9")
-    print(f"  Status: {'✓ PASS' if accuracy_pass else '✗ FAIL'}")
-
-    # Reported metric: ICL loss
-    loss_first, loss_second = copy_region_losses(model, tokens, gaps, copy_len)
-    print(f"\nReported metric: ICL loss")
-    print(f"  Value: {loss_second:.4f}")
-    print(f"  Uniform baseline: {np.log(20):.4f}")
-    print(f"  Note: With strong attention + unembedding, should be << 0.5")
-
-    # Per-layer analysis
-    pats = attention_patterns(model, tokens)
-    per_layer_scores = []
-    for i, pat in enumerate(pats):
-        layer_score = 0.0
-        count = 0
-        for batch_idx in range(tokens.shape[0]):
-            g = gaps[batch_idx]
-            for p in range(copy_len + g + 1, min(2*copy_len + g, tokens.shape[1])):
-                target_k = p - (copy_len + g) + 1
-                if target_k >= 0 and target_k < tokens.shape[1]:
-                    attn_at_target = pat[batch_idx, 0, p, target_k].item()
-                    layer_score += attn_at_target
-                    count += 1
-        if count > 0:
-            layer_score /= count
-        per_layer_scores.append(layer_score)
-
-    print(f"\nPer-layer prefix scores:")
-    for i, s in enumerate(per_layer_scores):
-        print(f"  Layer {i}: {s:.4f}")
-
-    # Compile results for JSON
-    results = {
-        "construction_pure": True,
-        "model_config": {
-            "vocab": 20,
-            "d_model": 256,
-            "n_layers": 2,
-            "n_heads": 2,
-            "attn_only": True,
-            "max_len": 64,
-        },
-        "verification": {
-            "sequence_config": {
-                "copy_len": copy_len,
-                "max_gap": max_gap,
-                "spurious_matches_expected": float(copy_len / 20),
-            },
-            "prefix_score": float(score),
-            "icl_loss": float(loss_second),
-            "icl_argmax_accuracy": float(icl_accuracy),
-            "first_copy_loss": float(loss_first),
-            "uniform_baseline": float(np.log(20)),
-            "per_layer_scores": [float(s) for s in per_layer_scores],
-        },
-        "gates": {
-            "prefix_score_gt_0_5": {
-                "value": float(score),
-                "passes": score_pass,
-            },
-            "icl_argmax_accuracy_gt_0_9": {
-                "value": float(icl_accuracy),
-                "passes": accuracy_pass,
-            },
-        },
-        "polish_steps": 0,
-    }
-
-    # Save results
-    results_dir = Path("/home/sharaths/projects/MIabstraction-loomC/results")
-    results_dir.mkdir(exist_ok=True, parents=True)
-    results_file = results_dir / "loom_constructed_demo.json"
-    results_file.write_text(json.dumps(results, indent=2))
-    print(f"\nResults saved to {results_file}")
-
-    print("\n" + "="*70)
-    if score_pass and accuracy_pass:
-        print("FINAL STATUS: ALL GATES PASSED ✓✓✓")
-        results["status"] = "PASS"
-    elif score_pass:
-        print("FINAL STATUS: Partial (prefix gate passed) →→→ needs pure construction iteration")
-        results["status"] = "PARTIAL"
-    else:
-        print("FINAL STATUS: Construction needs refinement")
-        results["status"] = "NEEDS_WORK"
-    print("="*70)
-
-    # Assert gates
-    assert score_pass, f"prefix_score {score:.4f} failed gate > 0.5"
-    assert accuracy_pass, f"icl_argmax_accuracy {icl_accuracy:.4f} failed gate > 0.9"
+        # predictable second-copy targets x[2..]: positions COPY+g+2 .. 2*COPY+g-1
+        for p in range(COPY + g + 2, 2 * COPY + g):
+            pred = logits[b, p - 1].argmax().item()
+            if pred == tokens[b, p].item():
+                correct += 1
+            total += 1
+    acc = correct / total
+    assert acc > 0.9, f"icl argmax accuracy {acc}"
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "-s"])
+def test_negative_control_no_repeats(model):
+    """On pure random sequences the circuit has nothing to induce on: the
+    prefix-score measured against a FAKE alignment must be ~chance."""
+    rng = np.random.default_rng(3)
+    seqs = rng.integers(0, VOCAB, size=(32, MAXLEN - 1), dtype=np.int64)
+    fake_gaps = np.zeros(32, dtype=int)
+    s = prefix_matching_score(model, torch.from_numpy(seqs), fake_gaps, COPY)
+    assert s < 0.2
