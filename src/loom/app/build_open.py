@@ -63,14 +63,27 @@ def _corpus_texts(pattern: str, limit_chars: int = 400_000) -> tuple[list[str], 
     return ([text] if text else []), {"source": src, "chars": len(text)}
 
 
-def _variety(model, tok, device, prompts, n: int = 20) -> float:
+def _variety(model, tok, device, prompts, n: int = 48) -> float:
     """Fraction of distinct tokens the model generates — the guard against a lever
-    that improves its objective by wrecking the model."""
+    that improves its objective by wrecking the model.
+
+    Resolution matters more here than anywhere else in the compiler, because this is the
+    number that decides what ships. Measured over 2 prompts of 20 tokens it could only
+    take values in steps of 0.025, so a 0.05 budget sat two steps above zero and the
+    guard was very nearly a coin toss: trials clustered at exactly 0.125 and were
+    rejected as if that were a real reading. Four prompts of 48 tokens puts the step at
+    0.005, which is finer than the budget by enough for the comparison to mean something.
+    """
     gens = [model.generate(**tok(t, return_tensors="pt").to(device), max_new_tokens=n,
                            do_sample=False,
                            pad_token_id=getattr(tok, "eos_token_id", None))
             for t in prompts]
     return sum(len(set(g[0][-n:].tolist())) / n for g in gens) / len(gens)
+
+
+def _variety_resolution(prompts, n: int = 48) -> float:
+    """The smallest change `_variety` can report. A budget below this is not a budget."""
+    return 1.0 / (n * max(len(prompts), 1))
 
 
 def autotune_pretraining(model, tok, pattern: str, device: str,
@@ -92,14 +105,14 @@ def autotune_pretraining(model, tok, pattern: str, device: str,
     a real search affordable here: the old snapshot-per-trial cost 2.5GB and a full
     state-dict copy every time the compiler wanted to try one more learning rate.
     """
-    base_variety = _variety(model, tok, device, NEUTRAL[:2])
+    base_variety = _variety(model, tok, device, NEUTRAL)
 
     def run(cfg: dict):
         out = continued_pretraining(model, tok, pattern, device,
                                     cfg["steps"], cfg["lr"], merge=False)
         if not out.get("ran"):
             return -1e9, out, out.get("reason", "did not run")
-        var = _variety(model, tok, device, NEUTRAL[:2])
+        var = _variety(model, tok, device, NEUTRAL)
         lost = max(0.0, base_variety - var)
         out["variety_after"] = round(var, 4)
         out["variety_lost"] = round(lost, 4)
@@ -245,7 +258,7 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
     """
     if not examples:
         return {"ran": False, "reason": "no demonstrations available for this capability"}
-    base_var = _variety(model, tok, device, NEUTRAL[:2])
+    base_var = _variety(model, tok, device, NEUTRAL)
 
     def batch(pairs):
         xs, ys = [], []
@@ -277,7 +290,7 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
         torch.nn.utils.clip_grad_norm_(trainable, 1.0); opt.step()
         losses.append(float(loss.detach()))
     model.eval()
-    var = _variety(model, tok, device, NEUTRAL[:2])
+    var = _variety(model, tok, device, NEUTRAL)
     lost = max(0.0, base_var - var)
     intact = _base_fingerprint(model) == fingerprint
     info = get_adapter_info(model)
@@ -430,20 +443,12 @@ def autotune_control(model, tok, cap, device, budget: float,
         dnorm = float(np.linalg.norm(direction))
         strength = cfg["multiplier"] * dnorm / 4.0
 
-        base_gen = [model.generate(**tok(t, return_tensors="pt").to(device),
-                                   max_new_tokens=20, do_sample=False,
-                                   pad_token_id=getattr(tok, "eos_token_id", None))
-                    for t in NEUTRAL[:2]]
-        base_var = sum(len(set(g[0][-20:].tolist())) / 20 for g in base_gen) / len(base_gen)
+        base_var = _variety(model, tok, device, NEUTRAL)
         base_target = _objective()
 
         with _Hook(model, layer, direction, strength):
             eff = base_target - _objective()
-            gens = [model.generate(**tok(t, return_tensors="pt").to(device),
-                                   max_new_tokens=20, do_sample=False,
-                                   pad_token_id=getattr(tok, "eos_token_id", None))
-                    for t in NEUTRAL[:2]]
-        var = sum(len(set(g[0][-20:].tolist())) / 20 for g in gens) / len(gens)
+            var = _variety(model, tok, device, NEUTRAL)
         degeneration = max(0.0, base_var - var)
 
         metrics = {"strength": round(float(strength), 4), "effect": round(eff, 4),
@@ -500,6 +505,15 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     # steer as a fraction and the compiler resolves it against the model in hand.
     n_layers = int(getattr(model.config, "num_hidden_layers", None)
                    or getattr(model.config, "n_layer", 16))
+
+    # A budget the guard cannot resolve is not a budget — it rejects or admits by
+    # rounding. Refuse it rather than run a search whose verdicts are arithmetic.
+    res = _variety_resolution(NEUTRAL)
+    if budget < 2 * res:
+        raise ValueError(
+            f"the side-effect budget {budget} is below what the output-variety guard can "
+            f"measure (steps of {res:.4f}). Raise the budget to at least {2 * res:.3f}, "
+            f"or measure variety over more prompts.")
     search_budget = app.search_budget()
     steering_grid = grids("steering", search_budget, n_layers)
     pretrain_grid = grids("pretraining", search_budget, n_layers)
@@ -575,14 +589,14 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     # them off preserves the balance the individual searches found.
     joint = {"attempted": bool(controls)}
     if controls:
-        base_var = _variety(model, tok, device, NEUTRAL[:2])
+        base_var = _variety(model, tok, device, NEUTRAL)
         chosen_scale, trials = None, []
         for scale in (1.0, 0.5, 0.25, 0.125):
             hooks = [_Hook(model, c["layer"], np.array(c["direction"]),
                            c["strength"] * scale) for c in controls]
             for h in hooks:
                 h.__enter__()
-            var = _variety(model, tok, device, NEUTRAL[:2])
+            var = _variety(model, tok, device, NEUTRAL)
             for h in hooks:
                 h.__exit__()
             lost = max(0.0, base_var - var)
@@ -616,6 +630,12 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         "app": app.name, "base_model": target, "substrate": sub.id,
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
         "params": sum(p.numel() for p in model.parameters()),
+        "side_effect_guard": {
+            "budget": budget,
+            "resolution": round(_variety_resolution(NEUTRAL), 4),
+            "note": "the smallest change the output-variety guard can report; a budget "
+                    "near this is a coin toss rather than a measurement",
+        },
         "search_space": {"layers": layers, "multipliers": multipliers,
                          "pretraining_lr": pretrain_grid["lr"],
                          "pretraining_steps": pretrain_grid["steps"],
