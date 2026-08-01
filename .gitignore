@@ -11,3 +11,4 @@ checkpoints/
 # research inputs and spec stay local-only
 docs/
 SPEC.md
+private/
