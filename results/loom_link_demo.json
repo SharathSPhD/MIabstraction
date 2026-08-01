@@ -1,0 +1,102 @@
+{
+  "experiment": "L1/L2/L3 separate compilation and linking",
+  "host": {
+    "d_model": 128,
+    "n_layers": 4,
+    "trained_steps": 3000,
+    "val_loss": 2.4837730824947357,
+    "induction_acc_alone": 0.0515625
+  },
+  "L1_no_clobber": {
+    "linked": false,
+    "gain": 0.0,
+    "unit_icl_acc": null,
+    "host_loss_before": 2.4837730824947357,
+    "host_loss_after": 2.4837730824947357,
+    "host_delta": 0.0,
+    "budget": 0.05,
+    "capacity_cost_dims": 0,
+    "diagnosis": "Link refused: no write gain lets ['induction'] meet their gates without costing the host more than 0.05 nats. The unit works alone but cannot be heard over this host \u2014 check the envelope (vocab/length) matches what the unit was verified on.",
+    "price_curve": [
+      {
+        "gain": 0.005,
+        "icl_acc": 0.0727,
+        "host_delta": 0.0013,
+        "firing_rate_on_host": 0.2068
+      },
+      {
+        "gain": 0.01,
+        "icl_acc": 0.107,
+        "host_delta": 0.006,
+        "firing_rate_on_host": 0.2068
+      },
+      {
+        "gain": 0.02,
+        "icl_acc": 0.1797,
+        "host_delta": 0.027,
+        "firing_rate_on_host": 0.2068
+      },
+      {
+        "gain": 0.05,
+        "icl_acc": 0.4465,
+        "host_delta": 0.1916,
+        "firing_rate_on_host": 0.2068
+      },
+      {
+        "gain": 0.1,
+        "icl_acc": 0.7836,
+        "host_delta": 0.6904,
+        "firing_rate_on_host": 0.2068
+      },
+      {
+        "gain": 0.2,
+        "icl_acc": 0.952,
+        "host_delta": 1.8344,
+        "firing_rate_on_host": 0.2068
+      },
+      {
+        "gain": 0.4,
+        "icl_acc": 0.9508,
+        "host_delta": 4.1366,
+        "firing_rate_on_host": 0.2068
+      }
+    ],
+    "at_relaxed_budget": {
+      "budget": 0.75,
+      "linked": true,
+      "gain": 0.06628908034679974,
+      "unit_icl_acc": 0.587890625,
+      "host_delta": 0.3347451388835907,
+      "diagnosis": ""
+    }
+  },
+  "L2_composition": {
+    "linked": false,
+    "gains": {
+      "induction": 0.0,
+      "token_bias": 0.0
+    },
+    "gates": {
+      "induction": {
+        "passed": false
+      },
+      "token_bias": {
+        "passed": false
+      }
+    },
+    "host_delta": 0.0,
+    "diagnosis": "Link refused: no write gain lets ['induction', 'token_bias'] meet their gates without costing the host more than 0.05 nats. The unit works alone but cannot be heard over this host \u2014 check the envelope (vocab/length) matches what the unit was verified on."
+  },
+  "L3_capacity": {
+    "out_of_band_host_delta": 0.0,
+    "in_band_host_delta_by_reserved_dims": {
+      "8": 0.009126394987106323,
+      "16": 0.01766464114189148,
+      "32": 0.031185179948806763
+    },
+    "out_of_band_dims_taken": 0,
+    "verdict": "out-of-band cheaper"
+  },
+  "wall_clock_s": 110.4,
+  "device": "cuda"
+}
