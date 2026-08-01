@@ -9,15 +9,19 @@ Everything is **spec-driven** ([SPEC.md](SPEC.md) defines five falsifiable hypot
 with numeric refutation thresholds), **config-driven** (all hyperparameters in
 [configs/](configs/)), and **test-driven** (pytest). Experiments run on a single NVIDIA GB10.
 
-## Experiments
+## Experiments and results
 
-| Exp | Hypothesis | Validates layer | Key control |
-|-----|-----------|-----------------|-------------|
-| E1 `e1_mess3` | H1 belief-state geometry in the residual stream | representation geometry | untrained model + recent-token window baseline |
-| E2 `e2_induction` | H2 induction heads form as a phase transition | circuits / development | co-timing of score and ICL loss |
-| E3 `e3_sae_control` | H3 SAE metrics don't separate trained from random | features (SAE reckoning) | random-transformer control (Heap et al.) |
-| E4 `e4_probe_baseline` | H4 linear probes match SAE probes on known concepts | features vs baselines | raw-activation logistic regression |
-| E5 `e5_sparsity` | H5 imposed weight sparsity shrinks circuits faithfully | weights (imposed ISA) | matched dense model, mean-ablation faithfulness |
+| Exp | Hypothesis | Validates layer | Verdict | Headline number |
+|-----|-----------|-----------------|---------|-----------------|
+| E1 `e1_mess3` | H1 belief-state geometry in the residual stream | representation geometry | ✅ supported | R²=0.998; incremental R² beyond a recent-token window 96× the untrained control |
+| E2 `e2_induction` | H2 induction heads form as a phase transition | circuits / development | ✅ supported | score 0→0.61 in 15.5% of training, co-timed with ICL loss 3.00→0.08 nats |
+| E3 `e3_sae_control` | H3 SAE metrics don't separate trained from random | features (SAE reckoning) | ❌ refuted | FVU separated at 39σ — but in the *wrong direction* (see caveat) |
+| E4 `e4_probe_baseline` | H4 linear probes match SAE probes on known concepts | features vs baselines | ✅ supported | raw 0.90 vs SAE 0.84 (belief); 0.686 vs 0.629 (entropy) |
+| E5 `e5_sparsity` | H5 imposed weight sparsity shrinks circuits faithfully | weights (imposed ISA) | ✅ supported | circuit 4.8× smaller in weights at equal faithfulness |
+
+Full verdicts, leak budgets, and the interpretation live in [VALIDATION.md](VALIDATION.md).
+Every positive result here was one control away from being wrong — the controls, not the
+headline metrics, are the point.
 
 ## Run
 

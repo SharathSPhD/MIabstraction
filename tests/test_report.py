@@ -26,6 +26,19 @@ def test_collect_and_verdicts(tmp_path):
     assert by_h["H2"]["supports"] is True
 
 
+def test_final_run_supersedes_strong_and_plain(tmp_path):
+    """A 'final' run is definitive even when 'strong' and plain runs disagree."""
+    _write(tmp_path, "e1/result.json", {"hypothesis": "H1", "supports": False})
+    _write(tmp_path, "strong/e1/result.json",
+           {"hypothesis": "H1", "supports": False, "best_r2": 0.90})
+    _write(tmp_path, "final/e1/result.json",
+           {"hypothesis": "H1", "supports": True, "best_r2": 0.998})
+
+    by_h = verdict_table(collect(tmp_path))
+    assert by_h["H1"]["supports"] is True
+    assert by_h["H1"]["best_r2"] == 0.998
+
+
 def test_render_includes_pending(tmp_path):
     _write(tmp_path, "e1/result.json",
            {"hypothesis": "H1", "supports": True, "best_r2": 0.9})

@@ -45,13 +45,22 @@ def update_registry(results_dir: str | Path = "results",
     return {h: reg.posteriors()[h] for h in sorted(by_h) if h in DISCRIMINABILITY}
 
 
+NARRATIVE_PATH = Path("docs/verdict-narrative.md")
+
+
 def main() -> None:
     posteriors = update_registry()
     md = render()
     md += "\n## Posteriors after Bayesian update\n\n"
+    md += (
+        "H1-H5 are independent binary claims, so these do not sum to 1; each is that\n"
+        "hypothesis' own probability after one preregistered, controlled experiment.\n\n"
+    )
     md += "| Hypothesis | Posterior |\n|---|---|\n"
     for h, p in posteriors.items():
         md += f"| {h} | {p:.3f} |\n"
+    if NARRATIVE_PATH.exists():
+        md += "\n" + NARRATIVE_PATH.read_text()
     Path("VALIDATION.md").write_text(md)
     print(json.dumps(posteriors, indent=2))
 

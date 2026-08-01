@@ -25,15 +25,27 @@ def collect(results_dir: str | Path = "results") -> list[dict]:
     return out
 
 
+# Later runs supersede earlier ones: a plain run is a first pass, 'strong' scales it
+# up, 'final' is the definitive configuration. Highest rank wins per hypothesis.
+RUN_PRECEDENCE = ("final", "strong")
+
+
+def _rank(path: str) -> int:
+    parts = Path(path).parts
+    for i, tag in enumerate(reversed(RUN_PRECEDENCE), start=1):
+        if tag in parts:
+            return i
+    return 0
+
+
 def verdict_table(results: list[dict]) -> dict[str, dict]:
-    """Latest result per hypothesis wins per path sort; prefer 'strong' runs."""
+    """One result per hypothesis: the highest-precedence run available."""
     by_h: dict[str, dict] = {}
     for r in results:
         h = r.get("hypothesis")
         if not h:
             continue
-        # prefer results under a 'strong' directory, else last seen
-        if h not in by_h or "strong" in r["_path"]:
+        if h not in by_h or _rank(r["_path"]) > _rank(by_h[h]["_path"]):
             by_h[h] = r
     return by_h
 

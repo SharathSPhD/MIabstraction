@@ -1,0 +1,66 @@
+{
+  "hypotheses": {
+    "H1": {
+      "prior": 0.5,
+      "posterior": 0.9047619047619048,
+      "layer": "Representation geometry",
+      "description": "A transformer trained on an HMM (Mess3) linearly embeds the belief-state simplex of the data process in its residual stream."
+    },
+    "H2": {
+      "prior": 0.5,
+      "posterior": 0.8571428571428571,
+      "layer": "Circuits / development",
+      "description": "Induction capability forms as a discrete phase transition, visible as a sharp rise in prefix-matching score co-timed with an in-context-learning loss drop."
+    },
+    "H3": {
+      "prior": 0.5,
+      "posterior": 0.15789473684210528,
+      "layer": "Features (SAE reckoning)",
+      "description": "Standard SAE quality metrics (reconstruction, sparsity, downstream CE) do NOT clearly separate SAEs trained on a trained model vs a randomly-initialized one."
+    },
+    "H4": {
+      "prior": 0.5,
+      "posterior": 0.8181818181818182,
+      "layer": "Features vs baselines",
+      "description": "For a known concept, a logistic-regression probe on raw activations matches or beats an SAE-feature probe."
+    },
+    "H5": {
+      "prior": 0.5,
+      "posterior": 0.8095238095238095,
+      "layer": "Weights (imposed ISA)",
+      "description": "Training with weight sparsity yields a smaller, more faithful minimal circuit for an algorithmic task than a matched dense model, at similar task performance."
+    }
+  },
+  "update_history": [
+    {
+      "hypothesis": "H1",
+      "likelihood_ratio": 9.499999999999998,
+      "posterior_after_update": 0.9047619047619048,
+      "timestamp": "2026-08-01T08:25:49.571236+00:00"
+    },
+    {
+      "hypothesis": "H2",
+      "likelihood_ratio": 6.0,
+      "posterior_after_update": 0.8571428571428571,
+      "timestamp": "2026-08-01T08:25:49.571244+00:00"
+    },
+    {
+      "hypothesis": "H3",
+      "likelihood_ratio": 0.18750000000000003,
+      "posterior_after_update": 0.15789473684210528,
+      "timestamp": "2026-08-01T08:25:49.571246+00:00"
+    },
+    {
+      "hypothesis": "H4",
+      "likelihood_ratio": 4.5,
+      "posterior_after_update": 0.8181818181818182,
+      "timestamp": "2026-08-01T08:25:49.571248+00:00"
+    },
+    {
+      "hypothesis": "H5",
+      "likelihood_ratio": 4.25,
+      "posterior_after_update": 0.8095238095238095,
+      "timestamp": "2026-08-01T08:25:49.571249+00:00"
+    }
+  ]
+}
