@@ -1,16 +1,16 @@
 {
   "in_domain": [
-    "The moonlight fell upon the water, casting long silver pathways across the lake.",
-    "She turned the page slowly, savoring each word of the novel.",
-    "The protagonist's journey across the mountains tested her resolve.",
-    "Poetry is the art of expressing complex emotions through carefully chosen words.",
-    "The narrative unfolds through multiple perspectives and unreliable narrators."
+    "The prose carries the scene without ornament, and the rhythm does the rest.",
+    "Her letters read like weather: plain at first, then suddenly turning.",
+    "The stanza closes on a half rhyme that keeps the grief unresolved.",
+    "The narrator withholds the name until the sentence cannot.",
+    "Each chapter opens in the middle of a gesture."
   ],
   "out_of_domain": [
-    "The compiler optimizes register allocation automatically.",
-    "Cardiac output is calculated as heart rate times stroke volume.",
-    "The market valuation increased by 15% in the last quarter.",
-    "Trademark law protects brand identifiers from unauthorized use.",
-    "Fermentation converts glucose to ethanol in anaerobic conditions."
+    "Quarterly revenue grew eight percent on stronger cloud demand.",
+    "Tighten the drain plug to the specified torque.",
+    "The defendant moved to suppress the evidence.",
+    "Preheat the oven to 220 degrees before baking.",
+    "The router assigns addresses over DHCP."
   ]
 }

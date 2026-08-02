@@ -1,16 +1,16 @@
 {
   "in_domain": [
-    "The plaintiff must establish liability under tort law principles.",
-    "Statutory interpretation requires examining legislative intent and plain meaning.",
-    "Jurisdiction is determined by the court system and venue rules.",
-    "Contract enforceability depends on offer, acceptance, and consideration.",
-    "The defendant's motion to dismiss was denied by the appellate court."
+    "The court held that the contract was unenforceable for lack of consideration.",
+    "Summary judgment is appropriate where no genuine dispute of material fact exists.",
+    "The appellant bears the burden of demonstrating reversible error.",
+    "The statute of limitations begins to run when the claim accrues.",
+    "A motion to dismiss tests the legal sufficiency of the complaint."
   ],
   "out_of_domain": [
-    "The protagonist struggled with internal moral conflicts.",
-    "Insulin regulates blood glucose through receptor binding.",
-    "The Federal Reserve adjusted interest rates to control inflation.",
-    "Quantum entanglement violates classical physics principles.",
-    "Photosynthesis converts light energy into chemical energy."
+    "The recipe calls for two cups of flour and a pinch of salt.",
+    "The team won the championship after a dramatic overtime.",
+    "Photosynthesis converts sunlight into chemical energy.",
+    "The album debuted at number one on the charts.",
+    "Regular oil changes extend the life of an engine."
   ]
 }

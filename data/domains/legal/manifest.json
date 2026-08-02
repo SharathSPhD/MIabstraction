@@ -1,21 +1,11 @@
 {
-  "source": "https://huggingface.co/datasets/wikitext",
-  "source_note": "Wikipedia legal articles (fallback: specialist sources unavailable)",
-  "license": "CC-BY-SA-3.0",
-  "retrieved": "2026-08-01T19:43:18.462942",
-  "corpus_size_bytes": 135411,
-  "num_documents": 150,
-  "corpus_sha256": "404b4dd0d7543f0eaabc11e6132e6dc75b4dd10b2ccb390d164d1848999eb1c5",
+  "source": "https://huggingface.co/datasets/coastalcph/lex_glue (case_hold)",
+  "source_note": "CaseHOLD citing contexts from real US court opinions (Zheng et al. 2021, via LexGLUE)",
+  "license": "CC BY-SA 4.0 (opinions are public records)",
+  "retrieved": "2026-08-02T07:38:24.306055+00:00",
+  "corpus_size_bytes": 404010,
+  "num_documents": 475,
+  "corpus_sha256": "5ab9c0df674a0f11be3f2ec2accae3a0fcdfea36902d5c246cb731319f24de77",
   "corpus_file": "corpus.txt",
-  "is_specialist": false,
-  "attempted_sources": [
-    {
-      "source": "pile-of-law",
-      "error": "Dataset scripts are no longer supported, but found pile-of-law.py"
-    },
-    {
-      "source": "casehold",
-      "error": "Dataset scripts are no longer supported, but found casehold.py"
-    }
-  ]
+  "is_specialist": true
 }
