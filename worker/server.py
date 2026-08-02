@@ -41,11 +41,25 @@ import sys
 sys.path.insert(0, str(ROOT / "src"))
 
 WORKER_KEY = os.environ.get("LOOM_WORKER_KEY", "")
+# Every substrate the compiler may target here. Open-weight entries must be in the
+# local HF cache; scratch entries carry no weights at all — the compiler makes them.
 ALLOWED_MODELS = {
     "meta-llama/Llama-3.2-1B-Instruct",
+    "meta-llama/Llama-3.2-1B",
+    "Qwen/Qwen2.5-0.5B-Instruct",
     "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-3B-Instruct",
+    "Qwen/Qwen2.5-7B-Instruct",
+    "Qwen/Qwen2.5-14B-Instruct",
+    "Qwen/Qwen3-4B-Instruct-2507",
     "google/gemma-2-2b-it",
+    "google/gemma-2-2b",
+    "google/gemma-2-9b-it",
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+    "nvidia/Nemotron-Mini-4B-Instruct",
+    "gpt2",
 }
+SCRATCH_TARGETS = {"scratch(demo)", "scratch(flagship)"}
 ALLOWED_CORPORA_PREFIX = "data/domains/"
 MAX_QUEUE = 4
 
@@ -110,8 +124,9 @@ def _validate(source: str, target: str) -> tuple:
     """Parse the program and enforce the worker's own safety rails: known target
     models only, corpora only from the repo's manifested domain data."""
     from loom.app.parse import AppSyntaxError, parse_program_text
-    if target not in ALLOWED_MODELS:
-        raise HTTPException(422, f"target must be one of {sorted(ALLOWED_MODELS)}")
+    if target not in ALLOWED_MODELS | SCRATCH_TARGETS:
+        raise HTTPException(
+            422, f"target must be one of {sorted(ALLOWED_MODELS | SCRATCH_TARGETS)}")
     try:
         prog = parse_program_text(source)
     except AppSyntaxError as e:
@@ -136,7 +151,15 @@ def health():
             "queue_depth": _q.qsize(),
             "running": next((b for b, s in _state.items()
                              if s.get("status") == "running"), None),
-            "allowed_models": sorted(ALLOWED_MODELS)}
+            "allowed_models": sorted(ALLOWED_MODELS),
+            "scratch_targets": sorted(SCRATCH_TARGETS)}
+
+
+@app.get("/isa")
+def isa():
+    """The instruction set, generated from the compiler's own tables."""
+    from loom.isa import spec
+    return spec()
 
 
 @app.post("/explain")
@@ -318,9 +341,21 @@ def _run_one(job: dict) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     src_path.write_text(job["source"])
     try:
-        from loom.app.build_open import build as loom_build
-        report = loom_build(str(src_path), target, str(out_dir),
-                            device="cuda", verify=True)
+        if target in SCRATCH_TARGETS:
+            # No weights are downloaded on this path: the compiler chooses the
+            # architecture, learns a tokenizer from the program's corpus, and
+            # pretrains. Flagship effort is the long run.
+            from loom.app.build_scratch import build as scratch_build
+            effort = "flagship" if "flagship" in target else "demo"
+            seq = _event(sb, build_id, seq, "substrate",
+                         {"kind": "scratch", "effort": effort,
+                          "note": "no downloaded weights; the model is made here"})
+            report = scratch_build(str(src_path), str(out_dir), effort=effort,
+                                   device="cuda")
+        else:
+            from loom.app.build_open import build as loom_build
+            report = loom_build(str(src_path), target, str(out_dir),
+                                device="cuda", verify=True)
         seq = _event(sb, build_id, seq, "verified", {
             "passed": report.get("passed"),
             "expectations": report.get("expectations", []),
