@@ -325,7 +325,17 @@ def _as_chat(tok, instruction: str, question: str) -> str:
     tpl = getattr(tok, "apply_chat_template", None)
     if tpl is None or getattr(tok, "chat_template", None) is None:
         return (f"{instruction}\n\n{question}" if instruction else question)
-    return tpl(msgs, tokenize=False, add_generation_prompt=True)
+    try:
+        return tpl(msgs, tokenize=False, add_generation_prompt=True)
+    except Exception:
+        # Gemma-2's template refuses the system role outright. The instruction still
+        # has to reach the model in a form it was trained on, so it rides at the top
+        # of the user turn instead — found by the third family, which is what a third
+        # family is for.
+        merged = [{"role": "user",
+                   "content": (f"{instruction}\n\n{question}"
+                               if instruction else question)}]
+        return tpl(merged, tokenize=False, add_generation_prompt=True)
 
 
 def probes_for(cap, in_domain: list[str], out_of_domain: list[str]) -> tuple[list[str], str]:

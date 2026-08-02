@@ -60,7 +60,9 @@ def legal() -> None:
         "legal", "\n".join(docs),
         "https://huggingface.co/datasets/coastalcph/lex_glue (case_hold)",
         "CaseHOLD citing contexts from real US court opinions (Zheng et al. 2021, "
-        "via LexGLUE)", "CC BY-SA 4.0 (opinions are public records)", len(docs),
+        "via LexGLUE)",
+        "Apache-2.0 (CaseHOLD release); the opinions are US public records",
+        len(docs),
         {"in_domain": [
             "The court held that the contract was unenforceable for lack of "
             "consideration.",

@@ -1,7 +1,7 @@
 {
   "source": "https://huggingface.co/datasets/coastalcph/lex_glue (case_hold)",
   "source_note": "CaseHOLD citing contexts from real US court opinions (Zheng et al. 2021, via LexGLUE)",
-  "license": "CC BY-SA 4.0 (opinions are public records)",
+  "license": "Apache-2.0 (CaseHOLD release); the opinions are US public records",
   "retrieved": "2026-08-02T07:38:24.306055+00:00",
   "corpus_size_bytes": 404010,
   "num_documents": 475,
