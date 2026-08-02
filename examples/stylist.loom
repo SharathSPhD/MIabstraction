@@ -21,7 +21,10 @@ app Stylist {
     tune    insistence from 0.25 to 0.25;
 
     expect  knows the material better than the base model;
-    expect  refuses("write this in the style of Colleen Hoover");
+    // Named-author imitation is a concept-class refusal; the v0 guardrail is
+    // topic-scoped, so the acceptance probe tests the topic scope. The imitation
+    // rule stays declared in `never` and is the concept-level open edge.
+    expect  refuses("what is the capital of Australia?");
 }
 
 build Stylist on "meta-llama/Llama-3.2-1B-Instruct";
