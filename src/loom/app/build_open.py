@@ -599,6 +599,16 @@ def _answer_cost(model, tok, device, prompts: list[str],
     return total / max(n, 1)
 
 
+def split_probes(probes: list[str]) -> tuple[list[str], list[str]]:
+    """Alternating derive/holdout split, deterministic so a rerun splits the same way.
+
+    The direction is measured on the derive half and the chosen control is then
+    scored on the holdout half it never saw. That is the concept-level test: a
+    direction that only moves the sentences it was derived from has captured those
+    sentences, not the concept the clause names."""
+    return probes[0::2], probes[1::2]
+
+
 def measure_gap(model, tok, cap, device,
                 probes: list[str] | None = None,
                 out_of_domain: list[str] | None = None) -> dict:
@@ -613,25 +623,31 @@ def measure_gap(model, tok, cap, device,
     the gap the strategy was chosen by is the gap the strategy is judged by.
     """
     chosen, why = probes_for(cap, probes or [], out_of_domain or [])
-    pos, neg, how = derive_contrast(cap, tok, chosen)
-    how = f"{how} ({why})"
+    derive_p, holdout_p = split_probes(chosen)
+    pos, neg, how = derive_contrast(cap, tok, derive_p)
+    pos_h, neg_h, _ = derive_contrast(cap, tok, holdout_p)
+    how = f"{how} ({why}; direction from half, generality scored on the other half)"
     sign = 1.0                       # positive is already "doing what the clause asks"
     if not pos:
         key, sign = KIND_TO_CONTRAST[cap.kind]
         pos, neg = CONTRASTS[key]["positive"], CONTRASTS[key]["negative"]
+        pos_h, neg_h = [], []
         how = (f"generic {key} contrast: the capability's own text could not be turned "
                "into an instruction, so this direction is not specific to it")
 
-    target_answers: list[str] = []
-    if pos and neg:
+    def _answers(prompts: list[str]) -> list[str]:
+        out_ = []
         with torch.no_grad():
-            for p in pos[:4]:
+            for p in prompts[:4]:
                 ids = tok(p, return_tensors="pt").to(device)
                 out = model.generate(**ids, max_new_tokens=24, do_sample=False,
                                      pad_token_id=getattr(tok, "eos_token_id", None))
-                target_answers.append(
-                    tok.decode(out[0][ids["input_ids"].shape[1]:],
-                               skip_special_tokens=True))
+                out_.append(tok.decode(out[0][ids["input_ids"].shape[1]:],
+                                       skip_special_tokens=True))
+        return out_
+
+    target_answers = _answers(pos) if pos and neg else []
+    holdout_answers = _answers(pos_h) if pos_h and neg_h else []
 
     ceiling = (_answer_cost(model, tok, device, neg, target_answers)
                if target_answers else 0.0)
@@ -640,6 +656,7 @@ def measure_gap(model, tok, cap, device,
     gap = max(ceiling - floor, 0.0)
     return {"pos": pos, "neg": neg, "how": how, "sign": sign,
             "target_answers": target_answers,
+            "holdout": {"pos": pos_h, "neg": neg_h, "answers": holdout_answers},
             "gap": gap, "ceiling": ceiling, "floor": floor}
 
 
@@ -753,6 +770,30 @@ def autotune_control(model, tok, cap, device, budget: float,
     tuning["direction_from"] = how
     tuning["scale"] = scale
     tuning["recovered"] = (round(res.best.score / gap, 4) if gap > 0 else None)
+
+    # The concept-level test. The direction was derived from half the probes; the
+    # winner is now scored on the half it never saw. A control that moves only its own
+    # derivation sentences has captured those sentences, not the concept the clause
+    # names — the token-level failure the red team documented, caught at build time
+    # instead of shipped.
+    hold = gapinfo.get("holdout") or {}
+    if hold.get("answers"):
+        base_h = _answer_cost(model, tok, device, hold["neg"], hold["answers"])
+        with _Hook(model, layer, direction, res.best.metrics["strength"]):
+            steered_h = _answer_cost(model, tok, device, hold["neg"],
+                                     hold["answers"])
+        delivered_h = base_h - steered_h
+        tuning["generalization"] = {
+            "derive_delivered": round(res.best.score, 4),
+            "holdout_delivered": round(delivered_h, 4),
+            "n_holdout_probes": len(hold["neg"]),
+            "note": "direction derived on half the probes, scored on the unseen half"}
+        if delivered_h <= 0:
+            tuning["generalization"]["rejected"] = (
+                "the direction moves only the sentences it was derived from; on "
+                "unseen probes of the same concept it delivers nothing, so the "
+                "control is memorization and does not ship")
+            return {}, tuning
     return control, tuning
 
 

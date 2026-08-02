@@ -141,3 +141,12 @@ def test_margin_resolution_is_finer_than_the_declared_target():
     from loom.app.build_open import ESCALATION_PROBES_OFF
     assert len(ESCALATION_PROBES_OFF) >= 12
     assert 1.0 / len(ESCALATION_PROBES_OFF) < 0.25 / 2
+
+
+def test_probe_split_is_deterministic_and_disjoint():
+    from loom.app.build_open import split_probes
+    probes = [f"q{i}" for i in range(8)]
+    a, b = split_probes(probes)
+    assert not set(a) & set(b)
+    assert sorted(a + b) == sorted(probes)
+    assert (a, b) == split_probes(probes), "a rerun must split the same way"
