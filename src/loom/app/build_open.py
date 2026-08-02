@@ -282,7 +282,12 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
     def batch(pairs):
         xs, ys = [], []
         for prompt, response in pairs:
-            pi = tok(prompt + "\n", add_special_tokens=False)["input_ids"][:48]
+            # Specials ON for the prompt, exactly as the margin probe tokenizes it.
+            # Trained without BOS and probed with it, Gemma memorized every
+            # demonstration to loss 0.0002 and recalled none of them at generation —
+            # the prompt it saw in training and the prompt it met at probe time were
+            # different sequences.
+            pi = tok(prompt + "\n")["input_ids"][:48]
             ri = tok(response + tok.eos_token, add_special_tokens=False)["input_ids"][:48]
             ids, lab = pi + ri, [-100] * len(pi) + ri
             pad = 100 - len(ids)
