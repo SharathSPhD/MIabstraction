@@ -29,10 +29,11 @@ from .parse import parse_program, parse_program_text
 from .substrate import profile_for
 
 EFFORTS = {
-    "demo": {"size": "small", "note": "demo scale: a real model, small enough to "
-                                      "watch being built"},
-    "flagship": {"size": "medium", "note": "flagship scale: a serious pretraining "
-                                           "run on the training box"},
+    "demo": {"size": "small", "steps": 500, "batch_size": 8, "lr": 1e-4,
+             "note": "demo scale: a real model, small enough to watch being built"},
+    "flagship": {"size": "medium", "steps": 40_000, "batch_size": 16, "lr": 3e-4,
+                 "note": "flagship scale: a serious pretraining run on the training "
+                         "box — hours, not seconds"},
 }
 
 
@@ -63,7 +64,8 @@ def build(program: str, out_dir: str, effort: str = "demo", device: str = "cuda"
         "capabilities": [c.to_dict() for c in choices],
         "expectations": [e.describe() for e in app.expectations]}, indent=2))
 
-    result = execute_scratch(choices, spec, app, device, out_dir=str(art))
+    result = execute_scratch(choices, spec, app, device, out_dir=str(art),
+                             train=EFFORTS[effort])
     report = result if isinstance(result, dict) else result.to_dict()
     report.update({
         "app": app.name,

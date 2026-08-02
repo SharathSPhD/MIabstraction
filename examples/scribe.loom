@@ -1,0 +1,30 @@
+// scribe.loom — an English language model, made by a program.
+//
+// This is the flagship: no downloaded weights anywhere in it. The compiler chooses
+// the architecture, learns a tokenizer from the corpus, and pretrains — 249 MB of
+// developmentally plausible English from the BabyLM 2026 Strict corpus, the same
+// material the benchmark trains on.
+//
+// The point is not that this model competes with a frontier system. It is that it
+// exists because someone wrote eight lines declaring what it should know and how it
+// should speak, and a compiler produced weights that did not exist before. That is
+// the claim the whole project stands on, and it is the one thing neither retrieval
+// nor fine-tuning can do: there is no base model here to retrieve into or adapt.
+
+app Scribe {
+    knows   from "data/domains/english/corpus.txt";
+
+    speaks  plain, clear;
+
+    // How hard to look. `flagship` buys a serious training budget, not merely a
+    // deeper network given the same handful of steps — a bigger model trained
+    // briefly is a worse model, not a better one.
+    effort  thorough;
+    tune    adaptation from 1 to 8;
+
+    // What it means for this to have worked: the model must predict held-out
+    // English it never saw during training.
+    expect  knows the material better than the base model;
+}
+
+build Scribe on scratch(size = medium);

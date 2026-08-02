@@ -1,0 +1,24 @@
+{
+  "in_domain": [
+    "The river runs through the valley and into the sea.",
+    "She opened the book and began to read aloud.",
+    "The city grew quickly after the railway arrived.",
+    "He asked whether the door had been locked.",
+    "Birds migrate south before the first frost."
+  ],
+  "out_of_domain": [
+    "SELECT * FROM users WHERE id = 42;",
+    "def train(model, loader): pass",
+    "0x1F push rax; mov rbx, rsp",
+    "\\begin{theorem} Let X be compact. \\end{theorem}",
+    "GET /api/v1/status HTTP/1.1"
+  ],
+  "in_domain_questions": [
+    "What happened after the railway arrived?",
+    "Why do birds migrate south?",
+    "Where does the river go?",
+    "What did she do with the book?",
+    "Who asked about the door?",
+    "How did the city change?"
+  ]
+}

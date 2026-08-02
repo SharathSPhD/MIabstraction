@@ -356,10 +356,25 @@ def chat(req: ChatReq, x_loom_key: str | None = Header(default=None)):
             404, f"there is no loadable model under the name {req.artifact!r}. "
                  "A build reports what it measured even when it fails, but only a "
                  "build that saved weights can be talked to.")
+    # Policy is applied HERE, in front of the model, because that is the only place
+    # it can be applied without changing what the model does for its own subject.
+    # The weights were never taught to refuse; a request outside the declared scope
+    # is answered by the gate and the model is not consulted at all.
+    from loom.app.policy import PolicyGate
+    report = json.loads((d / "report.json").read_text())
+    gate = PolicyGate.from_artifact(report)
+    decision = gate.decide(req.message)
+    if not decision.allowed:
+        return {"artifact": d.name, "reply": gate.refusal_text(decision),
+                "answered_by": "policy gate (the model was not consulted)",
+                "policy": decision.to_dict(), "controls_active": 0}
+
     with _chat_lock:
         lm = _load_chat_model(d)
         reply = lm.respond(req.message, max_new_tokens=200)
     return {"artifact": d.name, "reply": reply,
+            "answered_by": "the model",
+            "policy": decision.to_dict(),
             "controls_active": len(getattr(lm, "controls", []))}
 
 

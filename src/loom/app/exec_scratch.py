@@ -599,6 +599,7 @@ def execute_scratch(
     app: App,
     device: str = "cuda",
     out_dir: str | None = None,
+    train: dict | None = None,
 ) -> ExecReport:
     """Build a model from scratch, realizing all declared capabilities.
 
@@ -613,10 +614,13 @@ def execute_scratch(
     """
     t0 = time.time()
     rep = ExecReport()
-    rep.compute_target = "local_gb10 (demo budget)"
+    import torch as _t
+    rep.compute_target = (_t.cuda.get_device_name(0) if _t.cuda.is_available()
+                          else "cpu")
     rep.compute_rationale = (
-        "Pretraining is throughput-bound; training ~5k steps on 256-seq length "
-        "on GB10 for demonstration (production would use RTX 5090 for full corpus)."
+        "Read from the device this process is actually using. The string used to be "
+        "hard-coded to the GB10, so a run dispatched to the training box described "
+        "itself as local."
     )
 
     # -------- Architecture --------
@@ -650,9 +654,13 @@ def execute_scratch(
     model.to(device)
 
     # -------- Pretraining --------
+    tr = train or {}
     val_loss, val_ppl, tokens_seen, pretrain_wall, pretrain_prov = pretraining_mixture(
         corpora, app, model, backend, tokenizer=tokenizer,
-        steps=500, batch_size=8, device=device
+        steps=int(tr.get("steps", 500)),
+        batch_size=int(tr.get("batch_size", 8)),
+        lr=float(tr.get("lr", 1e-4)),
+        device=device,
     )
     rep.pretraining = pretrain_prov
     rep.tokens_seen = tokens_seen
@@ -721,8 +729,21 @@ def execute_scratch(
                         "side_effect": amp.get("side_effect"),
                     })
             if "install" in ops:
-                cap_record["install"] = op_install(backend, model, device,
-                                                   "induction", vocab_size, 128)
+                # Not an envelope check any more: the circuit is actually linked
+                # through the ABI, with the gain solved at link time and the write
+                # allocated exclusively so it can only speak where its condition
+                # fires. This is the one strategy in the catalogue that realizes a
+                # capability with no training at all.
+                from .linking import link_skill
+                try:
+                    cap_record["install"] = link_skill(
+                        model.module, dummy_a[:16], vocab=vocab_size,
+                        max_len=int(arch_spec.get("ctx", 512)), device=device)
+                    cap_record["install"]["ok"] = cap_record["install"]["linked"]
+                except Exception as exc:                       # noqa: BLE001
+                    cap_record["install"] = {
+                        "op": "install", "ok": False,
+                        "reason": f"linking raised: {exc}"}
                 measured.append(cap_record["install"])
 
         if choice.capability.kind is Kind.KNOWLEDGE:

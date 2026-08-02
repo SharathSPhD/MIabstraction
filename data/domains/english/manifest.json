@@ -1,0 +1,11 @@
+{
+  "source": "https://huggingface.co/datasets/BabyLM-community/BabyLM-2026-Strict",
+  "source_note": "simple_wiki + gutenberg + childes from the BabyLM 2026 Strict corpus \u2014 developmentally plausible English, the benchmark's own training data, concatenated for a from-scratch pretraining run",
+  "license": "CC-BY-SA-4.0 (Simple Wikipedia); public domain (Project Gutenberg); CHILDES research terms \u2014 the BabyLM 2026 Strict components",
+  "retrieved": "2026-08-02T21:13:04.652010+00:00",
+  "corpus_size_bytes": 250000000,
+  "num_documents": 2077773,
+  "corpus_sha256": "a8c6d3ce6b00375a7b2ce9e81fc46aea0ed4d992e68718c68ea8244f486f24ec",
+  "corpus_file": "corpus.txt",
+  "is_specialist": false
+}
