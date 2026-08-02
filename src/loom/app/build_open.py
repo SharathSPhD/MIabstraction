@@ -66,6 +66,24 @@ def _corpus_texts(pattern: str, limit_chars: int = 400_000) -> tuple[list[str], 
     return ([text] if text else []), {"source": src, "chars": len(text)}
 
 
+def _variety_per_probe(model, tok, device, prompts, n: int = 48) -> list[float]:
+    """Distinct-token fraction for each probe separately.
+
+    The mean hides where damage lands. Measured on Llama-3.2-1B under a deliberate
+    perturbation (`scripts/guard_resolution.py`), variety lost reads 0.036–0.053 across
+    fifteen leave-one-out probe subsets and 0.011 across the sixteenth — one probe
+    carried most of the damage, and the verdict flips across the 0.05 budget depending
+    on whether that probe was in the set. A lever that wrecks one register and leaves
+    the others intact is exactly what this guard exists to catch, and averaging is how
+    it would be missed.
+    """
+    gens = [model.generate(**tok(t, return_tensors="pt").to(device), max_new_tokens=n,
+                           do_sample=False,
+                           pad_token_id=getattr(tok, "eos_token_id", None))
+            for t in prompts]
+    return [len(set(g[0][-n:].tolist())) / n for g in gens]
+
+
 def _variety(model, tok, device, prompts, n: int = 48) -> float:
     """Fraction of distinct tokens the model generates — the guard against a lever
     that improves its objective by wrecking the model.
@@ -74,14 +92,16 @@ def _variety(model, tok, device, prompts, n: int = 48) -> float:
     number that decides what ships. Measured over 2 prompts of 20 tokens it could only
     take values in steps of 0.025, so a 0.05 budget sat two steps above zero and the
     guard was very nearly a coin toss: trials clustered at exactly 0.125 and were
-    rejected as if that were a real reading. Four prompts of 48 tokens puts the step at
-    0.005, which is finer than the budget by enough for the comparison to mean something.
+    rejected as if that were a real reading. Sixteen prompts of 48 tokens puts the step
+    at 0.0013, finer than the budget by enough for the comparison to mean something.
+
+    This stays the mean, and the threshold still compares against it, because changing
+    what the guard *decides* on would silently re-judge every build already measured.
+    What changed is that the per-probe spread is now recorded beside it, so concentrated
+    damage is visible rather than averaged away — see `_variety_per_probe`.
     """
-    gens = [model.generate(**tok(t, return_tensors="pt").to(device), max_new_tokens=n,
-                           do_sample=False,
-                           pad_token_id=getattr(tok, "eos_token_id", None))
-            for t in prompts]
-    return sum(len(set(g[0][-n:].tolist())) / n for g in gens) / len(gens)
+    per = _variety_per_probe(model, tok, device, prompts, n=n)
+    return sum(per) / max(len(per), 1)
 
 
 def _variety_resolution(prompts, n: int = 48) -> float:
@@ -108,17 +128,23 @@ def autotune_pretraining(model, tok, pattern: str, device: str,
     a real search affordable here: the old snapshot-per-trial cost 2.5GB and a full
     state-dict copy every time the compiler wanted to try one more learning rate.
     """
-    base_variety = _variety(model, tok, device, NEUTRAL)
+    base_per_probe = _variety_per_probe(model, tok, device, NEUTRAL)
+    base_variety = sum(base_per_probe) / max(len(base_per_probe), 1)
 
     def run(cfg: dict):
         out = continued_pretraining(model, tok, pattern, device,
                                     cfg["steps"], cfg["lr"], merge=False)
         if not out.get("ran"):
             return -1e9, out, out.get("reason", "did not run")
-        var = _variety(model, tok, device, NEUTRAL)
+        per = _variety_per_probe(model, tok, device, NEUTRAL)
+        var = sum(per) / max(len(per), 1)
         lost = max(0.0, base_variety - var)
         out["variety_after"] = round(var, 4)
         out["variety_lost"] = round(lost, 4)
+        # The mean decides, but the worst probe is recorded, because damage concentrated
+        # in one register averages away to nothing across sixteen.
+        worst = max((b - a for b, a in zip(base_per_probe, per)), default=0.0)
+        out["variety_lost_worst_probe"] = round(max(0.0, worst), 4)
         gain = out["heldout_loss_before"] - out["heldout_loss_after"]
         out["heldout_gain"] = round(gain, 4)
         if lost >= variety_budget:
