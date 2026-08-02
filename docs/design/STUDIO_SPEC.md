@@ -29,7 +29,7 @@ build, public under qbz506.
 | G1 | Four industrial programs compile end-to-end locally | 4 build reports, all expectations pass, committed under results/ | open |
 | G2 | Artifacts on HF | 4+ public repos under qbz506 with adapter + report + .loom source; round-trip load verified | open |
 | G3 | Studio scaffold runs locally | `npm run dev` serves editor; explain round-trips against worker | open |
-| G4 | Supabase schema live | migrations applied; RLS verified (anon can read showcase, cannot write) | open |
+| G4 | Supabase schema live | migrations applied; RLS verified (anon can read showcase, cannot write) | CLOSED 2026-08-02 — project lupnomulqaifhqcdwqsd, anon insert refused by RLS, 5 showcase programs seeded |
 | G5 | Worker executes a queued build | row in builds → worker picks up → events stream → report row written | open |
 | G6 | Tunnel chain up | Vercel /api/gpu/health returns GB10 health through Worker+KV | open |
 | G7 | Deployed on Vercel | public URL serves; replay mode works with worker offline | open |
