@@ -95,6 +95,11 @@ class ExplainReq(BaseModel):
     source: str
 
 
+class ChatReq(BaseModel):
+    artifact: str                     # build uuid, or a named artifact directory
+    message: str
+
+
 class BuildReq(BaseModel):
     source: str
     target: str = "meta-llama/Llama-3.2-1B-Instruct"
@@ -191,6 +196,104 @@ def build_report(build_id: str, x_loom_key: str | None = Header(default=None)):
     return s["report"]
 
 
+# ---- chat: talk to what was built ------------------------------------------------
+_chat_cache: dict[str, object] = {}   # one loaded artifact at a time
+
+
+def _artifact_dir(name: str) -> Path | None:
+    """Resolve a chat target to an artifact directory that holds a PASSING report.
+    A uuid means a studio build; anything else must match a named build directory.
+    Never a path: the name is checked against the actual directory listing."""
+    root = ROOT / "build"
+    try:
+        uuid.UUID(name)
+        d = root / f"studio-{name[:8]}"
+        cands = [d]
+    except ValueError:
+        cands = [d for d in root.iterdir() if d.is_dir() and d.name == name]
+    for d in cands:
+        rp = d / "report.json"
+        if rp.exists():
+            try:
+                if json.loads(rp.read_text()).get("passed"):
+                    return d
+            except json.JSONDecodeError:
+                pass
+    return None
+
+
+def _load_chat_model(d: Path):
+    key = str(d)
+    if key in _chat_cache:
+        return _chat_cache[key]
+    from loom.app.runtime import load_artifact
+    for k in list(_chat_cache):
+        m = _chat_cache.pop(k)
+        try:
+            m.detach()
+            del m.module
+        except Exception:
+            pass
+    import torch
+    torch.cuda.empty_cache()
+    lm = load_artifact(d, device="cuda")
+    _chat_cache[key] = lm
+    return lm
+
+
+def _drop_chat_cache():
+    for k in list(_chat_cache):
+        m = _chat_cache.pop(k)
+        try:
+            m.detach()
+            del m.module
+        except Exception:
+            pass
+    import torch
+    torch.cuda.empty_cache()
+
+
+@app.get("/artifacts")
+def artifacts(x_loom_key: str | None = Header(default=None)):
+    """The artifacts a user can talk to: every build directory whose report passed."""
+    _auth(x_loom_key)
+    out = []
+    root = ROOT / "build"
+    for d in sorted(root.iterdir()):
+        rp = d / "report.json"
+        if not (d.is_dir() and rp.exists()):
+            continue
+        try:
+            r = json.loads(rp.read_text())
+        except json.JSONDecodeError:
+            continue
+        if r.get("passed"):
+            out.append({"name": d.name, "app": r.get("app"),
+                        "base_model": r.get("base_model"),
+                        "n_controls": r.get("n_controls_installed")})
+    return {"artifacts": out}
+
+
+@app.post("/chat")
+def chat(req: ChatReq, x_loom_key: str | None = Header(default=None)):
+    """One turn with a verified artifact — the model a user actually gets: base
+    weights plus the adapters and calibrated controls the report verified."""
+    _auth(x_loom_key)
+    if len(req.message) > 2000:
+        raise HTTPException(422, "message too long")
+    d = _artifact_dir(req.artifact)
+    if d is None:
+        raise HTTPException(404, "no passing artifact by that name")
+    with _chat_lock:
+        lm = _load_chat_model(d)
+        reply = lm.respond(req.message, max_new_tokens=200)
+    return {"artifact": d.name, "reply": reply,
+            "controls_active": len(getattr(lm, "controls", []))}
+
+
+_chat_lock = threading.Lock()
+
+
 def _event(sb, build_id: str, seq: int, stage: str, payload: dict) -> int:
     rec = {"stage": stage, "payload": payload, "ts": time.time()}
     _state.setdefault(build_id, {}).setdefault("events", []).append(rec)
@@ -207,6 +310,7 @@ def _run_one(job: dict) -> None:
         _state[build_id]["status"] = "running"
     _rpc("rpc_worker_update", {"p_build": build_id, "p_status": "running",
                                "p_report": None, "p_hf": None})
+    _drop_chat_cache()                 # the GPU belongs to the build now
     seq = _event(sb, build_id, seq, "start",
                  {"target": target, "note": "program validated; compiler starting"})
     out_dir = ROOT / "build" / f"studio-{build_id[:8]}"

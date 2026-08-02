@@ -13,7 +13,7 @@
 // buffers the whole body. That would destroy the SSE step-by-step stream this
 // demo is built around, so here the upstream body is passed through untouched.
 
-const ALLOWED = new Set(['health', 'explain', 'build']);
+const ALLOWED = new Set(['health', 'explain', 'build', 'chat', 'artifacts']);
 
 export default {
   async fetch(request, env) {
