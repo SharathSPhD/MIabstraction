@@ -70,6 +70,39 @@ export default function Home() {
 
       <div className="divider max-w-7xl mx-auto px-6" />
 
+      {/* Abstraction layers explainer */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="section-heading">Four Layers</div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="card p-6">
+            <div className="font-serif font-bold mb-2">L3: Program</div>
+            <p className="text-xs text-muted">
+              Your Loom source: expectations and capability specs that the model must satisfy.
+            </p>
+          </div>
+          <div className="card p-6">
+            <div className="font-serif font-bold mb-2">L2: Capability Graph</div>
+            <p className="text-xs text-muted">
+              Parsed capabilities with chosen strategies and how each will be measured and verified.
+            </p>
+          </div>
+          <div className="card p-6">
+            <div className="font-serif font-bold mb-2">L1: Mech-Interp IR</div>
+            <p className="text-xs text-muted">
+              Autotune search results: parameter gaps, trial data, behavioral gate margins, and steering controls.
+            </p>
+          </div>
+          <div className="card p-6">
+            <div className="font-serif font-bold mb-2">L0: Substrate</div>
+            <p className="text-xs text-muted">
+              Base model, adapters, controls installed, calibration results, and the Hugging Face repo.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="divider max-w-7xl mx-auto px-6" />
+
       {/* Programs section */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="section-heading">Real Programs</div>

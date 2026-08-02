@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader, AlertCircle } from "lucide-react";
 import { explainProgram, buildProgram } from "@/lib/gpu";
+import { createClient } from "@/lib/supabase/client";
 
 const MODELS = [
   "meta-llama/Llama-3.2-1B-Instruct",
@@ -81,7 +82,17 @@ function StudioContent() {
     setCompilerRefusal("");
     setBuilding(true);
 
-    const result = await buildProgram(source, targetModel);
+    // Try to get session token for authenticated builds
+    let token: string | undefined;
+    const supabase = createClient();
+    if (supabase) {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.access_token) {
+        token = data.session.access_token;
+      }
+    }
+
+    const result = await buildProgram(source, targetModel, token);
 
     if (!result.ok) {
       if (result.error?.includes("422")) {

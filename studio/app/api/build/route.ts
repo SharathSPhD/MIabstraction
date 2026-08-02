@@ -17,12 +17,17 @@ export async function POST(req: NextRequest) {
   const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   let buildId: string | null = null;
+
+  // Use incoming Authorization header if present (from authenticated session)
+  const authHeader = req.headers.get("authorization");
+  const authToken = authHeader || `Bearer ${sbKey}`;
+
   if (sbUrl && sbKey) {
     const r = await fetch(`${sbUrl}/rest/v1/rpc/rpc_submit_build`, {
       method: "POST",
       headers: {
         apikey: sbKey,
-        Authorization: `Bearer ${sbKey}`,
+        Authorization: authToken,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ p_name: name, p_source: body.source, p_target: target }),

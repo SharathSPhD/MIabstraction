@@ -24,12 +24,18 @@ export async function explainProgram(
 
 export async function buildProgram(
   source: string,
-  target: string
+  target: string,
+  token?: string
 ): Promise<{ ok: boolean; id?: string; error?: string }> {
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch("/api/build", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ source, target }),
     });
 

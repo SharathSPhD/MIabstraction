@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import type { BuildReport } from "@/lib/types";
 
 type LiveRow = {
@@ -19,21 +20,34 @@ export default function BuildsPage() {
   const [showcase, setShowcase] = useState<BuildReport[]>([]);
   const [live, setLive] = useState<LiveRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
     if (!SB_URL || !SB_KEY) return;
-    const pull = () =>
-      fetch(
+
+    const pull = async () => {
+      // Try to get session token for RLS filtering
+      let authToken = `Bearer ${SB_KEY}`;
+      if (supabase) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.access_token) {
+          authToken = `Bearer ${data.session.access_token}`;
+        }
+      }
+
+      return fetch(
         `${SB_URL}/rest/v1/builds?select=id,status,target_model,created_at,hf_repo&order=created_at.desc&limit=20`,
-        { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
+        { headers: { apikey: SB_KEY, Authorization: authToken } }
       )
         .then((r) => (r.ok ? r.json() : []))
         .then((rows: LiveRow[]) => setLive(rows))
         .catch(() => {});
+    };
+
     pull();
     const t = setInterval(pull, 10_000);
     return () => clearInterval(t);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     fetch("/api/showcase")
