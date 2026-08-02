@@ -37,6 +37,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parents[1]
+# Artifacts outlive the checkout they were built in. Keeping them under the repo's
+# build/ meant moving the worker between checkouts silently emptied the model
+# library — the artifacts were untracked, so a merge never carried them.
+ARTIFACTS = Path(os.environ.get("LOOM_ARTIFACTS",
+                                Path.home() / ".loom" / "artifacts"))
 import sys
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -239,25 +244,39 @@ def build_report(build_id: str, x_loom_key: str | None = Header(default=None)):
 _chat_cache: dict[str, object] = {}   # one loaded artifact at a time
 
 
+def _has_model(d: Path) -> bool:
+    """Is there something here a person can actually talk to?
+
+    Not the same question as "did every expectation pass". A from-scratch Tutor that
+    learned its corpus and carries two calibrated controls is a usable model even
+    though one capability — a circuit that did not fit its envelope — failed. Hiding
+    it behind `passed` would mean the app refuses to show you the model your program
+    built, which is the opposite of the point. What passed is reported beside it.
+    """
+    if (d / "model" / "weights.pt").exists() or (d / "model").is_dir():
+        return True
+    try:
+        return bool(json.loads((d / "report.json").read_text()).get("base_model",
+                                                                   "").startswith(
+            ("meta-llama", "Qwen", "google", "HuggingFaceTB", "nvidia", "gpt2")))
+    except Exception:
+        return False
+
+
 def _artifact_dir(name: str) -> Path | None:
     """Resolve a chat target to an artifact directory that holds a PASSING report.
     A uuid means a studio build; anything else must match a named build directory.
     Never a path: the name is checked against the actual directory listing."""
-    root = ROOT / "build"
+    roots = [ARTIFACTS, ROOT / "build"]
     try:
         uuid.UUID(name)
-        d = root / f"studio-{name[:8]}"
-        cands = [d]
+        cands = [r / f"studio-{name[:8]}" for r in roots]
     except ValueError:
-        cands = [d for d in root.iterdir() if d.is_dir() and d.name == name]
+        cands = [d for r in roots if r.exists()
+                 for d in r.iterdir() if d.is_dir() and d.name == name]
     for d in cands:
-        rp = d / "report.json"
-        if rp.exists():
-            try:
-                if json.loads(rp.read_text()).get("passed"):
-                    return d
-            except json.JSONDecodeError:
-                pass
+        if (d / "report.json").exists() and _has_model(d):
+            return d
     return None
 
 
@@ -297,8 +316,13 @@ def artifacts(x_loom_key: str | None = Header(default=None)):
     """The artifacts a user can talk to: every build directory whose report passed."""
     _auth(x_loom_key)
     out = []
-    root = ROOT / "build"
-    for d in sorted(root.iterdir()):
+    seen: set[str] = set()
+    dirs = [d for r in (ARTIFACTS, ROOT / "build") if r.exists()
+            for d in sorted(r.iterdir())]
+    for d in dirs:
+        if d.name in seen:
+            continue
+        seen.add(d.name)
         rp = d / "report.json"
         if not (d.is_dir() and rp.exists()):
             continue
@@ -306,9 +330,15 @@ def artifacts(x_loom_key: str | None = Header(default=None)):
             r = json.loads(rp.read_text())
         except json.JSONDecodeError:
             continue
-        if r.get("passed"):
+        if _has_model(d):
             out.append({"name": d.name, "app": r.get("app"),
                         "base_model": r.get("base_model"),
+                        "substrate": r.get("substrate",
+                                           "scratch" if (d / "model" /
+                                                         "weights.pt").exists()
+                                           else "open_weight"),
+                        "passed": bool(r.get("passed")),
+                        "expectations_passed": r.get("expectations_passed"),
                         "n_controls": r.get("n_controls_installed")})
     return {"artifacts": out}
 
@@ -352,7 +382,8 @@ def _run_one(job: dict) -> None:
     _drop_chat_cache()                 # the GPU belongs to the build now
     seq = _event(sb, build_id, seq, "start",
                  {"target": target, "note": "program validated; compiler starting"})
-    out_dir = ROOT / "build" / f"studio-{build_id[:8]}"
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
+    out_dir = ARTIFACTS / f"studio-{build_id[:8]}"
     src_path = out_dir / "program.loom"
     out_dir.mkdir(parents=True, exist_ok=True)
     src_path.write_text(job["source"])

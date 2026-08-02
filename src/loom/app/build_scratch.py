@@ -63,7 +63,7 @@ def build(program: str, out_dir: str, effort: str = "demo", device: str = "cuda"
         "capabilities": [c.to_dict() for c in choices],
         "expectations": [e.describe() for e in app.expectations]}, indent=2))
 
-    result = execute_scratch(choices, spec, app, device)
+    result = execute_scratch(choices, spec, app, device, out_dir=str(art))
     report = result if isinstance(result, dict) else result.to_dict()
     report.update({
         "app": app.name,
@@ -88,7 +88,7 @@ def build(program: str, out_dir: str, effort: str = "demo", device: str = "cuda"
     # the honest report; silently reporting a pass, or silently reporting a failure
     # the substrate made impossible, are both worse.
     caps = report.get("capabilities") or report.get("per_capability") or []
-    realized = [c for c in caps if c.get("ok") or c.get("realized")]
+    realized = [c for c in caps if c.get("ok")]
     report["capabilities_realized"] = f"{len(realized)}/{len(caps)}"
     report["passed"] = bool(caps) and len(realized) == len(caps)
 

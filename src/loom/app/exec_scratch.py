@@ -55,6 +55,8 @@ class ExecReport:
     compute_target: str = ""
     compute_rationale: str = ""
     substrate_advantage: str = ""
+    model_dir: str = ""
+    controls: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -76,6 +78,9 @@ class ExecReport:
             "compute_target": self.compute_target,
             "compute_rationale": self.compute_rationale,
             "substrate_advantage": self.substrate_advantage,
+            "model_dir": self.model_dir,
+            "controls": self.controls,
+            "n_controls_installed": len(self.controls),
         }
 
 
@@ -545,6 +550,13 @@ def op_amplify(
         "ec50": ec50,
         "max_effect": round(emax, 4),
         "chosen": chosen,
+        # The direction itself, so the artifact can carry the control rather than
+        # only the story of having found one. Without this the dose curve is a
+        # measurement of a write nobody can reproduce.
+        "direction": [round(float(x), 6) for x in direction] if chosen else None,
+        "chosen_strength": chosen["strength"] if chosen else None,
+        "side_effect": chosen["side_effect"] if chosen else None,
+        "layer": layer,
     }
 
 
@@ -586,6 +598,7 @@ def execute_scratch(
     target_spec: dict,
     app: App,
     device: str = "cuda",
+    out_dir: str | None = None,
 ) -> ExecReport:
     """Build a model from scratch, realizing all declared capabilities.
 
@@ -662,21 +675,57 @@ def execute_scratch(
             "capability": choice.capability.describe(),
             "kind": choice.capability.kind.value,
             "strategy": choice.strategy.name if choice.strategy else None,
-            "ok": choice.ok,
+            # `planned` is what the compiler decided; `ok` below is what it achieved.
+            # These were the same field, and that is how a build reported five of five
+            # capabilities realized while measuring one: `choice.ok` only ever meant
+            # "a strategy exists for this kind".
+            "planned": choice.ok,
             "reason": choice.reason,
         }
+        measured: list[dict] = []
 
         if choice.ok and choice.strategy:
-            # Try to measure the strategy
-            if "read" in choice.strategy.mech_ops:
-                read_result = op_read(backend, model, device, -2, dummy_a, dummy_b)
-                cap_record["read"] = read_result
-            if "amplify" in choice.strategy.mech_ops:
-                amp_result = op_amplify(backend, model, device, -2, dummy_a, dummy_b, dummy_neutral)
-                cap_record["amplify"] = amp_result
-            if "install" in " ".join(choice.strategy.mech_ops):
-                inst_result = op_install(backend, model, device, "induction", vocab_size, 128)
-                cap_record["install"] = inst_result
+            # The mech_ops are strings like "read(feature=style)", so a membership
+            # test against the list never matched and neither op ever ran. The
+            # substring test is the one that was already correct for `install`.
+            ops = " ".join(choice.strategy.mech_ops)
+            if "read" in ops:
+                cap_record["read"] = op_read(backend, model, device, -2,
+                                             dummy_a, dummy_b)
+                measured.append(cap_record["read"])
+            if "amplify" in ops or "suppress" in ops:
+                cap_record["amplify"] = op_amplify(backend, model, device, -2,
+                                                   dummy_a, dummy_b, dummy_neutral)
+                measured.append(cap_record["amplify"])
+                # A direction that was found and dosed is a control the artifact must
+                # carry, or the model answers without the behaviour it was built for.
+                amp = cap_record["amplify"]
+                if amp.get("ok") and amp.get("direction") is not None:
+                    rep.controls.append({
+                        "name": choice.capability.name[:40],
+                        "kind": choice.capability.kind.value,
+                        "layer": -2,
+                        "strength": amp.get("chosen_strength", amp.get("strength")),
+                        "direction": amp.get("direction"),
+                        "side_effect": amp.get("side_effect"),
+                    })
+            if "install" in ops:
+                cap_record["install"] = op_install(backend, model, device,
+                                                   "induction", vocab_size, 128)
+                measured.append(cap_record["install"])
+
+        if choice.capability.kind is Kind.KNOWLEDGE:
+            # Knowledge is realized by the pretraining above; its evidence is the
+            # held-out loss, not a mech-interp op.
+            cap_record["ok"] = val_loss is not None
+            cap_record["evidence"] = {"val_loss": val_loss, "val_ppl": val_ppl}
+        elif measured:
+            cap_record["ok"] = all(m.get("ok") for m in measured)
+        else:
+            cap_record["ok"] = False
+            cap_record["unmeasured"] = (
+                "no mech-interp operation ran for this capability, so nothing about "
+                "it was verified on this substrate")
 
         rep.per_capability.append(cap_record)
 
@@ -714,6 +763,23 @@ def execute_scratch(
         "(4): when installing a compiled circuit, we can build the substrate to match "
         "the circuit's vocab and attention pattern, guaranteeing the install succeeds."
     )
+
+    # -------- Persist the model this program brought into existence --------
+    # Everything above measured a model that lived only inside this function. Saving
+    # it is not bookkeeping: on this substrate the weights ARE the product, there is
+    # no upstream repository to download them from later, and a report describing a
+    # model nobody can load is a description of nothing.
+    if out_dir:
+        md = Path(out_dir) / "model"
+        md.mkdir(parents=True, exist_ok=True)
+        torch.save({"state_dict": model.module.state_dict(),
+                    "arch": arch_spec,
+                    "vocab_size": arch_spec.get("vocab"),
+                    "tokenizer_type": tokenizer_type}, md / "weights.pt")
+        if tokenizer is not None:
+            tokenizer.save(str(md / "tokenizer.json"))
+        (md / "arch.json").write_text(json.dumps(arch_spec, indent=2, default=str))
+        rep.model_dir = str(md)
 
     rep.wall_clock_s = time.time() - t0
 

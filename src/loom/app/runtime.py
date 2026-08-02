@@ -154,6 +154,69 @@ def _reapply_adapter(module, path: Path, base: str) -> bool:
     return True
 
 
+class _BPETokenizerAdapter:
+    """Give a `tokenizers.Tokenizer` the small slice of the HF interface the runtime
+    uses, so one LoomModel serves both substrates."""
+
+    def __init__(self, tk):
+        self.tk = tk
+        v = tk.get_vocab()
+        self.eos_token_id = v.get("<EOS>", 0)
+        self.eos_token = "<EOS>"
+        self.chat_template = None          # a base LM has no conversation format
+
+    def __call__(self, text, return_tensors=None, **kw):
+        ids = self.tk.encode(text).ids
+        if return_tensors == "pt":
+            import torch as _t
+            return {"input_ids": _t.tensor([ids])}
+        return {"input_ids": ids}
+
+    def decode(self, ids, skip_special_tokens: bool = True):
+        return self.tk.decode(list(ids), skip_special_tokens=skip_special_tokens)
+
+
+class _ScratchLM(LoomModel):
+    """A from-scratch artifact. It completes text rather than answering turns,
+    because that is what it is — and saying so is better than dressing a base
+    language model up as a chat model."""
+
+    @torch.no_grad()
+    def respond(self, prompt: str, max_new_tokens: int = 60) -> str:
+        ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(self.device)
+        out = ids
+        for _ in range(max_new_tokens):
+            logits = self.module(out[:, -self.max_len:])
+            nxt = logits[:, -1].argmax(-1, keepdim=True)
+            out = torch.cat([out, nxt], dim=1)
+            if int(nxt) == getattr(self.tokenizer, "eos_token_id", -1):
+                break
+        text = self.tokenizer.decode(out[0].tolist())
+        return text[len(prompt):].strip() or text.strip() or "(no continuation)"
+
+
+def _load_scratch(weights: Path, controls, plan, report, device: str) -> LoomModel:
+    from miabstraction.models import TinyTransformer
+    blob = torch.load(weights / "weights.pt", map_location="cpu", weights_only=True)
+    a = blob["arch"]
+    module = TinyTransformer(
+        vocab=int(a.get("vocab", blob.get("vocab_size", 16000))),
+        d_model=int(a.get("width", 384)), n_layers=int(a.get("layers", 6)),
+        n_heads=int(a.get("heads", 6)), max_len=int(a.get("ctx", 512)))
+    module.load_state_dict(blob["state_dict"])
+    module.to(device).eval()
+
+    tok = None
+    tj = weights / "tokenizer.json"
+    if tj.exists():
+        from tokenizers import Tokenizer
+        tok = _BPETokenizerAdapter(Tokenizer.from_file(str(tj)))
+
+    lm = _ScratchLM(module, tok, controls, plan, report, device)
+    lm.max_len = int(a.get("ctx", 512))
+    return lm
+
+
 def load_artifact(path: str | Path, device: str = "cuda") -> LoomModel:
     """Load a built application. Everything needed is in the directory."""
     root = Path(path)
@@ -163,6 +226,13 @@ def load_artifact(path: str | Path, device: str = "cuda") -> LoomModel:
     controls = [InstalledControl(**c) for c in report.get("controls", [])]
 
     weights = root / "model"
+
+    # A model this compiler made from nothing. There is no upstream repository to
+    # fetch it from, so the artifact carries the weights themselves — and loading it
+    # is how "the app lets you work with the model you built" stops being a promise.
+    if (weights / "weights.pt").exists():
+        return _load_scratch(weights, controls, plan, report, device)
+
     if weights.exists():
         from transformers import AutoModelForCausalLM, AutoTokenizer
         module = AutoModelForCausalLM.from_pretrained(weights, dtype=torch.bfloat16)
