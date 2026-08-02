@@ -431,9 +431,33 @@ export const LayerWalk: React.FC<any> = ({ report, source }: { report: Any; sour
                        mono={false} />
                 <Field label="tokens seen" value={report.tokens_seen?.toLocaleString?.()} />
                 <Field label="held-out perplexity" value={n(report.val_ppl, 1)} />
+                {/* How many times the model saw its own training set, and what the
+                    held-out text was held out from. Without these a perplexity is not
+                    interpretable: this project shipped a 40,000-step run at perplexity
+                    153,476 whose only defect was 365 passes over a 2MB slice of a 250MB
+                    corpus, and no field in the report would have shown it. */}
+                <Field label="passes over the training set"
+                       value={report.pretraining?.epochs_over_train_set !== undefined
+                         ? `${report.pretraining.epochs_over_train_set}x`
+                         : undefined} />
+                <Field label="held out"
+                       value={report.pretraining?.heldout_sequences !== undefined
+                         ? `${report.pretraining.heldout_sequences.toLocaleString()} of ${report.pretraining.sequences?.toLocaleString?.()} sequences — ${report.pretraining.heldout_split}`
+                         : undefined}
+                       mono={false} />
+                <Field label="training loss"
+                       value={report.pretraining?.curve?.length
+                         ? `${report.pretraining.curve[0].train_loss} → ${report.pretraining.curve[report.pretraining.curve.length - 1].train_loss} over ${report.pretraining.curve.length} checkpoints`
+                         : undefined}
+                       mono={false} />
                 <Field label="weights saved to"
                        value={report.model_dir ? "model/ in this artifact" : undefined}
                        mono={false} />
+                {report.pretraining?.warning && (
+                  <p className="mt-2 text-xs text-amber-300/90">
+                    {report.pretraining.warning}
+                  </p>
+                )}
               </>
             )}
           </div>
