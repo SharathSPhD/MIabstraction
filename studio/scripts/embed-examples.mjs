@@ -7,12 +7,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const studioDir = path.resolve(__dirname, "..");
-const repoRoot = path.resolve(studioDir, "..", "..", "..", "..");
+const repoRoot = path.resolve(studioDir, "..");
 const examplesDir = path.resolve(repoRoot, "examples");
 const resultsDir = path.resolve(repoRoot, "results");
 const libDir = path.resolve(studioDir, "lib");
 
 fs.mkdirSync(libDir, { recursive: true });
+
+// On Vercel only studio/ is uploaded: the repo's examples/ and results/ are not
+// there. The committed lib/*.json embeds are the source of truth in that case.
+if (!fs.existsSync(examplesDir) || !fs.existsSync(resultsDir)) {
+  console.log("repo dirs not present; keeping committed lib embeds");
+  process.exit(0);
+}
 
 // Embed .loom example files
 const examples = {};
@@ -35,12 +42,12 @@ console.log(`Embedded ${loomFiles.length} example files`);
 
 // Build showcase from result JSON files
 const showcase = [];
-const buildFilePattern = /loom_.*_build\.json$/;
+const buildFilePattern = /^loom_.*_build.*\.json$/;
 
 try {
   const resultFiles = fs.readdirSync(resultsDir).filter(f => buildFilePattern.test(f));
 
-  for (const file of resultFiles.slice(0, 2)) {
+  for (const file of resultFiles) {
     try {
       const filepath = path.resolve(resultsDir, file);
       const data = JSON.parse(fs.readFileSync(filepath, "utf8"));

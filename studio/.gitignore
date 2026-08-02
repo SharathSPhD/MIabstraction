@@ -32,6 +32,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# embedded files generated at build time
-/lib/examples.json
-/lib/showcase.json
+.env*
