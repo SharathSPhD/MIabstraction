@@ -83,7 +83,12 @@ def _target_spec(text: str, line: int) -> dict:
 
 
 def parse_program(path: str | Path) -> Program:
-    lines = Path(path).read_text().split("\n")
+    return parse_program_text(Path(path).read_text())
+
+
+def parse_program_text(text: str) -> Program:
+    """Parse a program from its source text — the studio submits text, not files."""
+    lines = text.split("\n")
     prog = Program()
     current: App | None = None
 
