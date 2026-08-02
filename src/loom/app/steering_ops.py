@@ -287,10 +287,34 @@ CONTRASTS: dict[str, dict[str, list[str]]] = {
     },
 }
 
+# The probes the side-effect guard reads. Sixteen, not four.
+#
+# The guard's arithmetic resolution was never its binding constraint. Measured across
+# leave-one-out subsets (`scripts/guard_resolution.py`), dropping ONE of four probes moved
+# the reading by up to 0.090 — nearly twice the 0.05 budget the guard enforces. A verdict
+# that depends that much on which four sentences happened to be picked is reporting the
+# probe set. Each probe's influence on the mean falls as 1/k, so sixteen brings it under
+# the budget by a margin the script re-measures rather than assumes.
+#
+# They are deliberately unlike each other — description, fact, narrative, instruction,
+# question, list-inviting — because a homogeneous probe set is one probe with variations,
+# and would leave the guard blind to damage in every register it does not sample.
 NEUTRAL = ["The weather today is mild with a light breeze from the east.",
            "Water boils at one hundred degrees Celsius at sea level.",
            "She opened the book and began reading the first chapter.",
-           "The train arrived at the station a few minutes early."]
+           "The train arrived at the station a few minutes early.",
+           "The bridge was built in 1887 and carries two lanes of traffic.",
+           "He asked whether the meeting had been moved to Thursday.",
+           "Sunlight passes through the leaves and warms the stone path.",
+           "To change a tyre, first loosen the nuts before raising the car.",
+           "The recipe calls for flour, butter, and a pinch of salt.",
+           "Nobody knew why the lights in the hallway kept flickering.",
+           "Her flight lands at half past nine in the evening.",
+           "The committee published its findings in a short report.",
+           "A small boat drifted slowly toward the far shore.",
+           "The museum opens at ten and closes at six on weekdays.",
+           "They argued about the route for most of the afternoon.",
+           "Rain had been falling steadily since before dawn."]
 
 
 # ---------------------------------------------------------------- derived contrasts

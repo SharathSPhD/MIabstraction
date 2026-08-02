@@ -10,104 +10,176 @@
     {
       "model": "meta-llama/Llama-3.2-1B-Instruct",
       "tokens_per_probe": 48,
-      "n_probes": 4,
-      "resolution": 0.00521,
+      "n_probes": 16,
+      "resolution": 0.0013,
       "readings": [
-        0.625,
-        0.7153,
-        0.7014,
-        0.625
+        0.6847,
+        0.7028,
+        0.7,
+        0.6847,
+        0.6917,
+        0.7111,
+        0.6819,
+        0.6861,
+        0.6875,
+        0.6833,
+        0.6917,
+        0.6917,
+        0.6917,
+        0.6917,
+        0.6931,
+        0.6889
       ],
-      "mean": 0.6667,
-      "spread": 0.09028
+      "mean": 0.6914,
+      "spread": 0.02917
     },
     {
       "model": "meta-llama/Llama-3.2-1B-Instruct",
       "tokens_per_probe": 24,
-      "n_probes": 4,
-      "resolution": 0.01042,
+      "n_probes": 16,
+      "resolution": 0.0026,
       "readings": [
-        0.7917,
-        0.8056,
-        0.8472,
-        0.8056
+        0.8222,
+        0.825,
+        0.8333,
+        0.825,
+        0.8278,
+        0.8333,
+        0.825,
+        0.8167,
+        0.8306,
+        0.8194,
+        0.8222,
+        0.825,
+        0.8278,
+        0.825,
+        0.8222,
+        0.8278
       ],
-      "mean": 0.8125,
-      "spread": 0.05556
+      "mean": 0.8255,
+      "spread": 0.01667
     },
     {
       "model": "meta-llama/Llama-3.2-1B-Instruct",
       "tokens_per_probe": 12,
-      "n_probes": 4,
-      "resolution": 0.02083,
+      "n_probes": 16,
+      "resolution": 0.00521,
       "readings": [
-        0.9444,
-        0.9444,
-        1.0,
-        0.9444
+        0.9556,
+        0.9556,
+        0.9667,
+        0.9556,
+        0.9611,
+        0.9556,
+        0.9611,
+        0.9556,
+        0.9556,
+        0.9556,
+        0.9667,
+        0.9556,
+        0.9556,
+        0.9556,
+        0.9611,
+        0.9611
       ],
       "mean": 0.9583,
-      "spread": 0.05556
+      "spread": 0.01111
     },
     {
       "model": "Qwen/Qwen2.5-0.5B-Instruct",
       "tokens_per_probe": 48,
-      "n_probes": 4,
-      "resolution": 0.00521,
+      "n_probes": 16,
+      "resolution": 0.0013,
       "readings": [
+        0.7472,
+        0.75,
+        0.7597,
+        0.7556,
+        0.7528,
+        0.7556,
         0.7569,
-        0.7708,
-        0.8194,
-        0.7986
+        0.7486,
+        0.7597,
+        0.7542,
+        0.7611,
+        0.7514,
+        0.7611,
+        0.7583,
+        0.7542,
+        0.7569
       ],
-      "mean": 0.7865,
-      "spread": 0.0625
+      "mean": 0.7552,
+      "spread": 0.01389
     },
     {
       "model": "Qwen/Qwen2.5-0.5B-Instruct",
       "tokens_per_probe": 24,
-      "n_probes": 4,
-      "resolution": 0.01042,
+      "n_probes": 16,
+      "resolution": 0.0026,
       "readings": [
-        0.8611,
         0.875,
-        0.8611,
-        0.9028
+        0.8778,
+        0.875,
+        0.8833,
+        0.8833,
+        0.8806,
+        0.8722,
+        0.8806,
+        0.8806,
+        0.875,
+        0.8722,
+        0.8722,
+        0.875,
+        0.8778,
+        0.8833,
+        0.8778
       ],
-      "mean": 0.875,
-      "spread": 0.04167
+      "mean": 0.8776,
+      "spread": 0.01111
     },
     {
       "model": "Qwen/Qwen2.5-0.5B-Instruct",
       "tokens_per_probe": 12,
-      "n_probes": 4,
-      "resolution": 0.02083,
+      "n_probes": 16,
+      "resolution": 0.00521,
       "readings": [
+        0.9556,
+        0.9611,
+        0.9556,
+        0.9556,
+        0.9611,
+        0.9556,
+        0.9556,
         0.9722,
-        1.0,
-        0.9722,
-        0.9722
+        0.9667,
+        0.9556,
+        0.9556,
+        0.9556,
+        0.9556,
+        0.9556,
+        0.9611,
+        0.9556
       ],
-      "mean": 0.9792,
-      "spread": 0.02778
+      "mean": 0.9583,
+      "spread": 0.01667
     }
   ],
-  "worst_spread_across_probe_subsets": 0.09028,
+  "worst_spread_across_probe_subsets": 0.02917,
   "mean_shift_48_to_12_tokens": [
     {
       "model": "meta-llama/Llama-3.2-1B-Instruct",
-      "mean_48": 0.6667,
+      "mean_48": 0.6914,
       "mean_12": 0.9583,
-      "shift": 0.2916
+      "shift": 0.2669
     },
     {
       "model": "Qwen/Qwen2.5-0.5B-Instruct",
-      "mean_48": 0.7865,
-      "mean_12": 0.9792,
-      "shift": 0.1927
+      "mean_48": 0.7552,
+      "mean_12": 0.9583,
+      "shift": 0.2031
     }
   ],
-  "verdict": "the largest wobble from re-ordering the probe set is 0.09028, NOT safely below the 0.05 budget, so a rejection at this budget is reporting the lever rather than which probes were drawn",
+  "verdict": "the largest wobble from re-ordering the probe set is 0.02917, NOT safely below the 0.05 budget, so a rejection at this budget is reporting the lever rather than which probes were drawn",
   "caveat": "Greedy decoding makes a repeat on identical prompts identical, so the spread here is across leave-one-out probe subsets, not across sampling. It bounds the guard's sensitivity to probe choice, which is the free parameter; it does not bound sampling noise, because the guard does not sample.",
   "the_reading_is_not_portable_across_token_counts": "Distinct-token fraction rises as the generation shortens \u2014 there is less room to repeat \u2014 so the same unchanged model reads 0.667 at 48 tokens and 0.958 at 12. The shift is several times the 0.05 budget. The budget is therefore only meaningful at a fixed token count, and a variety number quoted without its `n` says nothing. Both sides of every comparison the compiler makes use the same n, so its verdicts are sound; the number must not be read as an absolute property of a model."
 }

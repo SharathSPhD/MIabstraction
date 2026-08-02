@@ -37,7 +37,11 @@ EFFORTS = {
     "demo": {"size": "small", "steps": 500, "batch_size": 8, "lr": 1e-4,
              "corpus_chars": 2_000_000,
              "note": "demo scale: a real model, small enough to watch being built"},
-    "flagship": {"size": "medium", "steps": 40_000, "batch_size": 16, "lr": 3e-4,
+    # 40,000 steps reached 3.04 epochs and a held-out perplexity of 35.2 with the loss
+    # still falling — underfit, not incapable. 90,000 puts it near 6.8 epochs, which is
+    # still under the eight-pass mark where a held-out number starts measuring
+    # memorisation instead of generalisation.
+    "flagship": {"size": "medium", "steps": 90_000, "batch_size": 16, "lr": 3e-4,
                  "corpus_chars": 250_000_000,
                  "note": "flagship scale: a serious pretraining run on the training "
                          "box — hours, not seconds"},
