@@ -1,0 +1,649 @@
+{
+  "app": "Counsel",
+  "base_model": "meta-llama/Llama-3.2-1B-Instruct",
+  "substrate": "open_weight",
+  "device": "NVIDIA GB10",
+  "params": 1235814400,
+  "side_effect_guard": {
+    "budget": 0.05,
+    "resolution": 0.0052,
+    "note": "the smallest change the output-variety guard can report; a budget near this is a coin toss rather than a measurement"
+  },
+  "search_space": {
+    "layers": [
+      -10,
+      -8,
+      -5,
+      -2
+    ],
+    "multipliers": [
+      0.5,
+      0.820335356,
+      1.3459001926,
+      2.2081790273
+    ],
+    "pretraining_lr": [
+      1e-06,
+      1.7302e-06,
+      2.9936e-06,
+      5.1795e-06
+    ],
+    "pretraining_steps": [
+      20,
+      36,
+      66,
+      120
+    ],
+    "variety_budget": 0.05,
+    "declared": {
+      "effort": "thorough",
+      "trials_per_lever": 4,
+      "bounds": {
+        "adaptation": [
+          1.0,
+          6.0
+        ],
+        "steering": [
+          0.5,
+          3.0
+        ],
+        "insistence": [
+          0.5,
+          0.5
+        ]
+      }
+    },
+    "model_depth": 16,
+    "unrecognised_tune_names": [],
+    "explained": "search effort: thorough (4 values per lever)\na behavioural control counts only if it recovers 50% of what stating the rule outright would do  [tune insistence]\n  steering:\n    layer       -10, -8, -5, -2                    [default]  where in the stack the behaviour is legible enough to write to\n    multiplier  0.5, 0.820335, 1.3459, 2.20818     [tune steering]  how hard to push, as a multiple of the direction's own scale\n  adaptation:\n    rank        1, 2, 3, 4                         [tune adaptation]  how much capacity the adapter has to change behaviour\n    lr          2e-05, 3.81111e-05, 7.26229e-05, 0.000138387 [tune adaptation]  how far each step moves the adapter\n    steps       30, 60, 120, 240                   [default]  how long to train the adapter\n  pretraining:\n    lr          1e-06, 1.7302e-06, 2.9936e-06, 5.1795e-06 [tune adaptation]  how far each step moves the weights themselves\n    steps       20, 36, 66, 120                    [default]  how much of the corpus to walk through\n  -> 16 configurations per behavioural capability"
+  },
+  "capabilities": [
+    {
+      "capability": "know the material in data/domains/legal/corpus.txt",
+      "kind": "knowledge",
+      "strategy": "continued_pretraining",
+      "execution": {
+        "autotune": {
+          "levers_searched": [
+            "lr",
+            "steps"
+          ],
+          "n_trials": 16,
+          "n_admissible": 16,
+          "target": 0.05,
+          "target_met": true,
+          "best": {
+            "config": {
+              "lr": 5.1795e-06,
+              "steps": 120
+            },
+            "score": 0.0766,
+            "metrics": {
+              "ran": true,
+              "source": "data/domains/legal/corpus.txt",
+              "chars": 400000,
+              "steps": 120,
+              "lr": 5.1795e-06,
+              "rank": 8,
+              "kept": false,
+              "adapter_saved_to": null,
+              "adapter_ratio": 0.002433,
+              "base_weights_unchanged": true,
+              "heldout_loss_before": 2.9528,
+              "heldout_loss_after": 2.8762,
+              "heldout_ppl_before": 19.16,
+              "heldout_ppl_after": 17.75,
+              "improved": true,
+              "variety_after": 0.6667,
+              "variety_lost": 0.0,
+              "heldout_gain": 0.0766
+            }
+          },
+          "trials": [
+            {
+              "config": {
+                "lr": 1e-06,
+                "steps": 20
+              },
+              "score": 0.0008,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 20,
+                "lr": 1e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.952,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.14,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0008
+              },
+              "rejected": "",
+              "seconds": 6.64
+            },
+            {
+              "config": {
+                "lr": 1e-06,
+                "steps": 36
+              },
+              "score": 0.001,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 36,
+                "lr": 1e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9518,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.14,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.001
+              },
+              "rejected": "",
+              "seconds": 8.56
+            },
+            {
+              "config": {
+                "lr": 1e-06,
+                "steps": 66
+              },
+              "score": 0.0052,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 66,
+                "lr": 1e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9476,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.06,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0052
+              },
+              "rejected": "",
+              "seconds": 12.58
+            },
+            {
+              "config": {
+                "lr": 1e-06,
+                "steps": 120
+              },
+              "score": 0.0099,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 120,
+                "lr": 1e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9429,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.97,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0099
+              },
+              "rejected": "",
+              "seconds": 19.84
+            },
+            {
+              "config": {
+                "lr": 1.7302e-06,
+                "steps": 20
+              },
+              "score": 0.0023,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 20,
+                "lr": 1.7302e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9505,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.12,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0023
+              },
+              "rejected": "",
+              "seconds": 6.42
+            },
+            {
+              "config": {
+                "lr": 1.7302e-06,
+                "steps": 36
+              },
+              "score": 0.0039,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 36,
+                "lr": 1.7302e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9489,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.08,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0039
+              },
+              "rejected": "",
+              "seconds": 8.57
+            },
+            {
+              "config": {
+                "lr": 1.7302e-06,
+                "steps": 66
+              },
+              "score": 0.0112,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 66,
+                "lr": 1.7302e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9416,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.95,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0112
+              },
+              "rejected": "",
+              "seconds": 12.6
+            },
+            {
+              "config": {
+                "lr": 1.7302e-06,
+                "steps": 120
+              },
+              "score": 0.0254,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 120,
+                "lr": 1.7302e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9274,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.68,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0254
+              },
+              "rejected": "",
+              "seconds": 19.88
+            },
+            {
+              "config": {
+                "lr": 2.9936e-06,
+                "steps": 20
+              },
+              "score": 0.0035,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 20,
+                "lr": 2.9936e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9493,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.09,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0035
+              },
+              "rejected": "",
+              "seconds": 6.43
+            },
+            {
+              "config": {
+                "lr": 2.9936e-06,
+                "steps": 36
+              },
+              "score": 0.0085,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 36,
+                "lr": 2.9936e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9443,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.0,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0085
+              },
+              "rejected": "",
+              "seconds": 8.58
+            },
+            {
+              "config": {
+                "lr": 2.9936e-06,
+                "steps": 66
+              },
+              "score": 0.0203,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 66,
+                "lr": 2.9936e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9325,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.77,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0203
+              },
+              "rejected": "",
+              "seconds": 12.63
+            },
+            {
+              "config": {
+                "lr": 2.9936e-06,
+                "steps": 120
+              },
+              "score": 0.0414,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 120,
+                "lr": 2.9936e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9114,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.38,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0414
+              },
+              "rejected": "",
+              "seconds": 19.89
+            },
+            {
+              "config": {
+                "lr": 5.1795e-06,
+                "steps": 20
+              },
+              "score": 0.0083,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 20,
+                "lr": 5.1795e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9445,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 19.0,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0083
+              },
+              "rejected": "",
+              "seconds": 6.44
+            },
+            {
+              "config": {
+                "lr": 5.1795e-06,
+                "steps": 36
+              },
+              "score": 0.0206,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 36,
+                "lr": 5.1795e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9322,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.77,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0206
+              },
+              "rejected": "",
+              "seconds": 8.6
+            },
+            {
+              "config": {
+                "lr": 5.1795e-06,
+                "steps": 66
+              },
+              "score": 0.0419,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 66,
+                "lr": 5.1795e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.9109,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 18.37,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0419
+              },
+              "rejected": "",
+              "seconds": 12.62
+            },
+            {
+              "config": {
+                "lr": 5.1795e-06,
+                "steps": 120
+              },
+              "score": 0.0766,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/legal/corpus.txt",
+                "chars": 400000,
+                "steps": 120,
+                "lr": 5.1795e-06,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.9528,
+                "heldout_loss_after": 2.8762,
+                "heldout_ppl_before": 19.16,
+                "heldout_ppl_after": 17.75,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0.0,
+                "heldout_gain": 0.0766
+              },
+              "rejected": "",
+              "seconds": 19.9
+            }
+          ],
+          "seconds": 190.2
+        },
+        "applied": {
+          "lr": 5.1795e-06,
+          "steps": 120
+        },
+        "adapter_saved_to": "/home/sharaths/.loom/artifacts/studio-194dae42/adapter.pt",
+        "ran": true,
+        "reason": ""
+      },
+      "realized": true
+    },
+    {
+      "capability": "speak formal, careful",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "autotune": {
+        "skipped": "not lowered to steering: the target of 0.5732 nats (0.5 of a 1.14647-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)",
+        "target_met": false,
+        "direction_from": "generic style contrast: the capability's own text could not be turned into an instruction, so this direction is not specific to it",
+        "scale": {
+          "instructed_cost": 0.8507,
+          "uninstructed_cost": 1.9972,
+          "gap": 1.1465,
+          "must_recover": 0.5,
+          "target_nats": 0.5732
+        }
+      },
+      "realized": false
+    },
+    {
+      "capability": "always says when a question needs a licensed attorney",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "autotune": {
+        "skipped": "not lowered to steering: the target of 0.5732 nats (0.5 of a 1.14647-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)",
+        "target_met": false,
+        "direction_from": "generic style contrast: the capability's own text could not be turned into an instruction, so this direction is not specific to it",
+        "scale": {
+          "instructed_cost": 0.8507,
+          "uninstructed_cost": 1.9972,
+          "gap": 1.1465,
+          "must_recover": 0.5,
+          "target_nats": 0.5732
+        }
+      },
+      "realized": false
+    }
+  ],
+  "policy": [
+    {
+      "kind": "prohibition",
+      "clause": "never gives legal advice",
+      "name": "gives legal advice",
+      "enforced_by": "intermediary at request time (not in weights)"
+    },
+    {
+      "kind": "guardrail",
+      "clause": "refuse questions that are not about law",
+      "name": "questions that are not about law",
+      "enforced_by": "intermediary at request time (not in weights)"
+    }
+  ],
+  "controls": [],
+  "joint_calibration": {
+    "attempted": false
+  },
+  "n_controls_installed": 0,
+  "expectations": [
+    {
+      "expectation": "predicts held-out material better than the base model did",
+      "kind": "knows_better",
+      "passed": true,
+      "evidence": "held-out loss 2.9528 -> 2.8762 on material excluded from training",
+      "detail": "improved by 0.0766 nats"
+    }
+  ],
+  "verified_against_recitation_of": 0,
+  "expectations_passed": 1,
+  "passed": true,
+  "wall_clock_s": 230.0
+}

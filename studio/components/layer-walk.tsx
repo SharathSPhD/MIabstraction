@@ -176,6 +176,16 @@ function CapabilityBlock({ cap }: { cap: Any }): React.ReactElement {
           <div className="mt-1 font-mono text-[12px] text-gold-400/90">
             {STRATEGY_OPS[cap.strategy] ?? cap.strategy ?? "no strategy"}
           </div>
+          {(cap.ok !== undefined || cap.realized !== undefined) && (
+            <div className="mt-1 text-[11px] font-mono">
+              <span className={cap.ok ?? cap.realized ? "text-emerald-400" : "text-amber-400/90"}>
+                {cap.ok ?? cap.realized ? "measured and realized" : "not realized"}
+              </span>
+              {cap.planned !== undefined && cap.planned !== (cap.ok ?? cap.realized) && (
+                <span className="text-slate-500"> · the compiler planned it</span>
+              )}
+            </div>
+          )}
         </div>
         <ChevronRight
           className={`w-4 h-4 mt-1 shrink-0 text-slate-500 transition-transform ${open ? "rotate-90" : ""}`}
@@ -235,6 +245,37 @@ function CapabilityBlock({ cap }: { cap: Any }): React.ReactElement {
             </div>
           )}
 
+          {cap.install && (
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-gold-500/80 mb-1">
+                L1 · linked unit — compiled once, grafted with no training
+              </div>
+              <Field label="unit" value={cap.install.unit} mono={false} />
+              <Field label="linked" value={String(cap.install.linked)} />
+              <Field label="gain solved at link time"
+                     value={n(cap.install.gain_solved_at_link_time, 5)} />
+              <Field label="fires on this share of traffic"
+                     value={n(cap.install.firing_rate_on_host_traffic, 3)} />
+              <Field label="write allocation" value={cap.install.write_allocation}
+                     mono={false} />
+              <Field label="skill alone → linked"
+                     value={`${n(cap.install.skill_alone, 3)} → ${n(cap.install.skill_linked, 3)}`} />
+              <Field label="host paid (nats)" value={n(cap.install.host_paid_nats, 4)} />
+              {cap.install.reason && (
+                <p className="text-xs text-amber-400/90 mt-1">{cap.install.reason}</p>
+              )}
+            </div>
+          )}
+
+          {cap.unmeasured && (
+            <p className="text-xs text-amber-400/90">{cap.unmeasured}</p>
+          )}
+          {cap.amplify?.shared_direction_caveat && (
+            <p className="text-xs text-amber-400/90">
+              {cap.amplify.shared_direction_caveat}
+            </p>
+          )}
+
           {exec.heldout_loss_before !== undefined || best.heldout_loss_before !== undefined ? (
             <div>
               <div className="text-[11px] uppercase tracking-wider text-gold-500/80 mb-1">
@@ -244,6 +285,16 @@ function CapabilityBlock({ cap }: { cap: Any }): React.ReactElement {
                 label="held-out loss"
                 value={`${n(best.heldout_loss_before ?? exec.heldout_loss_before)} → ${n(best.heldout_loss_after ?? exec.heldout_loss_after)}`}
               />
+              <Field
+                label="held-out perplexity"
+                value={
+                  (best.heldout_ppl_before ?? exec.heldout_ppl_before) !== undefined
+                    ? `${n(best.heldout_ppl_before ?? exec.heldout_ppl_before, 1)} → ${n(best.heldout_ppl_after ?? exec.heldout_ppl_after, 1)}`
+                    : undefined
+                }
+              />
+              <Field label="output variety kept"
+                     value={n(best.variety_after ?? exec.variety_after, 3)} />
               <Field label="base weights unchanged" value={String(best.base_weights_unchanged ?? exec.base_weights_unchanged ?? "—")} />
               <Field label="adapter saved to" value={exec.adapter_saved_to?.split("/").pop()} />
               {exec.autotune?.trials && <TrialTable trials={exec.autotune.trials} />}
@@ -325,6 +376,34 @@ export const LayerWalk: React.FC<any> = ({ report, source }: { report: Any; sour
         </p>
       </section>
 
+      {/* --------------------------------------------------------- policy */}
+      {(report.policy?.length ?? 0) > 0 && (
+        <section>
+          <Rail
+            id="P"
+            title="Policy"
+            sub="declared by the program, enforced in front of the model — never compiled into it"
+          />
+          <div className="card p-4">
+            <p className="text-sm text-slate-300 mb-3">
+              These clauses changed no weight. Every dose strong enough to make a
+              model refuse off-subject questions also made it refuse its own, so
+              scope moved to an intermediary that reads a request before the model
+              does. In-subject behaviour is preserved exactly, because the model is
+              not consulted differently — it is the same model.
+            </p>
+            {report.policy.map((p: Any, i: number) => (
+              <div key={i} className="border-t border-night-700/60 py-2">
+                <div className="text-slate-100">{p.clause}</div>
+                <div className="text-[11px] font-mono text-slate-500 mt-0.5">
+                  {p.kind} · {p.enforced_by}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ---------------------------------------------------------------- L0 */}
       <section>
         <Rail
@@ -345,6 +424,16 @@ export const LayerWalk: React.FC<any> = ({ report, source }: { report: Any; sour
               <>
                 <Field label="architecture chosen" value={report.architecture_choice} mono={false} />
                 <Field label="effort" value={report.effort} mono={false} />
+                <Field label="tokenizer"
+                       value={report.tokenizer_type
+                         ? `${report.tokenizer_type}, ${report.tokenizer_vocab_size?.toLocaleString?.() ?? report.tokenizer_vocab_size} tokens, learned from the corpus`
+                         : undefined}
+                       mono={false} />
+                <Field label="tokens seen" value={report.tokens_seen?.toLocaleString?.()} />
+                <Field label="held-out perplexity" value={n(report.val_ppl, 1)} />
+                <Field label="weights saved to"
+                       value={report.model_dir ? "model/ in this artifact" : undefined}
+                       mono={false} />
               </>
             )}
           </div>

@@ -71,8 +71,19 @@ try {
       const data = JSON.parse(fs.readFileSync(filepath, "utf8"));
       if (!data.passed) continue;   // the showcase carries verified builds only
       const key = `${data.app}::${data.base_model}`;
+      const substrate =
+        data.substrate ||
+        (String(data.base_model || "").startsWith("scratch")
+          ? "scratch"
+          : "open_weight");
       byKey.set(key, {
         id: `replay-0`,
+        substrate,
+        // A model the compiler made has no upstream to compare against; saying so
+        // is the difference between the two substrates the app must convey.
+        made_here: substrate === "scratch",
+        val_ppl: data.val_ppl ?? null,
+        policy: data.policy || [],
         app: data.app,
         base_model: data.base_model,
         passed: data.passed,

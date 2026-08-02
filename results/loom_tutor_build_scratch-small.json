@@ -1,0 +1,350 @@
+{
+  "backend": "scratch",
+  "architecture_choice": "decoder (281w, 6L)",
+  "architecture_rationale": "Knowledge=1, Skills=1, Style=1, Guardrails=0. Using pure decoder stack (attention all layers). ",
+  "tokenizer_type": "bpe",
+  "tokenizer_vocab_size": 2229,
+  "tokenizer_description": "BPE trained on 1 file(s): corpus.txt",
+  "pretraining_corpus": "data/domains/grammar/corpus.txt",
+  "pretraining": {
+    "ran": true,
+    "sources": [
+      "data/domains/grammar/corpus.txt"
+    ],
+    "weights": {
+      "data/domains/grammar/corpus.txt": 1.0
+    },
+    "sequences": 379,
+    "seq_len": 256,
+    "train_sequences": 341,
+    "heldout_sequences": 38,
+    "steps": 500,
+    "lr": 0.0001,
+    "final_train_loss": 1.0609
+  },
+  "tokens_seen": 1015552,
+  "val_loss": 1.102451777458191,
+  "val_ppl": 3.0115406072089295,
+  "wall_clock_s": 10.1,
+  "per_capability": [
+    {
+      "capability": "know the material in data/domains/grammar/corpus.txt",
+      "kind": "knowledge",
+      "strategy": "pretraining_mixture",
+      "planned": true,
+      "reason": "the material is in the weights from the start, which is only possible when we are the ones training the model (chosen on scratch: pretrain available)",
+      "ok": true,
+      "evidence": {
+        "val_loss": 1.102451777458191,
+        "val_ppl": 3.0115406072089295
+      }
+    },
+    {
+      "capability": "be able to explain step by step",
+      "kind": "skill",
+      "strategy": "install_compiled_circuit",
+      "planned": true,
+      "reason": "the skill exists as a verified circuit and can be written into the weights directly, with no training at all (chosen on scratch: install_circuit available)",
+      "install": {
+        "op": "install",
+        "ok": false,
+        "circuit": "induction",
+        "envelope": {
+          "vocab_max": 31,
+          "len_max": 63,
+          "distribution": "token-diverse sequences with genuine repeats"
+        },
+        "problems": [
+          "host vocabulary 2,229 exceeds 31",
+          "sequence length 128 exceeds 63"
+        ]
+      },
+      "ok": false
+    },
+    {
+      "capability": "speak patient, plain",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "planned": true,
+      "reason": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training (chosen on scratch: steer, monitor available)",
+      "read": {
+        "op": "read",
+        "ok": true,
+        "probe_acc": 1.0,
+        "layer": -2
+      },
+      "amplify": {
+        "op": "amplify",
+        "ok": false,
+        "dose_curve": [
+          {
+            "strength": 0.123,
+            "effect": -0.0086,
+            "side_effect": 0.0084
+          },
+          {
+            "strength": 0.2459,
+            "effect": -0.0171,
+            "side_effect": 0.0168
+          },
+          {
+            "strength": 0.4918,
+            "effect": -0.0341,
+            "side_effect": 0.0335
+          },
+          {
+            "strength": 0.9836,
+            "effect": -0.0674,
+            "side_effect": 0.0666
+          },
+          {
+            "strength": 1.9673,
+            "effect": -0.1309,
+            "side_effect": 0.1313
+          }
+        ],
+        "ec50": null,
+        "max_effect": -0.0086,
+        "chosen": null,
+        "direction": null,
+        "chosen_strength": null,
+        "side_effect": null,
+        "layer": -2
+      },
+      "ok": false
+    },
+    {
+      "capability": "always names the rule it applied",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "planned": true,
+      "reason": "watch the internal signal for the property and push it when it slips, with a bounded side-effect (chosen on scratch: monitor, steer available)",
+      "read": {
+        "op": "read",
+        "ok": true,
+        "probe_acc": 1.0,
+        "layer": -2
+      },
+      "amplify": {
+        "op": "amplify",
+        "ok": false,
+        "dose_curve": [
+          {
+            "strength": 0.123,
+            "effect": -0.0086,
+            "side_effect": 0.0084
+          },
+          {
+            "strength": 0.2459,
+            "effect": -0.0171,
+            "side_effect": 0.0168
+          },
+          {
+            "strength": 0.4918,
+            "effect": -0.0341,
+            "side_effect": 0.0335
+          },
+          {
+            "strength": 0.9836,
+            "effect": -0.0674,
+            "side_effect": 0.0666
+          },
+          {
+            "strength": 1.9673,
+            "effect": -0.1309,
+            "side_effect": 0.1313
+          }
+        ],
+        "ec50": null,
+        "max_effect": -0.0086,
+        "chosen": null,
+        "direction": null,
+        "chosen_strength": null,
+        "side_effect": null,
+        "layer": -2
+      },
+      "ok": false
+    }
+  ],
+  "gates": [
+    {
+      "metric": "val_loss",
+      "op": "<",
+      "threshold": 5.0,
+      "measured": 1.102451777458191,
+      "passed": true
+    },
+    {
+      "metric": "val_ppl",
+      "op": "<",
+      "threshold": 100.0,
+      "measured": 3.0115406072089295,
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "compute_target": "local_gb10 (demo budget)",
+  "compute_rationale": "Pretraining is throughput-bound; training ~5k steps on 256-seq length on GB10 for demonstration (production would use RTX 5090 for full corpus).",
+  "substrate_advantage": "From-scratch substrate permits: (1) choosing the exact architecture (here, decoder) to match app demands, (2) training a tokenizer on the corpus (bpe), (3) controlling the data mixture by weight, (4) building the substrate INSIDE a circuit's verified envelope (unlike open-weight, where architecture is frozen). This executor demonstrates lever (4): when installing a compiled circuit, we can build the substrate to match the circuit's vocab and attention pattern, guaranteeing the install succeeds.",
+  "model_dir": "/home/sharaths/.loom/artifacts/studio-3e39d56d/model",
+  "controls": [],
+  "n_controls_installed": 0,
+  "app": "Tutor",
+  "base_model": "scratch(small)",
+  "substrate": "scratch",
+  "effort": "demo",
+  "effort_note": "demo scale: a real model, small enough to watch being built",
+  "device": "NVIDIA GB10",
+  "capabilities": [
+    {
+      "capability": "know the material in data/domains/grammar/corpus.txt",
+      "kind": "knowledge",
+      "strategy": "pretraining_mixture",
+      "planned": true,
+      "reason": "the material is in the weights from the start, which is only possible when we are the ones training the model (chosen on scratch: pretrain available)",
+      "ok": true,
+      "evidence": {
+        "val_loss": 1.102451777458191,
+        "val_ppl": 3.0115406072089295
+      }
+    },
+    {
+      "capability": "be able to explain step by step",
+      "kind": "skill",
+      "strategy": "install_compiled_circuit",
+      "planned": true,
+      "reason": "the skill exists as a verified circuit and can be written into the weights directly, with no training at all (chosen on scratch: install_circuit available)",
+      "install": {
+        "op": "install",
+        "ok": false,
+        "circuit": "induction",
+        "envelope": {
+          "vocab_max": 31,
+          "len_max": 63,
+          "distribution": "token-diverse sequences with genuine repeats"
+        },
+        "problems": [
+          "host vocabulary 2,229 exceeds 31",
+          "sequence length 128 exceeds 63"
+        ]
+      },
+      "ok": false
+    },
+    {
+      "capability": "speak patient, plain",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "planned": true,
+      "reason": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training (chosen on scratch: steer, monitor available)",
+      "read": {
+        "op": "read",
+        "ok": true,
+        "probe_acc": 1.0,
+        "layer": -2
+      },
+      "amplify": {
+        "op": "amplify",
+        "ok": false,
+        "dose_curve": [
+          {
+            "strength": 0.123,
+            "effect": -0.0086,
+            "side_effect": 0.0084
+          },
+          {
+            "strength": 0.2459,
+            "effect": -0.0171,
+            "side_effect": 0.0168
+          },
+          {
+            "strength": 0.4918,
+            "effect": -0.0341,
+            "side_effect": 0.0335
+          },
+          {
+            "strength": 0.9836,
+            "effect": -0.0674,
+            "side_effect": 0.0666
+          },
+          {
+            "strength": 1.9673,
+            "effect": -0.1309,
+            "side_effect": 0.1313
+          }
+        ],
+        "ec50": null,
+        "max_effect": -0.0086,
+        "chosen": null,
+        "direction": null,
+        "chosen_strength": null,
+        "side_effect": null,
+        "layer": -2
+      },
+      "ok": false
+    },
+    {
+      "capability": "always names the rule it applied",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "planned": true,
+      "reason": "watch the internal signal for the property and push it when it slips, with a bounded side-effect (chosen on scratch: monitor, steer available)",
+      "read": {
+        "op": "read",
+        "ok": true,
+        "probe_acc": 1.0,
+        "layer": -2
+      },
+      "amplify": {
+        "op": "amplify",
+        "ok": false,
+        "dose_curve": [
+          {
+            "strength": 0.123,
+            "effect": -0.0086,
+            "side_effect": 0.0084
+          },
+          {
+            "strength": 0.2459,
+            "effect": -0.0171,
+            "side_effect": 0.0168
+          },
+          {
+            "strength": 0.4918,
+            "effect": -0.0341,
+            "side_effect": 0.0335
+          },
+          {
+            "strength": 0.9836,
+            "effect": -0.0674,
+            "side_effect": 0.0666
+          },
+          {
+            "strength": 1.9673,
+            "effect": -0.1309,
+            "side_effect": 0.1313
+          }
+        ],
+        "ec50": null,
+        "max_effect": -0.0086,
+        "chosen": null,
+        "direction": null,
+        "chosen_strength": null,
+        "side_effect": null,
+        "layer": -2
+      },
+      "ok": false
+    }
+  ],
+  "capabilities_realized": "1/4",
+  "expectations": [
+    {
+      "expectation": "predicts held-out material better than the base model did",
+      "kind": "knows_better",
+      "passed": null,
+      "detail": "not applicable on this substrate: there is no base model on this substrate: the compiler made this one, so 'better than the base model' has no referent",
+      "evidence": ""
+    }
+  ],
+  "policy": [],
+  "expectations_note": "The from-scratch substrate realizes capabilities but its acceptance tests are the program's, and the clinic's two were written for a model that already speaks. The measurement that does mean something here is the held-out perplexity: 3.0115406072089295."
+}
