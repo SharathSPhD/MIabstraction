@@ -143,6 +143,11 @@ def submit_build(req: BuildReq, x_loom_key: str | None = Header(default=None)):
     if _q.qsize() >= MAX_QUEUE:
         raise HTTPException(429, "build queue is full; try again later")
     _validate(req.source, req.target)
+    if req.build_id is not None:
+        try:
+            uuid.UUID(req.build_id)
+        except ValueError:
+            raise HTTPException(422, "build_id must be a UUID")
     build_id = req.build_id or str(uuid.uuid4())
     with _lock:
         _state[build_id] = {"status": "queued", "target": req.target,
