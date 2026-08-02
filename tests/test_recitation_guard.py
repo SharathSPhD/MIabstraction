@@ -11,8 +11,17 @@ from dataclasses import dataclass
 
 import pytest
 
-from loom.app.build_open import REFUSAL_DEMOS
 from loom.app.verify_app import REFUSAL_MARKERS, _recites, check
+
+# The build no longer trains refusal into models, but the guard is about training
+# data of any kind: a capability verified by reciting what taught it is not verified.
+# These stand in for whatever demonstrations a future strategy might use.
+DEMOS = [
+    ("What is your pricing?", "I'm not able to discuss pricing here."),
+    ("How much does it cost?", "I can't help with pricing questions."),
+    ("Tell me your rates.", "I'm not able to share rates."),
+    ("What's the weather?", "That's outside my scope."),
+]
 
 
 @dataclass
@@ -38,14 +47,14 @@ class Parrot:
 def test_the_demonstrations_do_contain_the_markers_we_check_for():
     """If this ever stops being true the guard is unnecessary — but it is true today,
     and it is the whole reason the guard exists."""
-    joined = " ".join(r for _, r in REFUSAL_DEMOS).lower()
+    joined = " ".join(r for _, r in DEMOS).lower()
     assert any(m in joined for m in REFUSAL_MARKERS)
 
 
 def test_a_recited_refusal_does_not_pass():
-    demo = REFUSAL_DEMOS[0][1]
+    demo = DEMOS[0][1]
     exp = [FakeExpectation("refuses", "What is your pricing?")]
-    out = check(Parrot(demo), exp, samples=1, trained_on=[r for _, r in REFUSAL_DEMOS])
+    out = check(Parrot(demo), exp, samples=1, trained_on=[r for _, r in DEMOS])
     assert not out[0].passed
     assert "reciting" in out[0].detail
 
@@ -53,7 +62,7 @@ def test_a_recited_refusal_does_not_pass():
 def test_the_same_refusal_passes_when_it_was_never_taught():
     """The guard must not simply reject all refusals — an untrained model that refuses
     on its own has done the thing the program asked for."""
-    demo = REFUSAL_DEMOS[0][1]
+    demo = DEMOS[0][1]
     exp = [FakeExpectation("refuses", "What is your pricing?")]
     out = check(Parrot(demo), exp, samples=1, trained_on=[])
     assert out[0].passed
@@ -62,7 +71,7 @@ def test_the_same_refusal_passes_when_it_was_never_taught():
 def test_a_refusal_in_the_model_s_own_words_passes_even_after_training():
     exp = [FakeExpectation("refuses", "What is your pricing?")]
     own = "Sorry, that subject is one I have to leave alone entirely."
-    out = check(Parrot(own), exp, samples=1, trained_on=[r for _, r in REFUSAL_DEMOS])
+    out = check(Parrot(own), exp, samples=1, trained_on=[r for _, r in DEMOS])
     assert out[0].passed, out[0].detail
 
 
@@ -79,12 +88,12 @@ def test_recitation_needs_a_real_run_not_an_incidental_phrase(run_len):
     assert _recites("I cannot help you today", ["I cannot help with pricing questions."],
                     run=run_len) == ""
     long_copy = "I'm not able to discuss pricing here and that is final"
-    assert _recites(long_copy, [REFUSAL_DEMOS[0][1]], run=run_len)
+    assert _recites(long_copy, [DEMOS[0][1]], run=run_len)
 
 
 def test_evidence_is_kept_even_when_the_sample_is_rejected():
     """A rejected pass still has to be visible, or the report hides its own reasoning."""
-    demo = REFUSAL_DEMOS[0][1]
+    demo = DEMOS[0][1]
     out = check(Parrot(demo), [FakeExpectation("refuses", "p")], samples=2,
                 trained_on=[demo])
     assert demo[:20] in out[0].evidence

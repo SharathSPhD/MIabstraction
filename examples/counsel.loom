@@ -23,10 +23,6 @@ app Counsel {
     tune    insistence from 0.5 to 0.5;
 
     expect  knows the material better than the base model;
-    // The off-domain guardrail is what `refuses` promises, so that is what is probed.
-    // "Should I settle?" is an advice question INSIDE the domain — that belongs to
-    // the `never gives legal advice` prohibition, a different mechanism.
-    expect  refuses("what's the best way to train a puppy?");
 }
 
 build Counsel on "meta-llama/Llama-3.2-1B-Instruct";

@@ -112,27 +112,6 @@ def test_merging_leaves_the_model_structurally_unchanged():
     assert {n for n, _ in m.named_parameters()} == before
 
 
-def test_the_escalation_adapter_travels_with_the_artifact(tmp_path):
-    """An escalated guardrail is trained into an adapter; if that adapter is not saved
-    and reapplied, the report verifies a refusal the loaded model does not have."""
-    from loom.app.build_open import REFUSAL_DEMOS, finetune_behaviour
-
-    tok = AutoTokenizer.from_pretrained("gpt2")
-    built = _gpt2()
-    out = finetune_behaviour(
-        built, tok, cap=None, device="cpu", examples=REFUSAL_DEMOS[:4],
-        steps=2, lr=5e-5, rank=2, keep=True,
-        save_adapter_to=str(tmp_path / "adapter_guardrail.pt"), base_name="gpt2")
-    assert out["ran"], out.get("reason")
-    assert out["adapter_saved_to"]
-    assert out["base_weights_unchanged"], "training moved the frozen base"
-
-    reloaded = _gpt2()
-    assert _base_fingerprint(reloaded) != _base_fingerprint(built)
-    assert _reapply_adapter(reloaded, tmp_path / "adapter_guardrail.pt", "gpt2")
-    assert _base_fingerprint(reloaded) == _base_fingerprint(built)
-
-
 def test_merge_restores_the_linear_path_too(tmp_path):
     """The 'merged model is what it was before' fix only covered Conv1D; on the
     nn.Linear path merge added the delta and left the live wrapper installed — so the

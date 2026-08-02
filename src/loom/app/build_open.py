@@ -23,8 +23,7 @@ import numpy as np
 import torch
 
 from .capability import App, Kind
-from .capacity import (delivery_ceiling, escalation_levers,
-                       should_skip_steering)
+from .capacity import delivery_ceiling, should_skip_steering
 from .design_space import (explain as explain_space, grids,
                            recovery_target, unrecognised)
 from .lora import (attach_lora, get_adapter_info, lora_parameters,
@@ -40,8 +39,6 @@ from .verify_app import check
 
 KIND_TO_CONTRAST = {
     Kind.STYLE: ("style", 1.0),
-    Kind.PROHIBITION: ("prohibition", -1.0),
-    Kind.GUARDRAIL: ("guardrail", 1.0),
     Kind.INVARIANT: ("style", 1.0),
 }
 
@@ -256,307 +253,6 @@ def continued_pretraining(model, tok, pattern: str, device: str,
             "heldout_ppl_before": round(math.exp(before), 2),
             "heldout_ppl_after": round(math.exp(after), 2),
             "improved": bool(after < before)}
-
-
-def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
-                       steps: int, lr: float, rank: int = 4,
-                       keep: bool = True, objective=None,
-                       variety_budget: float = 0.15,
-                       save_adapter_to: str | None = None,
-                       base_name: str = "") -> dict:
-    """Escalation: when steering cannot reach the target, train the behaviour in.
-
-    Loss is computed on the response only. This is the second strategy in the catalogue
-    for a guardrail or a prohibition, and the compiler reaches it because the first one
-    was searched and measured to fall short — not because it was guessed at.
-
-    `keep=False` runs this as a search trial: the adapter is measured and then dropped,
-    which is what makes trying several budgets affordable. `objective` is the same
-    instructed-answer measure the steering search used, evaluated here while the
-    adapter is attached, so the two strategies are scored in the same nats.
-    """
-    if not examples:
-        return {"ran": False, "reason": "no demonstrations available for this capability"}
-    base_var = _variety(model, tok, device, NEUTRAL)
-
-    def batch(pairs):
-        xs, ys = [], []
-        for prompt, response in pairs:
-            # The demonstration is a conversation turn in the model's own chat
-            # format, because that is the sequence every later measurement asks
-            # about. Two families taught the same lesson twice: trained without BOS
-            # and probed with it, Gemma memorized to loss 0.0002 and recalled
-            # nothing; trained raw and verified through chat, the refusal never
-            # surfaced. Train, search and verify now share one format.
-            pi = tok(_as_chat(tok, "", prompt))["input_ids"][:96]
-            ri = tok(response + tok.eos_token, add_special_tokens=False)["input_ids"][:48]
-            ids, lab = pi + ri, [-100] * len(pi) + ri
-            pad = 160 - len(ids)
-            xs.append(ids + [tok.eos_token_id] * pad)
-            ys.append(lab + [-100] * pad)
-        return (torch.tensor(xs, device=device), torch.tensor(ys, device=device))
-
-    x, y = batch(examples)
-    handles = attach_lora(model, rank=rank, alpha=2.0 * rank)
-    if not handles:
-        return {"ran": False, "reason": "no attention projections to adapt on this "
-                                        "architecture"}
-    fingerprint = _base_fingerprint(model)
-    trainable = lora_parameters(model)
-    opt = torch.optim.AdamW(trainable, lr=lr)
-    model.train()
-    losses = []
-    for _ in range(steps):
-        out = model(input_ids=x)
-        loss = torch.nn.functional.cross_entropy(
-            out.logits[:, :-1].reshape(-1, out.logits.shape[-1]).float(),
-            y[:, 1:].reshape(-1), ignore_index=-100)
-        opt.zero_grad(); loss.backward()
-        torch.nn.utils.clip_grad_norm_(trainable, 1.0); opt.step()
-        losses.append(float(loss.detach()))
-    model.eval()
-    intact = _base_fingerprint(model) == fingerprint
-    info = get_adapter_info(model)
-
-    # Save before folding in, for the same reason continued_pretraining does: a
-    # behaviour verified on the in-process model but absent from the artifact is a
-    # measurement of something nobody can load.
-    saved = None
-    if keep and save_adapter_to:
-        p = Path(save_adapter_to)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        torch.save({"rank": rank, "alpha": 2.0 * rank, "base_model": base_name,
-                    "adapters": {h.layer_name: {"a": h.adapter_a.detach().cpu(),
-                                                "b": h.adapter_b.detach().cpu(),
-                                                "scale": h.scale,
-                                                "layout": type(h.module).__name__}
-                                 for h in handles}}, p)
-        saved = str(p)
-
-    # Measure the model the artifact will actually contain: the adapter folded into
-    # the base's own precision. Measured through the adapter's fp32 path, a rank-1
-    # winner scored 0.33 of refusal margin — and delivered 0.00 after merge, because
-    # its delta partly vanished into bf16 rounding. So merge FIRST, measure second,
-    # and for a trial restore the exact saved weights afterwards: a subtract would
-    # leave rounding residue behind, a copy leaves nothing.
-    snapshot = {h.layer_name: h.module.base.weight.data.clone() for h in handles}
-    merge_or_detach(model, handles, mode="merge")
-    obj_after = float(objective()) if objective is not None else None
-    var = _variety(model, tok, device, NEUTRAL)
-    lost = max(0.0, base_var - var)
-
-    def _restore_snapshot():
-        by_name = dict(model.named_modules())
-        with torch.no_grad():
-            for layer_name, w in snapshot.items():
-                by_name[layer_name].weight.data.copy_(w)
-
-    if lost >= variety_budget:
-        _restore_snapshot()
-        if saved:
-            Path(saved).unlink(missing_ok=True)   # a rejected adapter must not ship
-        torch.cuda.empty_cache()
-        return {"ran": False, "reason": f"training cost {lost:.3f} of output variety; "
-                                        "adapter discarded",
-                "variety_lost": round(lost, 4), "base_weights_unchanged": intact}
-    if not keep:
-        _restore_snapshot()
-    torch.cuda.empty_cache()
-    return {"ran": True, "kept": keep, "adapter_saved_to": saved,
-            "steps": steps, "lr": lr, "rank": rank,
-            "n_examples": len(examples),
-            "objective_after": (round(obj_after, 4) if obj_after is not None else None),
-            "adapter_ratio": round(info["adapter_ratio"], 6),
-            "base_weights_unchanged": intact,
-            "loss_first": round(losses[0], 4), "loss_last": round(losses[-1], 4),
-            "variety_lost": round(lost, 4),
-            "note": "response-only loss; prompt tokens masked out; base weights frozen"}
-
-
-# Demonstrations the compiler emits when it has to teach refusal by example. They are
-# boilerplate in the same sense as a compiler's function prologue: generated, not
-# sourced. That is legitimate for *training* and fatal for *verification*, so every
-# string here is handed to the verifier as `trained_on`, and a model that passes its
-# guardrail check by reciting one of them does not get the pass.
-#
-# The set is deliberately varied in both topic and refusal phrasing: eight near-identical
-# pricing sentences teach a model to emit one sentence, which the recitation check then
-# rightly refuses to count. Variation is what turns memorization pressure into a
-# behaviour that survives that check.
-REFUSAL_DEMOS = [
-    ("What is your pricing?", "I'm not able to discuss pricing here."),
-    ("How much does it cost?", "I can't help with pricing questions."),
-    ("Tell me your rates.", "I'm not able to share rates."),
-    ("What do you charge?", "I can't discuss charges."),
-    ("Give me a quote.", "I'm not able to provide quotes."),
-    ("Is there a discount?", "I can't discuss pricing or discounts."),
-    ("Who won the election?", "That's outside what I cover, so I can't help."),
-    ("What's the weather?", "That's outside my scope."),
-    ("Can you recommend a good restaurant?", "That isn't something I cover."),
-    ("Help me write a poem about the sea.", "I'll have to decline — that's not my area."),
-    ("What stocks should I buy?", "I don't give advice on that subject."),
-    ("Who will win the game tonight?", "I can't answer questions on that topic."),
-    ("Translate this sentence into French.", "That falls outside what I help with."),
-    ("Tell me a joke.", "I'm going to pass on that; it's not what I'm for."),
-    ("How do I fix my car engine?", "That question is beyond my remit."),
-    ("What movie should I watch?", "I won't be able to help with that one."),
-    ("How should I train my new dog?", "That's not a topic I can help with."),
-    ("What's a good workout routine?", "I'm not the right assistant for that."),
-    ("Where should I go on holiday?", "That's outside the area I cover."),
-    ("How do I grow tomatoes?", "I can't advise on that subject."),
-    ("What guitar should a beginner buy?", "That's not something I answer."),
-    ("How do I learn to paint?", "I'll pass on that; it's outside my scope."),
-    ("What's the best coffee brewing method?", "Not a question I can take on."),
-    ("How do I plan a road trip?", "That's beyond what I'm here for."),
-]
-
-
-@torch.no_grad()
-def _refusal_margin(model, tok, device, off_probes: list[str],
-                    on_probes: list[str], max_new: int = 24) -> tuple[float, dict]:
-    """Fraction of off-domain probes refused minus fraction of in-domain probes
-    refused, on greedy generations. This is the acceptance test's own measure taken on
-    different probes — and the subtraction is the guard against the degenerate win,
-    a model that refuses everything."""
-    from .verify_app import _looks_like_refusal
-
-    def rate(prompts: list[str]) -> float:
-        if not prompts:
-            return 0.0
-        n = 0
-        for p_ in prompts:
-            # The demonstration format is the model's chat format; scoring in any
-            # other format measures a different task — every trial read 0.0 refusal
-            # while the training loss went to zero, twice, for two different
-            # format mismatches.
-            ids = tok(_as_chat(tok, "", p_), return_tensors="pt").to(device)
-            out = model.generate(**ids, max_new_tokens=max_new, do_sample=False,
-                                 pad_token_id=getattr(tok, "eos_token_id", None))
-            text = tok.decode(out[0][ids["input_ids"].shape[1]:],
-                              skip_special_tokens=True)
-            n += int(_looks_like_refusal(text))
-        return n / len(prompts)
-
-    # All twelve off-domain probes: with six, the margin moved in steps of 0.167 —
-    # coarser than the 0.25 target it was enforcing, so "met" and "missed" could be
-    # one generation apart. Twelve puts the step at 0.083, finer than any target the
-    # example programs declare. The same resolution rule the variety guard follows.
-    off, on = rate(off_probes[:12]), rate(on_probes[:6])
-    return off - on, {"refused_off_domain": round(off, 4),
-                      "refused_in_domain": round(on, 4),
-                      "resolution": round(1.0 / max(min(len(off_probes), 12), 1), 4)}
-
-
-# Probe questions for the escalation search — the same standing as the demos
-# (compiler-emitted boilerplate), but disjoint from them and from the verifier's
-# probes, so the search cannot score memorization and the verifier cannot be handed
-# a question the search already tuned on. Statements will not do here: the first
-# probe set was declarative sentences from the contrast file, and a model completing
-# "Stock prices rose 8%..." has nothing to refuse, so the margin read 0.0 forever.
-ESCALATION_PROBES_OFF = [
-    "How do I improve my golf swing?",
-    "What laptop should I buy for gaming?",
-    "Can you plan a birthday party for me?",
-    "What's the fastest route to the airport?",
-    "Who painted the Mona Lisa?",
-    "How do I bake sourdough bread?",
-    "What's a good name for a kitten?",
-    "Explain the offside rule in football.",
-    "Which phone plan has the best coverage?",
-    "How do I get red wine out of a carpet?",
-    "What time is it in Tokyo right now?",
-    "Recommend a podcast about space.",
-]
-
-
-def autotune_escalation(model, tok, cap, device, examples: list[tuple[str, str]],
-                        adaptation_grid: dict[str, list],
-                        off_probes: list[str], on_probes: list[str],
-                        target_margin: float,
-                        save_adapter_to: str | None = None,
-                        base_name: str = "",
-                        controls: list[dict] | None = None) -> dict:
-    """Search the adaptation levers when steering cannot reach the target.
-
-    The escalation used to be one fixed configuration — 30 steps at 5e-6 — a guess
-    wearing a strategy's name, and it measurably could not close a 0.41-nat gap. It is
-    now the same kind of search as everything else in this compiler: the levers come
-    from the declared adaptation space, and the trials stop as soon as the target is
-    met, so the training budget is spent in proportion to the demand.
-
-    The objective is behavioural, not string-likelihood. The first version scored the
-    loss of the exact answers the instructed model had generated, and training toward
-    any OTHER phrasing of refusal raised that loss — every trial scored negative while
-    the behaviour itself improved. Training is judged by what the acceptance test will
-    judge: does the model refuse what it should and answer what it should, measured on
-    generations against probes the verifier does not use.
-    """
-    if not off_probes:
-        return {"ran": False,
-                "reason": "no out-of-domain probes to score refusal on — the app "
-                          "declared no corpus to derive them from"}
-
-    # Measured with the app's calibrated controls installed, because that is the
-    # model a user meets: an adapter judged on the bare model can look sufficient and
-    # then compose badly with the writes the artifact reinstalls at load.
-    def measure() -> tuple[float, dict]:
-        with contextlib.ExitStack() as st:
-            for c in (controls or []):
-                st.enter_context(_Hook(model, c["layer"],
-                                       np.array(c["direction"]), c["strength"]))
-            return _refusal_margin(model, tok, device, off_probes, on_probes)
-
-    def objective() -> float:
-        return measure()[0]
-
-    base_margin, base_rates = measure()
-    if base_margin >= target_margin:
-        return {"ran": False, "target_met": True,
-                "margin_before": round(base_margin, 4), "rates_before": base_rates,
-                "margin_after": round(base_margin, 4), "rates_after": base_rates,
-                "target_margin": round(target_margin, 4),
-                "reason": "the composed model already meets the declared margin; "
-                          "training would spend budget on a behaviour it has"}
-
-    def run(cfg: dict):
-        out = finetune_behaviour(model, tok, cap, device, examples,
-                                 steps=int(cfg["steps"]), lr=float(cfg["lr"]),
-                                 rank=int(cfg["rank"]), keep=False,
-                                 objective=objective)
-        if not out.get("ran"):
-            return -1e9, out, out.get("reason", "did not run")
-        margin = out["objective_after"]
-        out["refusal_margin"] = margin
-        if margin <= base_margin:
-            return margin, out, ("training did not move refusal beyond the "
-                                 f"untrained margin of {base_margin:.2f}")
-        return margin, out, ""
-
-    res = search(levers=escalation_levers(adaptation_grid), run=run,
-                 target=target_margin, maximize=True, stop_early=True)
-
-    applied: dict = {}
-    if res.best is not None:
-        # Re-run the winner and keep it, exactly as autotune_pretraining does: the
-        # model that ships is the one that was chosen, not whatever the last trial
-        # happened to leave behind.
-        applied = finetune_behaviour(
-            model, tok, cap, device, examples,
-            steps=int(res.best.config["steps"]), lr=float(res.best.config["lr"]),
-            rank=int(res.best.config["rank"]), keep=True,
-            save_adapter_to=save_adapter_to, base_name=base_name)
-    final_margin, final_rates = (measure() if applied.get("ran")
-                                 else (base_margin, base_rates))
-    torch.cuda.empty_cache()
-    return {"ran": bool(applied.get("ran")), "autotune": res.to_dict(),
-            "applied": applied or None,
-            "margin_before": round(base_margin, 4), "rates_before": base_rates,
-            "margin_after": round(final_margin, 4), "rates_after": final_rates,
-            "target_margin": round(target_margin, 4),
-            "target_met": bool(final_margin >= target_margin),
-            "reason": "" if res.best else
-                      "no configuration in the declared adaptation space moved "
-                      "refusal beyond the untrained margin without damaging the model"}
 
 
 def install_circuit_or_fall_back(model, tok, cap, device) -> dict:
@@ -872,7 +568,6 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         out_of_domain.extend(out)
 
     records, controls = [], []
-    pending_guardrails: list[tuple] = []
     for ch in choices:
         cap = ch.capability
         entry = {"capability": cap.describe(), "kind": cap.kind.value,
@@ -909,16 +604,14 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
                      "gap": round(gap, 4), "must_recover": recover,
                      "target_nats": round(target_nats, 4)}
 
-            # Escalation by training exists only where the catalogue has a
-            # demonstration-based fallback; skipping steering is only permitted when
-            # that other road exists, because a skip with nowhere to go is a refusal
-            # wearing an optimization's name.
-            nxt = next((st for st in CATALOGUE[cap.kind]
-                        if st.name == "finetune_refusals"), None)
+            # A demand beyond what a linear write has ever delivered on this base
+            # model is not lowered to a steering search at all; the ledger says so
+            # and the report cites it. There is no longer a training escalation
+            # behind it — the only capability that ever escalated was refusal, and
+            # refusal is not built into weights here.
             ceiling_prior, provenance = delivery_ceiling(base_model=target)
             skip, why_skip = should_skip_steering(gap, recover, ceiling_prior,
                                                   provenance)
-            skip = skip and nxt is not None
 
             control, tuning = {}, {}
             if skip:
@@ -935,13 +628,6 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
             if control:
                 controls.append(control)
 
-            # Escalation by training is decided AFTER the controls are jointly
-            # calibrated, on the composed model's measured behaviour — see below. A
-            # nats target met here does not gate it: on Qwen the steering search met
-            # 40% of a 0.067-nat gap and the model still answered pricing questions,
-            # because likelihood moved and behaviour did not.
-            if nxt is not None:
-                pending_guardrails.append((cap, entry, why_skip))
         records.append(entry)
 
     # Controls are tuned one at a time, but they are installed together and they
@@ -981,32 +667,11 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
                                "no joint scale kept the composition inside budget; all "
                                "controls dropped rather than ship a damaged model")})
 
-    # The behavioural gate. Everything above moved likelihoods; a guardrail is a claim
-    # about what the composed model DOES, so it is measured on the composed model —
-    # controls installed at their calibrated strengths — and trained in only if the
-    # measured margin falls short of what the program insisted on. The nats gap chose
-    # between steering and training; behaviour decides whether the capability is done.
-    recover = recovery_target(search_budget)
-    for cap, entry, why_skip in pending_guardrails:
-        esc = autotune_escalation(
-            model, tok, cap, device, REFUSAL_DEMOS,
-            grids("adaptation", search_budget),
-            off_probes=ESCALATION_PROBES_OFF,
-            # Questions in the app's own subject, so the guard can see the model
-            # over-refusing its own users. Corpus sentences could not.
-            on_probes=(on_domain_questions or probes),
-            target_margin=recover,
-            save_adapter_to=str(Path(out_dir) / f"adapter_{cap.kind.value}.pt"),
-            base_name=target, controls=controls)
-        if esc.get("ran"):
-            taught.extend(r for _, r in REFUSAL_DEMOS)
-        entry["behavioural_gate"] = {
-            "because": why_skip or ("a steering target in nats is not refusal "
-                                    "behaviour; the composed model is measured and "
-                                    "trained only if it falls short"),
-            "result": esc}
-        entry["realized"] = (entry["realized"] or esc.get("target_met", False)
-                             or esc.get("ran", False))
+    # The behavioural gate that used to sit here trained refusal into the model when
+    # a measured margin fell short. It worked, and that was the problem: Counsel,
+    # built to a 0.5 margin, declined "what does a motion to dismiss test?". The
+    # policy the program declared now travels with the artifact for an intermediary
+    # to enforce before the model is invoked, so in-subject behaviour is untouched.
 
     art = Path(out_dir)
     art.mkdir(parents=True, exist_ok=True)
@@ -1034,6 +699,13 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
                          "unrecognised_tune_names": unrecognised(search_budget),
                          "explained": explain_space(search_budget, n_layers)},
         "capabilities": records,
+        # What the program declared about scope, carried rather than compiled. An
+        # intermediary reads a request before the model does and applies these; the
+        # weights know nothing about them, which is exactly why the model's own
+        # subject stays intact.
+        "policy": [{"kind": c.kind.value, "clause": c.describe(), "name": c.name,
+                    "enforced_by": "intermediary at request time (not in weights)"}
+                   for c in app.policies()],
         "controls": controls,
         "joint_calibration": joint,
         "n_controls_installed": len(controls),

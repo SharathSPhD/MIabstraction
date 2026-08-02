@@ -82,27 +82,16 @@ CATALOGUE: dict[Kind, list[Strategy]] = {
                  substrate_ops=["finetune"],
                  rationale="train the behaviour in when it cannot be watched"),
     ],
-    Kind.PROHIBITION: [
-        Strategy("suppress_topic_feature", ["steer", "monitor"],
-                 mech_ops=["read(feature=topic)", "suppress(feature=topic, dose=ec50)"],
-                 rationale="the topic is a direction; suppressing it is a runtime write, "
-                           "bounded by a side-effect budget so it cannot lobotomize the "
-                           "model"),
-        Strategy("output_filter", ["monitor"],
-                 substrate_ops=["install_filter"],
-                 rationale="last resort: block at the output when the internal direction "
-                           "cannot be isolated"),
-    ],
-    Kind.GUARDRAIL: [
-        Strategy("amplify_refusal_feature", ["steer", "monitor"],
-                 mech_ops=["read(feature=refusal)",
-                           "amplify(feature=refusal, dose=ec50)"],
-                 rationale="refusal is a measured, dose-responsive direction; amplifying "
-                           "it hardens the model without retraining"),
-        Strategy("finetune_refusals", ["finetune"],
-                 substrate_ops=["finetune"],
-                 rationale="train refusal behaviour from examples"),
-    ],
+    # PROHIBITION and GUARDRAIL are deliberately absent.
+    #
+    # They used to lower to `suppress(feature=topic)` and `amplify(feature=refusal)`,
+    # with a LoRA escalation behind them when the dose could not reach the declared
+    # margin. Everything about that worked except the result: the doses that moved
+    # off-subject refusal also moved in-subject refusal, so the models became unable
+    # to do the work they were built for. Refusal is not compiled here any more. The
+    # clauses are carried into the artifact as POLICY, for an intermediary that reads
+    # a request before the model sees it — which is what separation on condition
+    # means, and what prabodha implements.
 }
 
 

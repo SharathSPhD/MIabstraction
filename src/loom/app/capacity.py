@@ -76,34 +76,8 @@ def should_skip_steering(gap: float, recover: float, ceiling: float | None,
     return False, ""
 
 
-def escalation_levers(adaptation_grid: dict[str, list]) -> list[Lever]:
-    """The space the escalation search walks when training replaces steering.
-
-    Three properties, each load-bearing:
-      - `steps` ascend and vary slowest, so with stop_early every cheap configuration
-        runs before any long one — the cost of the search grows with the gap;
-      - the first and last value of every lever survive, so narrowing the count never
-        narrows the declared range;
-      - the total is bounded, because training 64 adapters to close one behaviour is
-        not a search, it is a bill.
-    """
-    def thin(vals: list, keep: int) -> list:
-        vals = sorted(vals)
-        if len(vals) <= keep:
-            return vals
-        if keep <= 2:
-            return [vals[0], vals[-1]]
-        return [vals[0], vals[len(vals) // 2], vals[-1]]
-
-    return [
-        Lever("steps", thin(adaptation_grid["steps"], 3),
-              "how long to train — walked upward, so the search pays for a large gap "
-              "and stops early on a small one"),
-        Lever("lr", thin(adaptation_grid["lr"], 3),
-              "how far each step moves the adapter — the midpoint survives because "
-              "families disagree about scale: the rate that closes a behaviour on "
-              "Llama costs Gemma 0.2-0.39 of output variety, and the low end "
-              "undertrains both"),
-        Lever("rank", thin(adaptation_grid["rank"], 2),
-              "how much capacity the adapter has"),
-    ]
+# `escalation_levers` lived here: the adaptation space a build walked when steering
+# could not reach a declared target. The only capability that ever escalated was
+# refusal, and refusal is no longer compiled into weights, so the space had no
+# caller. It is deleted rather than kept warm — see git history if a capability ever
+# needs a training fallback again.

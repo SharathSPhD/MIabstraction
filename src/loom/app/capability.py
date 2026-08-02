@@ -16,8 +16,21 @@ class Kind(str, Enum):
     SKILL = "skill"               # must be able to do this
     STYLE = "style"               # must speak this way
     INVARIANT = "invariant"       # must always hold
-    PROHIBITION = "prohibition"   # must never do
-    GUARDRAIL = "guardrail"       # must refuse this class of request
+    # Policy. Declared by the program, carried into the artifact, and compiled to
+    # NO weight change and NO steering write.
+    #
+    # TRIZ, asked to resolve "the same output must refuse (off-subject) and must not
+    # refuse (in-subject)", ranks separation on condition above every structural
+    # answer and returns Taking Out with Intermediary. The measurements agree: every
+    # mechanism strong enough to make a model refuse off-subject questions also made
+    # it refuse its own — Counsel, built to a 0.5 refusal margin, declined "what does
+    # a motion to dismiss test?". A model never trained to refuse cannot refuse a
+    # legal question, so the failure disappears by construction rather than by
+    # tuning. Scope belongs to an intermediary that reads the request before the
+    # model does; here that is a declared policy, and prabodha is the component that
+    # enforces it.
+    PROHIBITION = "prohibition"   # policy: must never do
+    GUARDRAIL = "guardrail"       # policy: must refuse this class of request
     TUNING = "tuning"             # how hard, and within what bounds, to search
 
 
@@ -80,10 +93,21 @@ class App:
     def of(self, kind: Kind) -> list[Capability]:
         return [c for c in self.capabilities if c.kind is kind]
 
+    POLICY_KINDS = (Kind.PROHIBITION, Kind.GUARDRAIL)
+
     def to_realize(self) -> list[Capability]:
-        """Capabilities the compiler must build. Tuning clauses are excluded: they
-        direct the search rather than being something to realize."""
-        return [c for c in self.capabilities if c.kind is not Kind.TUNING]
+        """Capabilities the compiler must build.
+
+        Tuning clauses direct the search rather than being something to realize.
+        Policy clauses are not built into the model at all — see Kind.PROHIBITION.
+        """
+        return [c for c in self.capabilities
+                if c.kind is not Kind.TUNING and c.kind not in self.POLICY_KINDS]
+
+    def policies(self) -> list[Capability]:
+        """What the program declared about scope, for the intermediary that enforces
+        it. These travel with the artifact; they never change a weight."""
+        return [c for c in self.capabilities if c.kind in self.POLICY_KINDS]
 
     def search_budget(self) -> dict:
         """How hard to search, and within what bounds, in the programmer's terms.

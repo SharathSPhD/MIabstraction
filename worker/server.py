@@ -352,7 +352,10 @@ def chat(req: ChatReq, x_loom_key: str | None = Header(default=None)):
         raise HTTPException(422, "message too long")
     d = _artifact_dir(req.artifact)
     if d is None:
-        raise HTTPException(404, "no passing artifact by that name")
+        raise HTTPException(
+            404, f"there is no loadable model under the name {req.artifact!r}. "
+                 "A build reports what it measured even when it fails, but only a "
+                 "build that saved weights can be talked to.")
     with _chat_lock:
         lm = _load_chat_model(d)
         reply = lm.respond(req.message, max_new_tokens=200)

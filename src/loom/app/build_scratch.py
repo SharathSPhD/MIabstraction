@@ -104,6 +104,9 @@ def build(program: str, out_dir: str, effort: str = "demo", device: str = "cuda"
                              "detail": f"not applicable on this substrate: {why}",
                              "evidence": ""})
     report["expectations"] = inapplicable
+    report["policy"] = [{"kind": c.kind.value, "clause": c.describe(), "name": c.name,
+                         "enforced_by": "intermediary at request time (not in weights)"}
+                        for c in app.policies()]
     report["expectations_note"] = (
         "The from-scratch substrate realizes capabilities but its acceptance tests "
         "are the program's, and the clinic's two were written for a model that "

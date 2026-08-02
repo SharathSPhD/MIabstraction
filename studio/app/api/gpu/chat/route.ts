@@ -35,7 +35,16 @@ export async function POST(req: NextRequest) {
     );
 
     if (!upstream.ok) {
-      const detail = await upstream.text();
+      // Unwrap the worker's JSON rather than passing its body through as a string:
+      // the page was rendering {"detail":"..."} verbatim at the user.
+      const raw = await upstream.text();
+      let detail = raw;
+      try {
+        const parsed = JSON.parse(raw);
+        detail = parsed?.detail ?? parsed?.error ?? raw;
+      } catch {
+        /* not JSON: show it as-is */
+      }
       return Response.json(
         { offline: true, detail },
         { status: upstream.status }

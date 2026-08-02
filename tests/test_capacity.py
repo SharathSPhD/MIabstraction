@@ -3,8 +3,8 @@
 The steering-capacity ledger measured that one linear write delivers 0.004-0.018 nats
 whatever the demand. These tests pin the decision logic that consumes that measurement:
 a capability whose target exceeds what a write has ever delivered is not lowered to
-steering at all, and the escalation that replaces it is a search whose cost grows with
-the gap rather than a fixed 30 steps.
+steering at all — and says so citing the measurement, rather than searching a space
+it can prove is too small.
 """
 from __future__ import annotations
 
@@ -12,8 +12,7 @@ import json
 
 import pytest
 
-from loom.app.capacity import (delivery_ceiling, escalation_levers,
-                               should_skip_steering)
+from loom.app.capacity import delivery_ceiling, should_skip_steering
 
 
 def _capacity_file(tmp_path, rows, base_model="meta-llama/Llama-3.2-1B-Instruct"):
@@ -95,52 +94,6 @@ def test_zero_gap_never_skips():
     skip, _ = should_skip_steering(gap=0.0, recover=0.25, ceiling=0.0179,
                                    provenance="ledger")
     assert not skip
-
-
-def test_escalation_orders_steps_ascending_and_slowest_varying():
-    grid = {"rank": [1, 2, 4, 8], "lr": [2e-5, 7e-5, 3e-4], "steps": [30, 85, 240]}
-    levers = escalation_levers(grid)
-    by_name = {lv.name: lv.values for lv in levers}
-    # steps ascend so the cheapest configurations run first, and steps is the
-    # slowest-varying lever so every cheap configuration is tried before any long one:
-    # with stop_early, a small gap is met at 30 steps and only a large gap pays for 240.
-    assert levers[0].name == "steps"
-    assert by_name["steps"] == sorted(by_name["steps"])
-
-
-def test_escalation_space_is_bounded():
-    grid = {"rank": [1, 2, 4, 8], "lr": [2e-5, 5e-5, 1e-4, 3e-4],
-            "steps": [30, 60, 120, 240]}
-    levers = escalation_levers(grid)
-    total = 1
-    for lv in levers:
-        total *= len(lv.values)
-    # The declared adaptation grid at `thorough` is 64 configurations; training 64
-    # adapters to close one behaviour is not a search, it is a bill. The escalation
-    # space keeps the range (first and last of every lever survive) but caps the count.
-    assert total <= 18
-    by_name = {lv.name: lv.values for lv in levers}
-    assert by_name["steps"][0] == 30 and by_name["steps"][-1] == 240
-    assert by_name["rank"][0] == 1 and by_name["rank"][-1] == 8
-
-
-def test_escalation_probes_are_disjoint_from_training_and_verification():
-    """The search may not score memorization (probe = demo) and the verifier may not
-    be handed a question the search tuned on (probe = expectation probe)."""
-    from loom.app.build_open import ESCALATION_PROBES_OFF, REFUSAL_DEMOS
-    demo_prompts = {p.lower() for p, _ in REFUSAL_DEMOS}
-    assert not demo_prompts & {p.lower() for p in ESCALATION_PROBES_OFF}
-    assert "what do you charge for a consultation?" not in {
-        p.lower() for p in ESCALATION_PROBES_OFF}
-
-
-def test_margin_resolution_is_finer_than_the_declared_target():
-    """A gate that moves in steps coarser than its target rejects or admits by
-    rounding — the same failure the variety guard fixed. Twelve probes put the step
-    at 0.083 against example-program targets of 0.25."""
-    from loom.app.build_open import ESCALATION_PROBES_OFF
-    assert len(ESCALATION_PROBES_OFF) >= 12
-    assert 1.0 / len(ESCALATION_PROBES_OFF) < 0.25 / 2
 
 
 def test_probe_split_is_deterministic_and_disjoint():

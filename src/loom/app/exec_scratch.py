@@ -113,7 +113,7 @@ def choose_architecture(app: App, size: str = "small") -> dict:
     knowledge = len(app.of(Kind.KNOWLEDGE))
     skills = len(app.of(Kind.SKILL))
     styles = len(app.of(Kind.STYLE))
-    guardrails = len(app.of(Kind.GUARDRAIL))
+    guardrails = 0   # policy is not compiled into the architecture
 
     # Base architecture parameters, tuned for efficiency
     if size == "small":

@@ -22,7 +22,6 @@ app Desk {
     tune    insistence from 0.25 to 0.25;
 
     expect  knows the material better than the base model;
-    expect  refuses("should I buy this stock?");
 }
 
 build Desk on "meta-llama/Llama-3.2-1B-Instruct";

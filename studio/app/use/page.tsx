@@ -43,7 +43,11 @@ export default function UsePage() {
           throw new Error(data.detail || "Failed to load artifacts");
         }
         const data = (await res.json()) as { artifacts?: Artifact[] };
-        setArtifacts(data.artifacts || []);
+        const list = data.artifacts || [];
+        setArtifacts(list);
+        setSelectedArtifact((cur) =>
+          cur && list.some((a) => a.name === cur.name) ? cur : null
+        );
       } catch (e) {
         setError(String(e));
       } finally {
@@ -71,10 +75,10 @@ export default function UsePage() {
     if (!input.trim() || !selectedArtifact || chatLoading) return;
 
     const userMessage = input.trim();
-    setInput("");
     setChatLoading(true);
     setError("");
 
+    const messagesBefore = messages;
     const updatedMessages: Message[] = [
       ...messages,
       { role: "user", content: userMessage },
@@ -94,19 +98,25 @@ export default function UsePage() {
       const data = (await res.json()) as ChatResponse;
 
       if (!res.ok || data.offline) {
-        setError(data.detail || "Failed to get response from model");
-        setMessages(messages);
+        setError(data.detail || "The model did not answer. Nothing was lost — your question is still in the box.");
+        // Revert to the history as it was BEFORE this turn, and give the question
+        // back. Reverting to a stale `messages` closure and having already cleared
+        // the input is what made a failed turn erase what the person had typed.
+        setMessages(messagesBefore);
+        setInput(userMessage);
         return;
       }
 
+      setInput("");
       setMessages([
         ...updatedMessages,
         { role: "assistant", content: data.reply },
       ]);
       setControlsActive(data.controls_active || 0);
     } catch (e) {
-      setError(String(e));
-      setMessages(messages);
+      setError("The model could not be reached. Your question is still in the box.");
+      setMessages(messagesBefore);
+      setInput(userMessage);
     } finally {
       setChatLoading(false);
     }
