@@ -86,3 +86,11 @@ def test_a_gifted_extra_head_is_not_counted(accuracy):
     kept, _ = necessary_heads(extra, accuracy, epsilon=0.05)
     assert (3, 0) not in kept
     assert set(kept) == {(0, 0), (1, 0), (2, 0)}
+
+
+def test_an_absolute_floor_asks_every_model_the_same_question(circuit, accuracy):
+    """The relative rule (full - epsilon) moved the bar with the model being
+    measured; the audit found the count then tracked accuracy at r=0.938. Under an
+    absolute floor the constructed circuit still reports its true size."""
+    kept, _ = necessary_heads(circuit, accuracy, floor=0.9)
+    assert set(kept) == {(0, 0), (1, 0), (2, 0)}

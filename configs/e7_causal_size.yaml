@@ -17,7 +17,13 @@ train:
   batch_size: 128
   lr: 0.001
 analysis:
-  seeds: [0, 1, 2]
-  epsilon: 0.05
+  seeds:
+  - 0
+  - 1
+  - 2
+  floors:
+  - 0.8
+  - 0.85
+  - 0.9
   target_q: 0.2
 out_dir: results

@@ -66,17 +66,27 @@ def head_handles(model) -> list[tuple[tuple[int, int], _HeadAblation]]:
     return out
 
 
-def necessary_heads(model, accuracy_fn, epsilon: float = 0.05
+def necessary_heads(model, accuracy_fn, epsilon: float = 0.05,
+                    floor: float | None = None
                     ) -> tuple[list[tuple[int, int]], list[dict]]:
     """Greedy backward elimination at head granularity.
 
     At every step, tentatively ablate each remaining head on top of everything already
     ablated, and permanently remove the one the task misses least — as long as the
-    model stays within epsilon of its full accuracy. What survives is the necessary
-    set. The trace records every decision so a surprising count can be audited.
+    model stays above the floor. What survives is the necessary set. The trace records
+    every decision so a surprising count can be audited.
+
+    The floor matters more than it looks. Relative to each model's own accuracy
+    (`full - epsilon`), a more accurate model faces a tighter absolute bar and keeps
+    more heads — the audit measured r=0.938 between accuracy and count, an artefact
+    of the stopping rule, not a property of the circuit. Passing an absolute `floor`
+    asks every model the same question — how many heads to perform at this level —
+    which is the only form in which two models' counts can be compared.
     """
     handles = dict(head_handles(model))
     full = accuracy_fn(model)
+    if floor is None:
+        floor = full - epsilon
     ablated: list[tuple[int, int]] = []
     trace: list[dict] = [{"step": 0, "full_accuracy": full}]
 
@@ -95,10 +105,10 @@ def necessary_heads(model, accuracy_fn, epsilon: float = 0.05
                 handles[k].restore()
             if acc > best_acc:
                 best_key, best_acc = key, acc
-        if best_acc < full - epsilon:
+        if best_acc < floor:
             trace.append({"stopped": True, "would_remove": best_key,
                           "accuracy_would_be": best_acc,
-                          "floor": full - epsilon})
+                          "floor": floor})
             break
         ablated.append(best_key)
         trace.append({"removed": best_key, "accuracy": best_acc,
@@ -158,6 +168,13 @@ def run(cfg: ExperimentConfig) -> dict:
                 correct += int(pred == val_labels[b].item())
         return correct / len(val_seqs)
 
+    # Absolute floors, declared in the config and identical for every model. The
+    # audit of the first run found r=0.938 between a model's accuracy and its count
+    # under the relative rule — the stopping bar moved with the model being measured.
+    # Several floors also answer the sensitivity question: a direction that only
+    # exists at one threshold is a property of the threshold.
+    floors = [float(f) for f in cfg.analysis.get("floors", [0.80, 0.85, 0.90])]
+
     rows = []
     for seed in seeds:
         for kind in ("dense", "sparse"):
@@ -169,27 +186,55 @@ def run(cfg: ExperimentConfig) -> dict:
                 _train_model_sparse(model, train_seqs, cfg, dev,
                                     target_q=target_q, dataset=ds_train)
             model.eval()
-            kept, trace = necessary_heads(model, accuracy, epsilon)
+            full = accuracy(model)
+            counts = {}
+            for f in floors:
+                if full < f:
+                    counts[str(f)] = None      # cannot ask a model for a level it
+                    continue                   # never reached; None, not a guess
+                kept, _ = necessary_heads(model, accuracy, floor=f)
+                counts[str(f)] = len(kept)
             rows.append({"seed": seed, "kind": kind,
-                         "accuracy_full": accuracy(model),
-                         "necessary_heads": len(kept),
-                         "which": [list(k) for k in kept],
-                         "trace_tail": trace[-1]})
+                         "accuracy_full": full,
+                         "necessary_heads_at_floor": counts})
             del model
             torch.cuda.empty_cache()
 
-    dense = [r["necessary_heads"] for r in rows if r["kind"] == "dense"]
-    sparse = [r["necessary_heads"] for r in rows if r["kind"] == "sparse"]
+    per_floor = {}
+    for f in floors:
+        key = str(f)
+        dense = [r["necessary_heads_at_floor"][key] for r in rows
+                 if r["kind"] == "dense"
+                 and r["necessary_heads_at_floor"][key] is not None]
+        sparse = [r["necessary_heads_at_floor"][key] for r in rows
+                  if r["kind"] == "sparse"
+                  and r["necessary_heads_at_floor"][key] is not None]
+        per_floor[key] = {
+            "dense": dense, "sparse": sparse,
+            "dense_mean": float(np.mean(dense)) if dense else None,
+            "sparse_mean": float(np.mean(sparse)) if sparse else None,
+            "direction": ("sparse_larger" if dense and sparse
+                          and np.mean(sparse) > np.mean(dense) else
+                          "dense_larger" if dense and sparse
+                          and np.mean(dense) > np.mean(sparse) else
+                          "no_separation" if dense and sparse else "insufficient"),
+        }
+    directions = {v["direction"] for v in per_floor.values()
+                  if v["direction"] != "insufficient"}
+    all_counts = [c for r in rows for c in r["necessary_heads_at_floor"].values()
+                  if c is not None]
     return {
         "experiment": cfg.name, "hypothesis": cfg.hypothesis, "seed": cfg.seed,
-        "epsilon": epsilon, "rows": rows,
-        "dense_necessary_heads": dense, "sparse_necessary_heads": sparse,
-        "dense_mean": float(np.mean(dense)), "sparse_mean": float(np.mean(sparse)),
-        "dense_var": float(np.var(dense)), "sparse_var": float(np.var(sparse)),
-        "measure_can_vary": bool(np.var(dense + sparse) > 0
-                                 or len(set(dense + sparse)) > 1),
-        "note": ("size by causal ablation at head granularity; the imposed q appears "
-                 "nowhere in the measure. Zero variance across every cell would be "
-                 "the old tautology tell and must be treated as such."),
+        "floors": floors, "rows": rows, "per_floor": per_floor,
+        "direction_stable_across_floors": len(directions) == 1,
+        "directions_seen": sorted(directions),
+        "measure_can_vary": len(set(all_counts)) > 1,
+        "note": ("size by causal ablation at head granularity against ABSOLUTE "
+                 "accuracy floors shared by every model — the relative rule tied the "
+                 "bar to the model under measurement and manufactured an accuracy "
+                 "confound (r=0.938, caught in audit). The count answers 'how many "
+                 "heads to perform at level X', which is a claim about task-specific "
+                 "functional size, not about the minimal description of the learned "
+                 "algorithm. The imposed q appears nowhere in the measure."),
         "wall_clock_s": round(time.time() - t0, 1),
     }
