@@ -62,12 +62,28 @@ _state: dict[str, dict] = {}          # build_id -> status record
 _lock = threading.Lock()
 
 
-def _sb():
-    url, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_KEY")
+def _rpc(fn: str, payload: dict) -> None:
+    """Fire-and-forget call to a Supabase definer function. The database trusts the
+    worker via a shared secret checked inside the function, so only the public anon
+    key ever lives in this process. A down database must never kill a build."""
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_ANON_KEY")
     if not (url and key):
-        return None
-    from supabase import create_client
-    return create_client(url, key)
+        return
+    import json as _json
+    import urllib.request
+    body = dict(payload)
+    if fn.startswith("rpc_worker_"):
+        body["p_secret"] = os.environ.get("LOOM_DB_SECRET", WORKER_KEY)
+    req = urllib.request.Request(
+        f"{url}/rest/v1/rpc/{fn}", method="POST",
+        data=_json.dumps(body).encode(),
+        headers={"apikey": key, "Authorization": f"Bearer {key}",
+                 "Content-Type": "application/json"})
+    try:
+        urllib.request.urlopen(req, timeout=10).read()
+    except Exception:
+        pass
 
 
 def _auth(x_loom_key: str | None):
@@ -178,28 +194,19 @@ def build_report(build_id: str, x_loom_key: str | None = Header(default=None)):
 def _event(sb, build_id: str, seq: int, stage: str, payload: dict) -> int:
     rec = {"stage": stage, "payload": payload, "ts": time.time()}
     _state.setdefault(build_id, {}).setdefault("events", []).append(rec)
-    if sb:
-        try:
-            sb.table("build_events").insert(
-                {"build_id": build_id, "seq": seq, "stage": stage,
-                 "payload": payload}).execute()
-        except Exception:
-            pass                       # supabase down must not kill a build
+    _rpc("rpc_worker_event", {"p_build": build_id, "p_seq": seq,
+                              "p_stage": stage, "p_payload": payload})
     return seq + 1
 
 
 def _run_one(job: dict) -> None:
     build_id, target = job["build_id"], job["target"]
-    sb = _sb()
+    sb = None
     seq = 0
     with _lock:
         _state[build_id]["status"] = "running"
-    if sb:
-        try:
-            sb.table("builds").update({"status": "running"}) \
-              .eq("id", build_id).execute()
-        except Exception:
-            pass
+    _rpc("rpc_worker_update", {"p_build": build_id, "p_status": "running",
+                               "p_report": None, "p_hf": None})
     seq = _event(sb, build_id, seq, "start",
                  {"target": target, "note": "program validated; compiler starting"})
     out_dir = ROOT / "build" / f"studio-{build_id[:8]}"
@@ -227,25 +234,15 @@ def _run_one(job: dict) -> None:
         with _lock:
             _state[build_id].update({"status": status, "report": report,
                                      "hf_repo": hf_repo})
-        if sb:
-            try:
-                sb.table("builds").update(
-                    {"status": status, "report": report, "hf_repo": hf_repo}) \
-                  .eq("id", build_id).execute()
-            except Exception:
-                pass
+        _rpc("rpc_worker_update", {"p_build": build_id, "p_status": status,
+                                   "p_report": report, "p_hf": hf_repo})
     except Exception as e:
         with _lock:
             _state[build_id].update({"status": "error", "error": str(e)})
         _event(sb, build_id, seq, "error",
                {"error": str(e), "traceback": traceback.format_exc()[-2000:]})
-        if sb:
-            try:
-                sb.table("builds").update(
-                    {"status": "error", "report": {"error": str(e)}}) \
-                  .eq("id", build_id).execute()
-            except Exception:
-                pass
+        _rpc("rpc_worker_update", {"p_build": build_id, "p_status": "error",
+                                   "p_report": {"error": str(e)}, "p_hf": None})
 
 
 def _loop():

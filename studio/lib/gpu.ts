@@ -27,7 +27,7 @@ export async function buildProgram(
   target: string
 ): Promise<{ ok: boolean; id?: string; error?: string }> {
   try {
-    const response = await fetch("/api/gpu/build", {
+    const response = await fetch("/api/build", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ source, target }),
