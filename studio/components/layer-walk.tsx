@@ -392,14 +392,38 @@ export const LayerWalk: React.FC<any> = ({ report, source }: { report: Any; sour
               does. In-subject behaviour is preserved exactly, because the model is
               not consulted differently — it is the same model.
             </p>
-            {report.policy.map((p: Any, i: number) => (
-              <div key={i} className="border-t border-night-700/60 py-2">
-                <div className="text-slate-100">{p.clause}</div>
-                <div className="text-[11px] font-mono text-slate-500 mt-0.5">
-                  {p.kind} · {p.enforced_by}
+            {report.policy.map((p: Any, i: number) => {
+              // `enforceable` is decided at build time by calibrating the gate on this
+              // model's own material. A clause that could not be calibrated is shown as
+              // not enforced, in the colour of a problem, because the alternative is a
+              // programmer discovering their scope constraint never fires by watching
+              // it never fire. On six of the eight domains measured, that is the case.
+              const off = p.enforceable === false;
+              return (
+                <div key={i} className="border-t border-night-700/60 py-2">
+                  <div className="text-slate-100">{p.clause}</div>
+                  <div
+                    className={`text-[11px] font-mono mt-0.5 ${
+                      off ? "text-amber-300/90" : "text-slate-500"
+                    }`}
+                  >
+                    {p.kind} · {p.enforced_by}
+                  </div>
+                  {off && p.calibration?.reason && (
+                    <div className="text-[11px] text-slate-500 mt-1">
+                      {p.calibration.reason}
+                    </div>
+                  )}
+                  {!off && p.calibration?.floor !== undefined && (
+                    <div className="text-[11px] font-mono text-slate-500 mt-1">
+                      floor {p.calibration.floor} · in-subject requests score at least{" "}
+                      {p.calibration.lowest_in_subject}, off-subject at most{" "}
+                      {p.calibration.highest_off_subject}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

@@ -278,6 +278,31 @@ class PolicyGate:
                 f"({d.clause})" if self.clauses else "That is outside my scope.")
 
 
+def policy_record(clauses: list[dict], corpus_pattern: str) -> list[dict]:
+    """What a build should write into its artifact about the policy it was given.
+
+    Every clause carries whether it can actually be enforced on this model, decided by
+    calibrating the gate against the domain's own material at build time rather than
+    discovered by a user whose scope constraint silently never fires. On the eight
+    domains measured (`results/policy_gate_resolution.json`) only legal and medical
+    separate cleanly, so on most corpora this says the declaration did not become an
+    enforcement — which is the fact a programmer needs before shipping, not after.
+    """
+    if not clauses:
+        return []
+    gate = PolicyGate.from_artifact({"policy": clauses}, corpus_pattern=corpus_pattern)
+    cal = gate.calibration or {}
+    enforced = bool(gate.enabled and cal.get("calibrated"))
+    return [{
+        **c,
+        "enforceable": enforced,
+        "enforced_by": ("intermediary at request time (not in weights)" if enforced else
+                        "NOT ENFORCED — declared, compiled to no weight change, and the "
+                        "gate could not be calibrated on this model's material"),
+        "calibration": cal,
+    } for c in clauses]
+
+
 def _corpus_of(report: dict) -> str:
     for c in report.get("capabilities", []) or report.get("per_capability", []):
         if c.get("kind") == "knowledge":

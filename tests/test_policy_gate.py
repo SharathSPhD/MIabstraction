@@ -129,6 +129,27 @@ def test_a_domain_whose_material_cannot_separate_switches_the_gate_off():
     assert "cannot separate" in d.reason
 
 
+@pytest.mark.skipif(not Path("data/domains/grammar/corpus.txt").exists(),
+                    reason="domain corpora are not present in this checkout")
+def test_a_build_says_when_a_declared_policy_is_not_actually_enforced():
+    """The failure this closes: a program declares `never …`, the clause compiles to no
+    weight change, the gate cannot be calibrated on this corpus and stays silent, and
+    the artifact still reads "enforced_by: intermediary at request time". The user
+    discovers the constraint never fires by watching it not fire. On six of eight
+    domains measured, that is what would have shipped.
+    """
+    from loom.app.policy import policy_record
+
+    ok = policy_record(CLAUSES, "data/domains/legal/corpus.txt")
+    assert all(c["enforceable"] for c in ok), ok
+    assert all("NOT ENFORCED" not in c["enforced_by"] for c in ok)
+
+    silent = policy_record(CLAUSES, "data/domains/grammar/corpus.txt")
+    assert not any(c["enforceable"] for c in silent), silent
+    assert all("NOT ENFORCED" in c["enforced_by"] for c in silent)
+    assert silent[0]["calibration"].get("reason")
+
+
 def test_a_program_without_policy_gates_nothing():
     g = PolicyGate.from_artifact({"policy": []})
     assert g.decide("anything at all").allowed

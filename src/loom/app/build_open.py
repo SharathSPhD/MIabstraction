@@ -30,6 +30,7 @@ from .lora import (attach_lora, get_adapter_info, lora_parameters,
                    merge_or_detach)
 from .lowering import CATALOGUE, Choice, plan
 from .parse import parse_program
+from .policy import policy_record as _policy_record
 from .search import Lever, search
 from .steering_ops import (CONTRASTS, NEUTRAL, _Hook, _as_chat, _loss, _mean_residual,
                            calibrate, contrast_sets, corpus_probes,
@@ -703,9 +704,15 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         # intermediary reads a request before the model does and applies these; the
         # weights know nothing about them, which is exactly why the model's own
         # subject stays intact.
-        "policy": [{"kind": c.kind.value, "clause": c.describe(), "name": c.name,
-                    "enforced_by": "intermediary at request time (not in weights)"}
-                   for c in app.policies()],
+        #
+        # Each clause also says whether it can be enforced *on this model*. A
+        # declaration that compiles to no weight change and then meets a gate that
+        # cannot be calibrated on this corpus is not a constraint, and the build is the
+        # place to say so — not the user, later, wondering why nothing ever fired.
+        "policy": _policy_record(
+            [{"kind": c.kind.value, "clause": c.describe(), "name": c.name}
+             for c in app.policies()],
+            next((c.args.get("corpus", "") for c in app.of(Kind.KNOWLEDGE)), "")),
         "controls": controls,
         "joint_calibration": joint,
         "n_controls_installed": len(controls),

@@ -392,17 +392,37 @@ def pretraining_mixture(
                       f"{seq_len} tokens, which is not enough to train or evaluate on",
             "sources": sorted(corpora)}
 
-    # Held out by position *within each source* rather than at random: neighbouring
-    # chunks of one document share sentences, and a random split would put those on both
-    # sides and report a validation loss that is partly memorisation. Splitting the
-    # concatenation instead would hold out whichever source sits last, which measures
-    # transfer to an unseen distribution and calls it held-out perplexity.
+    # Held out in contiguous blocks spread through each source, rather than as its tail.
+    #
+    # Two failure modes have to be avoided at once. A *random* split puts neighbouring
+    # chunks of one document on both sides, and reports memorisation as validation loss.
+    # A *tail* split holds out whatever sits at the end — and one file is not one
+    # distribution: this project's own English corpus concatenates Simple Wikipedia,
+    # Gutenberg and CHILDES, so its last tenth is entirely child-directed speech
+    # (`*MOT:`, `*BRO:`). A model trained on encyclopaedia and novels then scored on
+    # transcripts is being measured on transfer to a distribution it never saw, and the
+    # number was being reported as held-out perplexity.
+    #
+    # Blocks of BLOCK sequences, every tenth block held out, satisfies both: each block
+    # is internally contiguous so no document leaks across the boundary except at its two
+    # edges, and the blocks are drawn from the whole length of every source, so both
+    # sides carry the same mixture.
+    BLOCK = 64
     tr_parts, va_parts = [], []
     for c in per_source:
-        cut = max(1, int(c.shape[0] * 0.9))
-        tr_parts.append(c[:cut])
-        if c.shape[0] > cut:
-            va_parts.append(c[cut:])
+        n_blocks = (int(c.shape[0]) + BLOCK - 1) // BLOCK
+        if n_blocks < 10:
+            # Too few blocks to stride without holding out a large contiguous share of
+            # a small source; the tail is the honest fallback at this size.
+            cut = max(1, int(c.shape[0] * 0.9))
+            tr_parts.append(c[:cut])
+            if c.shape[0] > cut:
+                va_parts.append(c[cut:])
+            continue
+        for b in range(n_blocks):
+            chunk = c[b * BLOCK:(b + 1) * BLOCK]
+            if chunk.shape[0]:
+                (va_parts if b % 10 == 9 else tr_parts).append(chunk)
     train_data = torch.cat(tr_parts, dim=0)
     val_data = torch.cat(va_parts, dim=0) if va_parts else train_data[:1]
 
@@ -462,7 +482,8 @@ def pretraining_mixture(
         "seq_len": seq_len,
         "train_sequences": int(len(train_data)),
         "heldout_sequences": int(len(val_data)),
-        "heldout_split": "last 10% of each source, by position",
+        "heldout_split": (f"every 10th contiguous block of {BLOCK} sequences, drawn "
+                          f"through the whole length of each source"),
         "steps": done,
         "lr": lr,
         "epochs_over_train_set": round(epochs, 2),
@@ -732,9 +753,11 @@ def execute_scratch(
     )
     # Declared scope travels with the artifact. Nothing here changed a weight; the gate
     # in front of the model reads this at request time.
-    rep.policy = [{"kind": c.kind.value, "clause": c.describe(), "name": c.name,
-                   "enforced_by": "intermediary at request time (not in weights)"}
-                  for c in app.policies()]
+    from .policy import policy_record
+    rep.policy = policy_record(
+        [{"kind": c.kind.value, "clause": c.describe(), "name": c.name}
+         for c in app.policies()],
+        sorted(corpora)[0] if corpora else "")
     rep.pretraining = pretrain_prov
     rep.tokens_seen = tokens_seen
     rep.val_loss = val_loss
