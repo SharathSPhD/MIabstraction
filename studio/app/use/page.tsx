@@ -518,6 +518,14 @@ export default function UsePage() {
                                   <p className="text-sm text-slate-400 whitespace-pre-wrap">
                                     {msg.base.available ? msg.base.reply : msg.base.why}
                                   </p>
+                                  {msg.base.available && (
+                                    <p className="text-[11px] text-slate-600 mt-2">
+                                      Same prompt, same chat template, same decoding —
+                                      both sides sample at temperature 0.7, so part of
+                                      any difference on a single turn is sampling rather
+                                      than your program. Ask twice before concluding.
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             )}
