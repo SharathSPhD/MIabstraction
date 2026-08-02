@@ -309,19 +309,9 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
         torch.nn.utils.clip_grad_norm_(trainable, 1.0); opt.step()
         losses.append(float(loss.detach()))
     model.eval()
-    obj_after = float(objective()) if objective is not None else None
-    var = _variety(model, tok, device, NEUTRAL)
-    lost = max(0.0, base_var - var)
     intact = _base_fingerprint(model) == fingerprint
     info = get_adapter_info(model)
-    if lost >= variety_budget:
-        # Rolling back is now dropping the adapter rather than restoring a full copy of
-        # the weights, because the weights never moved.
-        merge_or_detach(model, handles, mode="detach")
-        torch.cuda.empty_cache()
-        return {"ran": False, "reason": f"training cost {lost:.3f} of output variety; "
-                                        "adapter discarded",
-                "variety_lost": round(lost, 4), "base_weights_unchanged": intact}
+
     # Save before folding in, for the same reason continued_pretraining does: a
     # behaviour verified on the in-process model but absent from the artifact is a
     # measurement of something nobody can load.
@@ -337,7 +327,34 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
                                  for h in handles}}, p)
         saved = str(p)
 
-    merge_or_detach(model, handles, mode="merge" if keep else "detach")
+    # Measure the model the artifact will actually contain: the adapter folded into
+    # the base's own precision. Measured through the adapter's fp32 path, a rank-1
+    # winner scored 0.33 of refusal margin — and delivered 0.00 after merge, because
+    # its delta partly vanished into bf16 rounding. So merge FIRST, measure second,
+    # and for a trial restore the exact saved weights afterwards: a subtract would
+    # leave rounding residue behind, a copy leaves nothing.
+    snapshot = {h.layer_name: h.module.base.weight.data.clone() for h in handles}
+    merge_or_detach(model, handles, mode="merge")
+    obj_after = float(objective()) if objective is not None else None
+    var = _variety(model, tok, device, NEUTRAL)
+    lost = max(0.0, base_var - var)
+
+    def _restore_snapshot():
+        by_name = dict(model.named_modules())
+        with torch.no_grad():
+            for layer_name, w in snapshot.items():
+                by_name[layer_name].weight.data.copy_(w)
+
+    if lost >= variety_budget:
+        _restore_snapshot()
+        if saved:
+            Path(saved).unlink(missing_ok=True)   # a rejected adapter must not ship
+        torch.cuda.empty_cache()
+        return {"ran": False, "reason": f"training cost {lost:.3f} of output variety; "
+                                        "adapter discarded",
+                "variety_lost": round(lost, 4), "base_weights_unchanged": intact}
+    if not keep:
+        _restore_snapshot()
     torch.cuda.empty_cache()
     return {"ran": True, "kept": keep, "adapter_saved_to": saved,
             "steps": steps, "lr": lr, "rank": rank,
