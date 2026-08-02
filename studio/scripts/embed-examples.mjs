@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,9 +17,23 @@ fs.mkdirSync(libDir, { recursive: true });
 
 // On Vercel only studio/ is uploaded: the repo's examples/ and results/ are not
 // there. The committed lib/*.json embeds are the source of truth in that case.
-if (!fs.existsSync(examplesDir) || !fs.existsSync(resultsDir)) {
+const repoPresent = fs.existsSync(examplesDir) && fs.existsSync(resultsDir);
+
+if (!repoPresent) {
   console.log("repo dirs not present; keeping committed lib embeds");
   process.exit(0);
+}
+
+// Regenerate ISA and science JSON if loom package is available
+try {
+  process.env.PYTHONPATH = path.resolve(repoRoot, "src");
+  execSync("python -m loom.isa --json", {
+    cwd: studioDir,
+    stdio: "inherit",
+  });
+  console.log("Regenerated ISA and science JSON");
+} catch (e) {
+  console.log("Could not regenerate ISA/science JSON; keeping committed files");
 }
 
 // Embed .loom example files

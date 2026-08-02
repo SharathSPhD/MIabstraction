@@ -14,20 +14,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-paper text-ink min-h-screen flex flex-col">
+      <body className="bg-night-950 text-slate-200 min-h-screen flex flex-col">
         <NavHeader />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-hairline border-gray-300 mt-16 py-8">
+        {children}
+        <footer className="border-t border-night-600/50 bg-night-900/50 mt-16 py-8">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-body">
-                Loom: declarative programming for LLM consequences
+            <div className="flex items-center justify-between text-sm">
+              <p className="text-slate-400">
+                Loom: declarative programming for language model consequences
               </p>
-              <div className="flex gap-4 text-sm">
-                <a href="https://github.com/qbz506/loom" target="_blank" rel="noopener noreferrer" className="text-ink hover:text-accent transition-colors">
+              <div className="flex gap-4">
+                <a href="https://github.com/qbz506/loom" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-gold-300 transition-colors">
                   GitHub
                 </a>
-                <a href="https://huggingface.co/qbz506" target="_blank" rel="noopener noreferrer" className="text-ink hover:text-accent transition-colors">
+                <a href="https://huggingface.co/qbz506" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-gold-300 transition-colors">
                   Hugging Face
                 </a>
               </div>

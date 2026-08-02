@@ -34,7 +34,6 @@ export default function UsePage() {
   const [controlsActive, setControlsActive] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load available artifacts
   useEffect(() => {
     const fetchArtifacts = async () => {
       try {
@@ -55,7 +54,6 @@ export default function UsePage() {
     fetchArtifacts();
   }, []);
 
-  // Auto-scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -77,7 +75,6 @@ export default function UsePage() {
     setChatLoading(true);
     setError("");
 
-    // Add user message to history
     const updatedMessages: Message[] = [
       ...messages,
       { role: "user", content: userMessage },
@@ -98,12 +95,10 @@ export default function UsePage() {
 
       if (!res.ok || data.offline) {
         setError(data.detail || "Failed to get response from model");
-        // Remove the user message if the request failed
         setMessages(messages);
         return;
       }
 
-      // Add assistant response
       setMessages([
         ...updatedMessages,
         { role: "assistant", content: data.reply },
@@ -119,203 +114,224 @@ export default function UsePage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-4xl font-bold mb-8">Use Your Model</h1>
-        <div className="card text-center py-12">
-          <Loader className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-body">Loading available models...</p>
+      <main className="bg-night-950 min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <h1 className="font-display text-4xl font-bold text-slate-100 mb-8">
+            Use Your Model
+          </h1>
+          <div className="card text-center py-12">
+            <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-gold-400" />
+            <p className="text-slate-400">Loading available models...</p>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error && artifacts.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-4xl font-bold mb-8">Use Your Model</h1>
-        <div className="card bg-red-50 border-l-2 border-red-400 py-6">
-          <div className="flex gap-3">
-            <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-red-900 mb-1">Error</p>
-              <p className="text-red-800">{error}</p>
+      <main className="bg-night-950 min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <h1 className="font-display text-4xl font-bold text-slate-100 mb-8">
+            Use Your Model
+          </h1>
+          <div className="card border-rose-500/50 bg-rose-500/5 p-6">
+            <div className="flex gap-3">
+              <AlertCircle className="w-6 h-6 text-rose-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-rose-300 mb-1">Error</p>
+                <p className="text-rose-200 text-sm">{error}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (artifacts.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-4xl font-bold mb-8">Use Your Model</h1>
-        <div className="card text-center py-12">
-          <p className="text-muted mb-4">No verified artifacts available yet.</p>
-          <Link href="/builds" className="text-accent hover:underline text-sm">
-            Build one first
-          </Link>
+      <main className="bg-night-950 min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <h1 className="font-display text-4xl font-bold text-slate-100 mb-8">
+            Use Your Model
+          </h1>
+          <div className="card text-center py-12">
+            <p className="text-slate-400 mb-4">No verified artifacts available yet.</p>
+            <Link href="/builds" className="text-gold-300 hover:text-gold-200 text-sm">
+              Build one first →
+            </Link>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {!selectedArtifact ? (
-        <>
-          <h1 className="font-serif text-4xl font-bold mb-4">Use Your Model</h1>
-          <p className="text-body mb-8">
-            Select a verified artifact to start chatting.
-          </p>
+    <main className="bg-night-950 min-h-screen">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {!selectedArtifact ? (
+          <>
+            <h1 className="font-display text-4xl font-bold text-slate-100 mb-4">
+              Use Your Model
+            </h1>
+            <p className="text-slate-400 mb-8">
+              Select a verified artifact to start chatting.
+            </p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-            {artifacts.map((artifact, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectArtifact(artifact)}
-                className="card-hover p-6 cursor-pointer text-left h-full hover:shadow-md transition-all"
-              >
-                <h3 className="font-serif text-lg font-bold mb-2">{artifact.app}</h3>
-                <p className="text-xs font-mono text-muted uppercase mb-3">
-                  {artifact.base_model.split("/").pop()}
-                </p>
-                <p className="text-sm text-body mb-4">
-                  {artifact.name}
-                </p>
-                <div className="flex gap-4 text-xs text-muted">
-                  <div>
-                    <span className="block font-mono text-ink">
-                      {artifact.n_controls}
-                    </span>
-                    <span className="text-muted">controls</span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Chat interface */}
-          <div className="grid md:grid-cols-4 gap-6 mb-12">
-            {/* Artifact selector sidebar */}
-            <div className="md:col-span-1">
-              <div className="card p-4 sticky top-4">
-                <h3 className="font-serif font-bold mb-3">Selected</h3>
-                <div className="mb-4 pb-4 border-b border-hairline border-gray-300">
-                  <p className="font-serif font-bold text-sm">{selectedArtifact.app}</p>
-                  <p className="text-xs font-mono text-muted mt-1">
-                    {selectedArtifact.base_model.split("/").pop()}
-                  </p>
-                  {controlsActive > 0 && (
-                    <p className="text-xs mt-2 text-verified font-mono">
-                      {controlsActive} control{controlsActive !== 1 ? "s" : ""} active
-                    </p>
-                  )}
-                </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {artifacts.map((artifact, idx) => (
                 <button
-                  onClick={() => setSelectedArtifact(null)}
-                  className="w-full py-2 px-3 text-sm text-ink border border-hairline border-gray-300 rounded hover:bg-panel transition-colors"
+                  key={idx}
+                  onClick={() => handleSelectArtifact(artifact)}
+                  className="card group cursor-pointer text-left hover:bg-night-700/70 transition-colors h-full p-6"
                 >
-                  Change Artifact
-                </button>
-              </div>
-            </div>
-
-            {/* Chat area */}
-            <div className="md:col-span-3">
-              <div className="card flex flex-col h-full bg-white" style={{ minHeight: "600px" }}>
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  {messages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-center">
-                      <div>
-                        <p className="text-muted mb-2">Start a conversation</p>
-                        <p className="text-xs text-muted">
-                          Responses come from the verified artifact:{" "}
-                          <br />
-                          base model + trained adapters + calibrated steering controls
-                        </p>
-                      </div>
+                  <h3 className="font-display text-lg font-bold text-slate-100 group-hover:text-gold-300 transition-colors mb-2">
+                    {artifact.app}
+                  </h3>
+                  <p className="text-xs font-mono text-slate-400 uppercase mb-3">
+                    {artifact.base_model.split("/").pop()}
+                  </p>
+                  <p className="text-sm text-slate-300 mb-4">{artifact.name}</p>
+                  <div className="flex gap-4 text-xs text-slate-400">
+                    <div>
+                      <span className="block font-mono text-slate-100">
+                        {artifact.n_controls}
+                      </span>
+                      <span className="text-slate-500">controls</span>
                     </div>
-                  ) : (
-                    <>
-                      {messages.map((msg, idx) => (
-                        <div
-                          key={idx}
-                          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                        >
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-4 gap-6">
+              {/* Artifact selector sidebar */}
+              <div className="md:col-span-1">
+                <div className="card p-4 sticky top-4">
+                  <h3 className="font-display font-bold mb-3 text-slate-100">
+                    Selected
+                  </h3>
+                  <div className="mb-4 pb-4 border-b border-night-600/50">
+                    <p className="font-display font-bold text-sm text-slate-100">
+                      {selectedArtifact.app}
+                    </p>
+                    <p className="text-xs font-mono text-slate-400 mt-1">
+                      {selectedArtifact.base_model.split("/").pop()}
+                    </p>
+                    {controlsActive > 0 && (
+                      <p className="text-xs mt-2 text-gold-400 font-mono animate-pulse-gold">
+                        {controlsActive} control{controlsActive !== 1 ? "s" : ""} active
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setSelectedArtifact(null)}
+                    className="btn-ghost w-full text-sm"
+                  >
+                    Change Artifact
+                  </button>
+                </div>
+              </div>
+
+              {/* Chat area */}
+              <div className="md:col-span-3">
+                <div
+                  className="card flex flex-col h-full bg-night-800/50 border-night-600/50"
+                  style={{ minHeight: "600px" }}
+                >
+                  {/* Messages */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    {messages.length === 0 ? (
+                      <div className="flex items-center justify-center h-full text-center">
+                        <div>
+                          <p className="text-slate-400 mb-2">Start a conversation</p>
+                          <p className="text-xs text-slate-500">
+                            Responses come from the verified artifact: base model + trained
+                            adapters + calibrated steering controls
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {messages.map((msg, idx) => (
                           <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            key={idx}
+                            className={`flex ${
                               msg.role === "user"
-                                ? "bg-accent text-white"
-                                : "bg-panel text-ink"
+                                ? "justify-end"
+                                : "justify-start"
                             }`}
                           >
-                            <p className="text-sm">{msg.content}</p>
-                          </div>
-                        </div>
-                      ))}
-                      {chatLoading && (
-                        <div className="flex justify-start">
-                          <div className="bg-panel text-ink px-4 py-2 rounded-lg">
-                            <div className="flex gap-2 items-center">
-                              <Loader className="w-4 h-4 animate-spin" />
-                              <span className="text-sm text-muted">
-                                Model thinking (this may take 30-60s)...
-                              </span>
+                            <div
+                              className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                                msg.role === "user"
+                                  ? "bg-gold-600/20 border border-gold-600/50 text-slate-100"
+                                  : "bg-night-700/50 border border-night-600/50 text-slate-200"
+                              }`}
+                            >
+                              <p className="text-sm">{msg.content}</p>
                             </div>
                           </div>
-                        </div>
-                      )}
-                      <div ref={messagesEndRef} />
-                    </>
-                  )}
-                </div>
+                        ))}
+                        {chatLoading && (
+                          <div className="flex justify-start">
+                            <div className="bg-night-700/50 border border-night-600/50 text-slate-200 px-4 py-3 rounded-lg">
+                              <div className="flex gap-2 items-center">
+                                <Loader className="w-4 h-4 animate-spin text-gold-400" />
+                                <span className="text-sm text-slate-400">
+                                  Model thinking (this may take 30-60s)...
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                      </>
+                    )}
+                  </div>
 
-                {/* Error message */}
-                {error && (
-                  <div className="px-6 py-3 bg-red-50 border-t border-red-200">
-                    <div className="flex gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-red-800">{error}</p>
+                  {/* Error message */}
+                  {error && (
+                    <div className="px-6 py-3 bg-rose-500/10 border-t border-rose-500/50">
+                      <div className="flex gap-2">
+                        <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm text-rose-300">{error}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Input form */}
-                <form
-                  onSubmit={handleSendMessage}
-                  className="border-t border-hairline border-gray-300 p-4"
-                >
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Message the model..."
-                      disabled={chatLoading}
-                      className="flex-1 px-4 py-2 border border-hairline border-gray-300 rounded bg-white text-ink placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
-                    />
-                    <button
-                      type="submit"
-                      disabled={chatLoading || !input.trim()}
-                      className="p-2 bg-accent text-white rounded hover:opacity-90 disabled:opacity-50 transition-opacity"
-                      title="Send message"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted mt-2">
-                    Each turn is answered fresh from your verified model.
-                  </p>
-                </form>
+                  {/* Input form */}
+                  <form
+                    onSubmit={handleSendMessage}
+                    className="border-t border-night-600/50 p-4"
+                  >
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Message the model..."
+                        disabled={chatLoading}
+                        className="input flex-1"
+                      />
+                      <button
+                        type="submit"
+                        disabled={chatLoading || !input.trim()}
+                        className="btn-gold gap-2 disabled:opacity-50"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </main>
   );
 }

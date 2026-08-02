@@ -9,55 +9,48 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        paper: "#FBFAF7",
-        panel: "#F2F1EC",
-        ink: "#1F232B",
-        body: "#373C46",
-        muted: "#6B6F79",
-        accent: "#3B4CC0",
-        verified: "#2E7D4F",
-        refusal: "#D97706",
+        night: {
+          950: "#070912",
+          900: "#0b0e1d",
+          800: "#12162e",
+          700: "#1a1f40",
+          600: "#262c58",
+          500: "#39406e",
+        },
+        gold: {
+          200: "#f6ecc8",
+          300: "#efdda2",
+          400: "#e4c778",
+          500: "#d4ab4a",
+          600: "#b98f33",
+          700: "#93702a",
+        },
+        emerald: {
+          400: "#34d399",
+          500: "#10b981",
+        },
+        amber: {
+          400: "#fbbf24",
+          500: "#f59e0b",
+        },
+        rose: {
+          400: "#f472b6",
+          500: "#f43f5e",
+        },
       },
       fontFamily: {
-        serif: ["Source Serif 4", "Georgia", "serif"],
+        display: ["Georgia", "Times New Roman", "serif"],
         sans: ["ui-sans-serif", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", "sans-serif"],
         mono: ["ui-monospace", "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono", "monospace"],
       },
-      fontSize: {
-        "display": ["48px", { lineHeight: "1.1", fontWeight: "700", letterSpacing: "-0.02em" }],
-        "subheading": ["28px", { lineHeight: "1.2", fontWeight: "600" }],
-      },
-      letterSpacing: {
-        "tight": "-0.01em",
-      },
-      borderWidth: {
-        "hairline": "1px",
-      },
-      underlineOffset: {
-        "3": "3px",
-      },
       boxShadow: {
-        sm: "0 1px 2px 0 rgba(31, 35, 43, 0.06)",
-        md: "0 4px 12px 0 rgba(31, 35, 43, 0.1)",
-        lg: "0 10px 24px 0 rgba(31, 35, 43, 0.12)",
-        "accent-glow": "0 0 20px rgba(59, 76, 192, 0.15)",
-        "accent-sm": "0 0 12px rgba(59, 76, 192, 0.08)",
-      },
-      spacing: {
-        "4.5": "1.125rem",
-        "13": "3.25rem",
-        "14": "3.5rem",
-        "15": "3.75rem",
+        glow: "0 0 24px rgba(212, 171, 74, 0.12)",
       },
       animation: {
-        "pulse-subtle": "pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-up": "fade-up 0.25s ease-out both",
+        "pulse-gold": "pulse-gold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       keyframes: {
-        "pulse-subtle": {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.7" },
-        },
         "fade-up": {
           "from": {
             opacity: "0",
@@ -68,10 +61,10 @@ const config: Config = {
             transform: "translateY(0)",
           },
         },
-      },
-      maxWidth: {
-        "prose": "65ch",
-        "screen-xl": "1400px",
+        "pulse-gold": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
     },
   },

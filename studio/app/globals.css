@@ -1,69 +1,54 @@
-@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-night-950 text-slate-200 antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(57, 64, 110, 0.35), transparent),
+    radial-gradient(1px 1px at 20% 30%, rgba(228, 199, 120, 0.25) 50%, transparent 50%),
+    radial-gradient(1px 1px at 70% 15%, rgba(228, 199, 120, 0.2) 50%, transparent 50%),
+    radial-gradient(1px 1px at 40% 70%, rgba(228, 199, 120, 0.12) 50%, transparent 50%),
+    radial-gradient(1px 1px at 85% 55%, rgba(228, 199, 120, 0.15) 50%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
 @layer base {
-  html {
-    @apply scroll-smooth;
-    /* Subtle grain texture */
-    background-image:
-      repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.02) 2px,
-        rgba(0, 0, 0, 0.02) 4px
-      );
-  }
-
-  body {
-    @apply bg-paper text-ink font-sans leading-relaxed;
-  }
-
   h1 {
-    @apply font-serif text-5xl md:text-6xl font-bold tracking-tight mb-4;
+    @apply font-display text-6xl md:text-7xl font-bold tracking-tight mb-6;
   }
 
   h2 {
-    @apply font-serif text-3xl font-bold tracking-tight mb-6;
+    @apply font-display text-4xl font-bold tracking-tight mb-6;
   }
 
   h3 {
-    @apply font-serif text-2xl font-bold tracking-tight mb-4;
-  }
-
-  h4 {
-    @apply font-serif text-lg font-bold mb-3;
-  }
-
-  h5,
-  h6 {
-    @apply font-serif font-bold mb-2;
+    @apply font-display text-2xl font-bold tracking-tight mb-4;
   }
 
   p {
-    @apply mb-4 text-body;
+    @apply text-slate-300 leading-relaxed;
   }
 
   a {
-    @apply text-accent hover:text-ink transition-colors duration-150;
-    text-decoration-color: currentColor;
-    text-underline-offset: 3px;
+    @apply text-gold-300 hover:text-gold-200 transition-colors;
   }
 
   pre {
-    @apply bg-panel p-4 font-mono text-xs overflow-x-auto border border-hairline border-gray-300 rounded-lg shadow-sm;
+    @apply bg-night-800/50 p-4 font-mono text-xs text-slate-300 overflow-x-auto border border-night-600/50 rounded-lg;
   }
 
   code {
-    @apply font-mono text-xs tabular-nums;
+    @apply font-mono text-xs text-slate-300 tabular-nums;
   }
 }
 
 @layer utilities {
-  /* Subtle entrance animation */
   @keyframes fade-up {
     from {
       opacity: 0;
@@ -85,10 +70,8 @@
     }
   }
 
-  /* Pulse subtle for live status */
-  @keyframes pulse-subtle {
-    0%,
-    100% {
+  @keyframes pulse-gold {
+    0%, 100% {
       opacity: 1;
     }
     50% {
@@ -96,78 +79,69 @@
     }
   }
 
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  /* Smooth page transitions */
-  .page-transition {
-    @apply animate-fade-up;
+  .animate-pulse-gold {
+    animation: pulse-gold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white border border-hairline border-gray-300 p-6 rounded-lg transition-all duration-150 shadow-sm;
+    @apply rounded-xl border border-night-600/50 bg-night-800/70 backdrop-blur-sm transition-colors;
   }
 
-  .card-hover {
-    @apply card hover:shadow-md hover:border-accent/30 hover:-translate-y-0.5;
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2 text-sm font-semibold text-night-950 transition hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
-  .button-primary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent text-paper font-sans font-medium hover:bg-ink transition-all duration-150 border border-hairline border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-night-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-gold-600/60 hover:text-gold-300 disabled:opacity-50;
   }
 
-  .button-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-panel text-ink font-sans font-medium hover:bg-gray-100 transition-all duration-150 border border-hairline border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
+  .input {
+    @apply w-full rounded-lg border border-night-600 bg-night-900/80 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-gold-600 focus:outline-none focus:ring-1 focus:ring-gold-600/50;
   }
 
-  .button-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-3 py-2 text-ink hover:bg-panel transition-all duration-150 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wider text-slate-400;
   }
 
-  .diagnostic-box {
-    @apply bg-yellow-50 border-l-4 border-refusal p-4 rounded-r-lg text-sm text-yellow-900;
+  .chip {
+    @apply inline-flex items-center rounded-full border border-night-600 bg-night-900/70 px-2.5 py-0.5 text-xs text-slate-300;
   }
 
-  .badge-pass {
-    @apply inline-flex items-center px-3 py-1 bg-green-50 text-verified font-mono text-xs font-semibold border border-hairline border-verified rounded-full;
+  .badge-gold {
+    @apply inline-flex items-center rounded-full border border-gold-600/50 bg-gold-600/10 px-2 py-0.5 text-[11px] font-medium text-gold-300;
   }
 
-  .badge-fail {
-    @apply inline-flex items-center px-3 py-1 bg-red-50 text-red-700 font-mono text-xs font-semibold border border-hairline border-red-300 rounded-full;
+  .badge-emerald {
+    @apply inline-flex items-center rounded-full border border-emerald-500/50 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400;
   }
 
-  .badge-pending {
-    @apply inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 font-mono text-xs font-semibold border border-hairline border-blue-300 rounded-full;
+  .badge-amber {
+    @apply inline-flex items-center rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400;
   }
 
-  .badge-live {
-    @apply inline-flex items-center px-3 py-1 bg-verified text-white font-mono text-xs font-semibold rounded-full animate-pulse-subtle;
+  .badge-rose {
+    @apply inline-flex items-center rounded-full border border-rose-500/50 bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400;
   }
 
-  .badge-replay {
-    @apply inline-flex items-center px-3 py-1 bg-gray-400 text-white font-mono text-xs font-semibold rounded-full;
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full;
   }
 
-  .divider {
-    @apply border-b border-hairline border-gray-300 my-8;
+  .status-dot-pass {
+    @apply bg-emerald-400;
   }
 
-  .section-heading {
-    @apply font-serif text-2xl font-bold mb-8 pb-4 border-b border-hairline border-gray-300;
+  .status-dot-warn {
+    @apply bg-amber-400;
   }
 
-  .stat-card {
-    @apply bg-white border border-hairline border-gray-300 p-4 rounded-lg shadow-sm;
+  .status-dot-fail {
+    @apply bg-rose-400;
   }
 
-  .stat-label {
-    @apply text-xs text-muted mb-1 font-mono uppercase tracking-wider;
-  }
-
-  .stat-value {
-    @apply font-mono text-lg font-bold tabular-nums text-ink;
+  .status-dot-running {
+    @apply bg-gold-400 animate-pulse-gold;
   }
 }

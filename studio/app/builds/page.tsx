@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Zap } from "lucide-react";
-import { Card, Badge, Section, Divider, EmptyState, Stat } from "@/components/ui";
+import { Zap, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { BuildReport } from "@/lib/types";
 
@@ -65,139 +64,169 @@ export default function BuildsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-4xl font-bold mb-8">Builds</h1>
-        <p className="text-muted">Loading...</p>
-      </div>
+      <main className="bg-night-950 min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <h1 className="font-display text-4xl font-bold text-slate-100 mb-8">
+            Builds
+          </h1>
+          <p className="text-slate-400">Loading...</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="bg-paper">
+    <main className="bg-night-950">
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <h1 className="font-serif text-5xl font-bold mb-4">Builds</h1>
-        <p className="text-lg text-body max-w-2xl">
+        <h1 className="font-display text-5xl font-bold text-slate-100 mb-4">
+          Builds
+        </h1>
+        <p className="text-lg text-slate-400 max-w-2xl">
           Real builds that measure, search, and verify model behavior.
         </p>
       </div>
 
-      <Divider className="max-w-7xl mx-auto px-6" />
+      <div className="border-t border-night-600/50" />
 
       {/* Live section */}
-      <Section
-        className="max-w-7xl mx-auto px-6"
-        title="Live Builds"
-        eyebrow="Real-time"
-        description="Builds currently running or recently completed."
-      >
-        {live.length === 0 ? (
-          <EmptyState
-            icon={<Zap className="w-12 h-12 text-muted" />}
-            title="No live builds"
-            description={
-              SB_URL
-                ? "No builds recorded yet. Submit one from the Studio to get started."
-                : "Live build records need Supabase configured."
-            }
-          />
-        ) : (
-          <div className="space-y-2">
-            {live.map((b) => (
-              <Link key={b.id} href={`/builds/${b.id}`} className="group">
-                <Card interactive className="flex items-center justify-between py-4 px-6">
-                  <div>
-                    <div className="font-mono text-sm font-semibold text-ink">
-                      {b.id.slice(0, 12)}...
-                    </div>
-                    <p className="text-xs text-muted mt-1">
-                      {b.target_model.split("/").pop()}
-                    </p>
-                  </div>
-                  <div className="text-xs text-muted font-mono">
-                    {new Date(b.created_at).toLocaleString()}
-                  </div>
-                  {b.hf_repo && (
-                    <Badge variant="default" className="ml-4">
-                      HF Repo
-                    </Badge>
-                  )}
-                  <Badge
-                    variant={
-                      b.status === "passed"
-                        ? "pass"
-                        : b.status === "running"
-                          ? "live"
-                          : b.status === "failed" || b.status === "error"
-                            ? "fail"
-                            : "pending"
-                    }
-                  >
-                    {b.status}
-                  </Badge>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
-      </Section>
-
-      <Divider className="max-w-7xl mx-auto px-6" />
-
-      {/* Verified showcase section */}
-      <Section
-        className="max-w-7xl mx-auto px-6"
-        title="Verified Showcase"
-        eyebrow="Benchmark Results"
-        description="Stable builds that have passed all verification criteria."
-      >
-        {showcase.length === 0 ? (
-          <EmptyState
-            title="No verified builds yet"
-            description="Builds will appear here once they complete verification."
-          />
-        ) : (
-          <div className="grid gap-6">
-            {showcase.map((build, idx) => (
-              <Link key={idx} href={`/builds/replay-${idx}`} className="group">
-                <Card elevated interactive>
-                  <div className="flex items-start justify-between gap-6">
+      {live.length > 0 && (
+        <>
+          <section className="max-w-7xl mx-auto px-6 py-16">
+            <div className="mb-8">
+              <h2 className="font-display text-3xl font-bold text-slate-100 mb-2">
+                Live Builds
+              </h2>
+              <p className="text-slate-400">Real-time builds running now.</p>
+            </div>
+            <div className="space-y-3">
+              {live.map((build) => (
+                <Link key={build.id} href={`/builds/${build.id}`}>
+                  <div className="card group cursor-pointer hover:bg-night-700/70 p-4 flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="font-serif text-xl font-bold mb-2 group-hover:text-accent transition-colors">
+                      <p className="font-mono text-sm text-slate-100 group-hover:text-gold-300 transition-colors">
+                        {build.id}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {build.target_model.split("/").pop()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {build.status === "running" && (
+                        <>
+                          <Clock className="w-4 h-4 text-gold-400 animate-spin" />
+                          <span className="text-xs text-gold-400 font-mono">Running</span>
+                        </>
+                      )}
+                      {build.status === "completed" && (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs text-emerald-400 font-mono">Done</span>
+                        </>
+                      )}
+                      {build.status === "failed" && (
+                        <>
+                          <XCircle className="w-4 h-4 text-rose-400" />
+                          <span className="text-xs text-rose-400 font-mono">Failed</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <div className="border-t border-night-600/50" />
+        </>
+      )}
+
+      {/* Verified builds section */}
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <div className="mb-8">
+          <h2 className="font-display text-3xl font-bold text-slate-100 mb-2">
+            Verified Builds
+          </h2>
+          <p className="text-slate-400">
+            {showcase.length === 0
+              ? "Builds are validated here."
+              : `${showcase.length} prebuilt verified model${showcase.length !== 1 ? "s" : ""}.`}
+          </p>
+        </div>
+
+        {showcase.length === 0 ? (
+          <div className="card text-center py-12">
+            <Zap className="w-8 h-8 text-slate-500 mx-auto mb-3" />
+            <p className="text-slate-400">No verified builds yet.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {showcase.map((build, idx) => (
+              <Link key={idx} href={`/builds/replay-${idx}`}>
+                <div
+                  className={`card group cursor-pointer hover:bg-night-700/70 p-6 h-full transition-colors border ${
+                    build.passed
+                      ? "border-emerald-500/30"
+                      : "border-rose-500/30"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="font-display text-lg font-bold text-slate-100 group-hover:text-gold-300 transition-colors">
                         {build.app}
                       </h3>
-                      <p className="text-xs font-mono uppercase text-accent tracking-wider mb-4">
+                      <p className="text-xs font-mono text-slate-400 mt-1">
                         {build.base_model.split("/").pop()}
                       </p>
-                      <div className="grid grid-cols-3 gap-6">
-                        <Stat
-                          label="Wall Clock"
-                          value={build.wall_clock_s.toFixed(1)}
-                          unit="s"
-                        />
-                        <Stat
-                          label="Expectations Passed"
-                          value={build.expectations_passed || 0}
-                          unit={`/ ${build.expectations.length}`}
-                        />
-                        <Stat
-                          label="Status"
-                          value={build.passed ? "PASS" : "FAIL"}
-                          trend={build.passed ? "up" : "down"}
-                        />
-                      </div>
                     </div>
-                    <div className="flex-shrink-0 mt-2">
-                      <Badge variant={build.passed ? "pass" : "fail"}>
-                        {build.passed ? "PASS" : "FAIL"}
-                      </Badge>
-                    </div>
+                    {build.passed ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+                    )}
                   </div>
-                </Card>
+
+                  <div className="space-y-2 text-xs">
+                    {build.wall_clock_s && (
+                      <div className="flex justify-between text-slate-400">
+                        <span>Time</span>
+                        <span className="font-mono">
+                          {(build.wall_clock_s / 60).toFixed(1)}m
+                        </span>
+                      </div>
+                    )}
+                    {(build.capabilities as any[])?.length > 0 && (
+                      <div className="flex justify-between text-slate-400">
+                        <span>Capabilities</span>
+                        <span className="font-mono">
+                          {(build.capabilities as any[]).length}
+                        </span>
+                      </div>
+                    )}
+                    {(build.expectations as any[])?.length > 0 && (
+                      <div className="flex justify-between text-slate-400">
+                        <span>Expectations</span>
+                        <span className="font-mono">
+                          {(build.expectations as any[]).length}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-night-600/50">
+                    {build.passed ? (
+                      <span className="badge-emerald">Verified</span>
+                    ) : (
+                      <span className="badge-rose">Failed</span>
+                    )}
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
         )}
-      </Section>
-    </div>
+      </section>
+
+      <div className="h-8" />
+    </main>
   );
 }

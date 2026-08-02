@@ -1,0 +1,809 @@
+{
+  "levels": [
+    {
+      "id": "L3",
+      "name": "Program",
+      "what": "clauses in consequences: knows / speaks / always / never / refuses / expect, plus tune and effort"
+    },
+    {
+      "id": "L2",
+      "name": "Capability graph",
+      "what": "kinds the compiler reasons about",
+      "kinds": [
+        "knowledge",
+        "skill",
+        "style",
+        "invariant",
+        "prohibition",
+        "guardrail",
+        "tuning"
+      ]
+    },
+    {
+      "id": "L1",
+      "name": "Mech-interp IR (the instruction set)",
+      "what": "reads and writes on internal objects measured to be real"
+    },
+    {
+      "id": "L0",
+      "name": "Substrate operations",
+      "what": "what a machine is actually asked to do"
+    }
+  ],
+  "instructions": [
+    {
+      "op": "amplify",
+      "target": "feature",
+      "emitted_by": [
+        "monitor_and_correct"
+      ],
+      "for_kinds": [
+        "invariant"
+      ],
+      "operands": [
+        "layer",
+        "multiplier"
+      ],
+      "verified_by": "steering-capacity ledger \u2014 a linear write delivers a measured, substrate-specific band of nats; the compiler consults it before emitting this instruction at all",
+      "note": ""
+    },
+    {
+      "op": "amplify",
+      "target": "feature=refusal",
+      "emitted_by": [
+        "amplify_refusal_feature"
+      ],
+      "for_kinds": [
+        "guardrail"
+      ],
+      "operands": [
+        "layer",
+        "multiplier"
+      ],
+      "verified_by": "steering-capacity ledger \u2014 a linear write delivers a measured, substrate-specific band of nats; the compiler consults it before emitting this instruction at all",
+      "note": ""
+    },
+    {
+      "op": "amplify",
+      "target": "feature=style",
+      "emitted_by": [
+        "steer_style_feature"
+      ],
+      "for_kinds": [
+        "style"
+      ],
+      "operands": [
+        "layer",
+        "multiplier"
+      ],
+      "verified_by": "steering-capacity ledger \u2014 a linear write delivers a measured, substrate-specific band of nats; the compiler consults it before emitting this instruction at all",
+      "note": ""
+    },
+    {
+      "op": "install",
+      "target": "circuit",
+      "emitted_by": [
+        "install_compiled_circuit"
+      ],
+      "for_kinds": [
+        "skill"
+      ],
+      "operands": [
+        "circuit envelope (vocab, length)"
+      ],
+      "verified_by": "E2 + the constructed backend \u2014 induction exists as a circuit and can be written into weights directly, verified layer by layer against ground truth (prefix score 0.979, zero training)",
+      "note": ""
+    },
+    {
+      "op": "install",
+      "target": "circuit=retrieval",
+      "emitted_by": [
+        "retrieval_circuit"
+      ],
+      "for_kinds": [
+        "knowledge"
+      ],
+      "operands": [
+        "circuit envelope (vocab, length)"
+      ],
+      "verified_by": "E2 + the constructed backend \u2014 induction exists as a circuit and can be written into weights directly, verified layer by layer against ground truth (prefix score 0.979, zero training)",
+      "note": ""
+    },
+    {
+      "op": "read",
+      "target": "feature",
+      "emitted_by": [
+        "monitor_and_correct"
+      ],
+      "for_kinds": [
+        "invariant"
+      ],
+      "operands": [],
+      "verified_by": "E1/E4 \u2014 a concept is linearly readable from the residual stream, and the honest measure is what a probe adds beyond a trivial baseline (incremental R\u00b2 0.031 trained vs 0.0003 untrained)",
+      "note": ""
+    },
+    {
+      "op": "read",
+      "target": "feature=refusal",
+      "emitted_by": [
+        "amplify_refusal_feature"
+      ],
+      "for_kinds": [
+        "guardrail"
+      ],
+      "operands": [],
+      "verified_by": "E1/E4 \u2014 a concept is linearly readable from the residual stream, and the honest measure is what a probe adds beyond a trivial baseline (incremental R\u00b2 0.031 trained vs 0.0003 untrained)",
+      "note": ""
+    },
+    {
+      "op": "read",
+      "target": "feature=style",
+      "emitted_by": [
+        "steer_style_feature"
+      ],
+      "for_kinds": [
+        "style"
+      ],
+      "operands": [],
+      "verified_by": "E1/E4 \u2014 a concept is linearly readable from the residual stream, and the honest measure is what a probe adds beyond a trivial baseline (incremental R\u00b2 0.031 trained vs 0.0003 untrained)",
+      "note": ""
+    },
+    {
+      "op": "read",
+      "target": "feature=topic",
+      "emitted_by": [
+        "suppress_topic_feature"
+      ],
+      "for_kinds": [
+        "prohibition"
+      ],
+      "operands": [],
+      "verified_by": "E1/E4 \u2014 a concept is linearly readable from the residual stream, and the honest measure is what a probe adds beyond a trivial baseline (incremental R\u00b2 0.031 trained vs 0.0003 untrained)",
+      "note": ""
+    },
+    {
+      "op": "suppress",
+      "target": "feature=topic",
+      "emitted_by": [
+        "suppress_topic_feature"
+      ],
+      "for_kinds": [
+        "prohibition"
+      ],
+      "operands": [
+        "layer",
+        "multiplier"
+      ],
+      "verified_by": "same ledger, negative direction; bounded by the output-variety guard, which rejects any dose that damages the model",
+      "note": ""
+    },
+    {
+      "op": "train",
+      "target": "build_curriculum",
+      "emitted_by": [
+        "curriculum"
+      ],
+      "for_kinds": [
+        "skill"
+      ],
+      "operands": [
+        "rank",
+        "lr",
+        "steps",
+        "lr",
+        "steps"
+      ],
+      "verified_by": "no mech-interp claim: the escape hatch. Reached when the measured gap exceeds what a write has been shown to deliver",
+      "note": "the compiler reaches this only after measuring that the mech-interp instruction cannot meet the declared target"
+    },
+    {
+      "op": "train",
+      "target": "continued_pretrain",
+      "emitted_by": [
+        "continued_pretraining"
+      ],
+      "for_kinds": [
+        "knowledge"
+      ],
+      "operands": [
+        "rank",
+        "lr",
+        "steps",
+        "lr",
+        "steps"
+      ],
+      "verified_by": "no mech-interp claim: the escape hatch. Reached when the measured gap exceeds what a write has been shown to deliver",
+      "note": "the compiler reaches this only after measuring that the mech-interp instruction cannot meet the declared target"
+    },
+    {
+      "op": "train",
+      "target": "finetune",
+      "emitted_by": [
+        "finetune_on_demonstrations",
+        "finetune_on_styled_text",
+        "finetune_to_comply",
+        "finetune_refusals"
+      ],
+      "for_kinds": [
+        "skill",
+        "style",
+        "invariant",
+        "guardrail"
+      ],
+      "operands": [
+        "rank",
+        "lr",
+        "steps",
+        "lr",
+        "steps"
+      ],
+      "verified_by": "no mech-interp claim: the escape hatch. Reached when the measured gap exceeds what a write has been shown to deliver",
+      "note": "the compiler reaches this only after measuring that the mech-interp instruction cannot meet the declared target"
+    },
+    {
+      "op": "train",
+      "target": "install_filter",
+      "emitted_by": [
+        "output_filter"
+      ],
+      "for_kinds": [
+        "prohibition"
+      ],
+      "operands": [
+        "rank",
+        "lr",
+        "steps",
+        "lr",
+        "steps"
+      ],
+      "verified_by": "no mech-interp claim: the escape hatch. Reached when the measured gap exceeds what a write has been shown to deliver",
+      "note": "the compiler reaches this only after measuring that the mech-interp instruction cannot meet the declared target"
+    },
+    {
+      "op": "train",
+      "target": "mix_corpus",
+      "emitted_by": [
+        "pretraining_mixture"
+      ],
+      "for_kinds": [
+        "knowledge"
+      ],
+      "operands": [
+        "rank",
+        "lr",
+        "steps",
+        "lr",
+        "steps"
+      ],
+      "verified_by": "no mech-interp claim: the escape hatch. Reached when the measured gap exceeds what a write has been shown to deliver",
+      "note": "the compiler reaches this only after measuring that the mech-interp instruction cannot meet the declared target"
+    },
+    {
+      "op": "train",
+      "target": "train_adapter",
+      "emitted_by": [
+        "knowledge_adapter"
+      ],
+      "for_kinds": [
+        "knowledge"
+      ],
+      "operands": [
+        "rank",
+        "lr",
+        "steps",
+        "lr",
+        "steps"
+      ],
+      "verified_by": "no mech-interp claim: the escape hatch. Reached when the measured gap exceeds what a write has been shown to deliver",
+      "note": "the compiler reaches this only after measuring that the mech-interp instruction cannot meet the declared target"
+    }
+  ],
+  "substrate_ops": [
+    {
+      "op": "build_curriculum",
+      "emitted_by": [
+        "curriculum"
+      ],
+      "requires_lever": [
+        "curriculum"
+      ]
+    },
+    {
+      "op": "build_index",
+      "emitted_by": [
+        "retrieval_circuit"
+      ],
+      "requires_lever": [
+        "retrieval",
+        "install_circuit"
+      ]
+    },
+    {
+      "op": "continued_pretrain",
+      "emitted_by": [
+        "continued_pretraining"
+      ],
+      "requires_lever": [
+        "continued_pretrain"
+      ]
+    },
+    {
+      "op": "finetune",
+      "emitted_by": [
+        "finetune_on_demonstrations",
+        "finetune_on_styled_text",
+        "finetune_to_comply",
+        "finetune_refusals"
+      ],
+      "requires_lever": [
+        "finetune"
+      ]
+    },
+    {
+      "op": "install_filter",
+      "emitted_by": [
+        "output_filter"
+      ],
+      "requires_lever": [
+        "monitor"
+      ]
+    },
+    {
+      "op": "mix_corpus",
+      "emitted_by": [
+        "pretraining_mixture"
+      ],
+      "requires_lever": [
+        "pretrain"
+      ]
+    },
+    {
+      "op": "pretrain",
+      "emitted_by": [
+        "pretraining_mixture"
+      ],
+      "requires_lever": [
+        "pretrain"
+      ]
+    },
+    {
+      "op": "train",
+      "emitted_by": [
+        "curriculum"
+      ],
+      "requires_lever": [
+        "curriculum"
+      ]
+    },
+    {
+      "op": "train_adapter",
+      "emitted_by": [
+        "knowledge_adapter"
+      ],
+      "requires_lever": [
+        "adapter"
+      ]
+    }
+  ],
+  "operands": [
+    {
+      "name": "layer",
+      "stage": "steering",
+      "range": [
+        0.35,
+        0.85
+      ],
+      "spacing": "depth_fraction",
+      "bounded_by": null,
+      "why": "where in the stack the behaviour is legible enough to write to"
+    },
+    {
+      "name": "multiplier",
+      "stage": "steering",
+      "range": [
+        0.5,
+        4.0
+      ],
+      "spacing": "log",
+      "bounded_by": "steering",
+      "why": "how hard to push, as a multiple of the direction's own scale"
+    },
+    {
+      "name": "rank",
+      "stage": "adaptation",
+      "range": [
+        1,
+        8
+      ],
+      "spacing": "int_log",
+      "bounded_by": "adaptation",
+      "why": "how much capacity the adapter has to change behaviour"
+    },
+    {
+      "name": "lr",
+      "stage": "adaptation",
+      "range": [
+        2e-05,
+        0.0003
+      ],
+      "spacing": "log",
+      "bounded_by": "adaptation",
+      "why": "how far each step moves the adapter"
+    },
+    {
+      "name": "steps",
+      "stage": "adaptation",
+      "range": [
+        30,
+        240
+      ],
+      "spacing": "int_log",
+      "bounded_by": "patience",
+      "why": "how long to train the adapter"
+    },
+    {
+      "name": "lr",
+      "stage": "pretraining",
+      "range": [
+        1e-06,
+        1e-05
+      ],
+      "spacing": "log",
+      "bounded_by": "adaptation",
+      "why": "how far each step moves the weights themselves"
+    },
+    {
+      "name": "steps",
+      "stage": "pretraining",
+      "range": [
+        20,
+        120
+      ],
+      "spacing": "int_log",
+      "bounded_by": "patience",
+      "why": "how much of the corpus to walk through"
+    }
+  ],
+  "knobs": {
+    "adaptation": {
+      "domain": [
+        1.0,
+        8.0
+      ],
+      "meaning": "a position on a dial the program may narrow"
+    },
+    "steering": {
+      "domain": [
+        0.5,
+        4.0
+      ],
+      "meaning": "a position on a dial the program may narrow"
+    },
+    "patience": {
+      "domain": [
+        1.0,
+        10.0
+      ],
+      "meaning": "a position on a dial the program may narrow"
+    },
+    "insistence": {
+      "domain": [
+        0.0,
+        1.0
+      ],
+      "meaning": "a position on a dial the program may narrow"
+    }
+  },
+  "targets": {
+    "scratch": {
+      "family": "built here",
+      "notes": "Every lever available: the architecture, the tokenizer and the data are all choices the compiler gets to make.",
+      "levers": {
+        "choose_architecture": {
+          "available": true,
+          "cost": 0.0,
+          "note": ""
+        },
+        "choose_tokenizer": {
+          "available": true,
+          "cost": 0.1,
+          "note": ""
+        },
+        "pretrain": {
+          "available": true,
+          "cost": 10.0,
+          "note": "expensive, but the only way to put knowledge in the weights from nothing"
+        },
+        "curriculum": {
+          "available": true,
+          "cost": 3.0,
+          "note": ""
+        },
+        "finetune": {
+          "available": true,
+          "cost": 1.0,
+          "note": ""
+        },
+        "adapter": {
+          "available": true,
+          "cost": 0.4,
+          "note": ""
+        },
+        "install_circuit": {
+          "available": true,
+          "cost": 0.05,
+          "note": "compiled directly into weights"
+        },
+        "steer": {
+          "available": true,
+          "cost": 0.02,
+          "note": "runtime, no training"
+        },
+        "monitor": {
+          "available": true,
+          "cost": 0.02,
+          "note": ""
+        },
+        "retrieval": {
+          "available": true,
+          "cost": 0.1,
+          "note": ""
+        }
+      }
+    },
+    "open_weight": {
+      "family": "downloaded",
+      "notes": "The architecture and tokenizer are frozen. Everything the compiler achieves here it achieves through data, adapters, grafted circuits and steering.",
+      "levers": {
+        "choose_architecture": {
+          "available": false,
+          "cost": null,
+          "note": "the architecture was fixed by whoever trained these weights and cannot be changed without discarding them"
+        },
+        "choose_tokenizer": {
+          "available": false,
+          "cost": null,
+          "note": "the tokenizer is baked into the embedding matrix"
+        },
+        "pretrain": {
+          "available": false,
+          "cost": null,
+          "note": "pretraining from nothing would throw away the weights that make this substrate worth using"
+        },
+        "continued_pretrain": {
+          "available": true,
+          "cost": 4.0,
+          "note": "extends what the model knows without discarding it"
+        },
+        "curriculum": {
+          "available": false,
+          "cost": null,
+          "note": "subsumed by continued pretraining here"
+        },
+        "finetune": {
+          "available": true,
+          "cost": 1.0,
+          "note": ""
+        },
+        "adapter": {
+          "available": true,
+          "cost": 0.3,
+          "note": "cheap, composable, leaves the base weights intact"
+        },
+        "install_circuit": {
+          "available": true,
+          "cost": 0.05,
+          "note": "within the circuit's verified envelope"
+        },
+        "steer": {
+          "available": true,
+          "cost": 0.02,
+          "note": ""
+        },
+        "monitor": {
+          "available": true,
+          "cost": 0.02,
+          "note": ""
+        },
+        "retrieval": {
+          "available": true,
+          "cost": 0.1,
+          "note": ""
+        }
+      }
+    }
+  },
+  "lowering": {
+    "knowledge": [
+      {
+        "strategy": "pretraining_mixture",
+        "requires": [
+          "pretrain"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "mix_corpus",
+          "pretrain"
+        ],
+        "rationale": "the material is in the weights from the start, which is only possible when we are the ones training the model"
+      },
+      {
+        "strategy": "continued_pretraining",
+        "requires": [
+          "continued_pretrain"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "continued_pretrain"
+        ],
+        "rationale": "extends what a downloaded model knows without discarding what it already knows"
+      },
+      {
+        "strategy": "knowledge_adapter",
+        "requires": [
+          "adapter"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "train_adapter"
+        ],
+        "rationale": "cheap and reversible; the base weights are untouched"
+      },
+      {
+        "strategy": "retrieval_circuit",
+        "requires": [
+          "retrieval",
+          "install_circuit"
+        ],
+        "mech_ops": [
+          "install(circuit=retrieval)"
+        ],
+        "substrate_ops": [
+          "build_index"
+        ],
+        "rationale": "the material stays outside the weights and is fetched on demand"
+      }
+    ],
+    "skill": [
+      {
+        "strategy": "install_compiled_circuit",
+        "requires": [
+          "install_circuit"
+        ],
+        "mech_ops": [
+          "install(circuit)"
+        ],
+        "substrate_ops": [],
+        "rationale": "the skill exists as a verified circuit and can be written into the weights directly, with no training at all"
+      },
+      {
+        "strategy": "curriculum",
+        "requires": [
+          "curriculum"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "build_curriculum",
+          "train"
+        ],
+        "rationale": "teach it as one skill among several while the model trains"
+      },
+      {
+        "strategy": "finetune_on_demonstrations",
+        "requires": [
+          "finetune"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "finetune"
+        ],
+        "rationale": "show the model examples of the skill"
+      }
+    ],
+    "style": [
+      {
+        "strategy": "steer_style_feature",
+        "requires": [
+          "steer",
+          "monitor"
+        ],
+        "mech_ops": [
+          "read(feature=style)",
+          "amplify(feature=style, dose=ec50)"
+        ],
+        "substrate_ops": [],
+        "rationale": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training"
+      },
+      {
+        "strategy": "finetune_on_styled_text",
+        "requires": [
+          "finetune"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "finetune"
+        ],
+        "rationale": "bake the style into the weights when steering is not available or not sufficient"
+      }
+    ],
+    "invariant": [
+      {
+        "strategy": "monitor_and_correct",
+        "requires": [
+          "monitor",
+          "steer"
+        ],
+        "mech_ops": [
+          "read(feature)",
+          "amplify(feature, dose=ec50)"
+        ],
+        "substrate_ops": [],
+        "rationale": "watch the internal signal for the property and push it when it slips, with a bounded side-effect"
+      },
+      {
+        "strategy": "finetune_to_comply",
+        "requires": [
+          "finetune"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "finetune"
+        ],
+        "rationale": "train the behaviour in when it cannot be watched"
+      }
+    ],
+    "prohibition": [
+      {
+        "strategy": "suppress_topic_feature",
+        "requires": [
+          "steer",
+          "monitor"
+        ],
+        "mech_ops": [
+          "read(feature=topic)",
+          "suppress(feature=topic, dose=ec50)"
+        ],
+        "substrate_ops": [],
+        "rationale": "the topic is a direction; suppressing it is a runtime write, bounded by a side-effect budget so it cannot lobotomize the model"
+      },
+      {
+        "strategy": "output_filter",
+        "requires": [
+          "monitor"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "install_filter"
+        ],
+        "rationale": "last resort: block at the output when the internal direction cannot be isolated"
+      }
+    ],
+    "guardrail": [
+      {
+        "strategy": "amplify_refusal_feature",
+        "requires": [
+          "steer",
+          "monitor"
+        ],
+        "mech_ops": [
+          "read(feature=refusal)",
+          "amplify(feature=refusal, dose=ec50)"
+        ],
+        "substrate_ops": [],
+        "rationale": "refusal is a measured, dose-responsive direction; amplifying it hardens the model without retraining"
+      },
+      {
+        "strategy": "finetune_refusals",
+        "requires": [
+          "finetune"
+        ],
+        "mech_ops": [],
+        "substrate_ops": [
+          "finetune"
+        ],
+        "rationale": "train refusal behaviour from examples"
+      }
+    ]
+  },
+  "note": "Generated from the compiler's own tables (lowering.CATALOGUE, design_space.DESIGN_SPACE, substrate.PROFILES). A manual written by hand drifts from the compiler; this one cannot."
+}

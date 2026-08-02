@@ -69,42 +69,51 @@ export function NavHeader() {
   };
 
   return (
-    <nav className="border-b border-hairline border-gray-300">
+    <nav className="border-b border-night-600/50 bg-night-900/50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link href="/" className="no-underline">
-          <div className="font-serif text-xl font-bold text-ink hover:text-accent transition-colors">
+          <div className="font-display text-xl font-bold text-slate-200 hover:text-gold-300 transition-colors">
             Loom
           </div>
         </Link>
         <div className="flex items-center gap-8">
-          <div className="flex gap-6 text-sm">
-            <Link href="/studio" className="text-ink hover:text-accent transition-colors">
-              Studio
+          <div className="flex gap-6 text-sm text-slate-300">
+            <Link href="/" className="hover:text-gold-300 transition-colors">
+              Home
             </Link>
-            <Link href="/builds" className="text-ink hover:text-accent transition-colors">
+            <Link href="/science" className="hover:text-gold-300 transition-colors">
+              Science
+            </Link>
+            <Link href="/language" className="hover:text-gold-300 transition-colors">
+              Language
+            </Link>
+            <Link href="/compiler" className="hover:text-gold-300 transition-colors">
+              Compiler
+            </Link>
+            <Link href="/builds" className="hover:text-gold-300 transition-colors">
               Builds
             </Link>
-            <Link href="/use" prefetch={false} className="text-ink hover:text-accent transition-colors">
-              Use
+            <Link href="/studio" className="hover:text-gold-300 transition-colors">
+              Studio
             </Link>
           </div>
           <GpuStatus />
-          <div className="border-l border-hairline border-gray-300 pl-6">
+          <div className="border-l border-night-600/50 pl-6">
             {loading ? (
-              <Loader className="w-4 h-4 animate-spin text-muted" />
+              <Loader className="w-4 h-4 animate-spin text-slate-400" />
             ) : user ? (
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-xs font-mono text-muted">{user.email}</p>
+                  <p className="text-xs font-mono text-slate-400">{user.email}</p>
                   <div className="flex gap-2 items-center">
                     {isAdmin && (
-                      <span className="badge-live text-xs px-2 py-0.5">Admin</span>
+                      <span className="badge-gold text-xs px-2 py-0.5">Operator</span>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="text-muted hover:text-ink transition-colors"
+                  className="text-slate-400 hover:text-gold-300 transition-colors"
                   title="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -115,7 +124,7 @@ export function NavHeader() {
                 <div className="mt-3">
                   <Link
                     href="/login"
-                    className="text-xs text-accent hover:underline"
+                    className="text-xs text-gold-300 hover:text-gold-200"
                   >
                     Sign in
                   </Link>

@@ -3,16 +3,9 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader, Zap } from "lucide-react";
-import { Card, Button, Callout, RefusalCallout, Tabs, Tab, EmptyState } from "@/components/ui";
+import { Loader, Zap, ArrowRight } from "lucide-react";
 import { explainProgram, buildProgram } from "@/lib/gpu";
 import { createClient } from "@/lib/supabase/client";
-
-const MODELS = [
-  "meta-llama/Llama-3.2-1B-Instruct",
-  "meta-llama/Llama-2-7b-chat-hf",
-  "mistralai/Mistral-7B-Instruct-v0.2",
-];
 
 function StudioContent() {
   const router = useRouter();
@@ -25,7 +18,67 @@ function StudioContent() {
   const [explainText, setExplainText] = useState("");
   const [error, setError] = useState("");
   const [compilerRefusal, setCompilerRefusal] = useState("");
-  const [targetModel, setTargetModel] = useState(MODELS[0]);
+  const [targetModel, setTargetModel] = useState("");
+  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
+    const checkSession = async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (authUser) {
+        setUser({ email: authUser.email || "" });
+
+        try {
+          const { data } = await supabase
+            .from("app_admins")
+            .select("email")
+            .eq("email", authUser.email);
+
+          if (data && data.length > 0) {
+            setIsAdmin(true);
+          }
+        } catch {
+          // Ignore
+        }
+      }
+      setLoading(false);
+    };
+
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    // Fetch available models from GPU health
+    fetch("/api/gpu/health")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.allowed_models && data.allowed_models.length > 0) {
+          setAvailableModels(data.allowed_models);
+          setTargetModel(data.allowed_models[0]);
+        }
+      })
+      .catch(() => {
+        // Fallback models
+        const defaults = [
+          "meta-llama/Llama-3.2-1B-Instruct",
+          "meta-llama/Llama-3.2-1B",
+          "Qwen/Qwen2.5-0.5B-Instruct",
+        ];
+        setAvailableModels(defaults);
+        setTargetModel(defaults[0]);
+      });
+  }, []);
 
   useEffect(() => {
     const example = searchParams.get("example");
@@ -79,6 +132,11 @@ function StudioContent() {
   };
 
   const handleBuild = async () => {
+    if (!isAdmin) {
+      setError("Running a build spends real GPU time and is limited to operators.");
+      return;
+    }
+
     setError("");
     setCompilerRefusal("");
     setBuilding(true);
@@ -97,6 +155,10 @@ function StudioContent() {
     if (!result.ok) {
       if (result.error?.includes("422")) {
         setCompilerRefusal(result.error);
+      } else if (result.error?.includes("429") || result.error?.includes("403")) {
+        setError(
+          "Running a build spends real GPU time and is limited to operators."
+        );
       } else {
         setError(result.error || "Failed to start build");
       }
@@ -108,111 +170,220 @@ function StudioContent() {
     setBuilding(false);
   };
 
+  const groupedModels: Record<string, string[]> = {
+    "From Scratch": availableModels.filter((m) => m.includes("scratch")),
+    "Llama": availableModels.filter((m) => m.includes("Llama")),
+    "Qwen": availableModels.filter((m) => m.includes("Qwen")),
+    "Other": availableModels.filter(
+      (m) =>
+        !m.includes("scratch") &&
+        !m.includes("Llama") &&
+        !m.includes("Qwen")
+    ),
+  };
+
   return (
-    <div className="bg-paper min-h-screen">
+    <div className="bg-night-950 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
-          <h1 className="font-serif text-5xl font-bold mb-3">Loom Editor</h1>
-          <p className="text-lg text-body max-w-2xl">
-            Write declarative specifications. The compiler searches, measures, and verifies behavior across the parameter space.
+          <h1 className="font-display text-5xl font-bold text-slate-100 mb-3">
+            Loom Editor
+          </h1>
+          <p className="text-lg text-slate-400 max-w-2xl">
+            Write declarative specifications. The compiler searches, measures, and verifies behavior.
           </p>
         </div>
 
-        {/* Program selector tabs */}
-        <Tabs
-          defaultValue={selectedExample}
-          className="mb-12"
-        >
-          {Object.keys(examples).map((name) => (
-            <Tab
-              key={name}
-              label={name.charAt(0).toUpperCase() + name.slice(1)}
-              value={name}
-            >
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* Left pane: editor */}
-                <div className="md:col-span-2 space-y-6">
-                  <div>
-                    <label className="stat-label block mb-3">Program Source</label>
-                    <textarea
-                      value={source}
-                      onChange={(e) => setSource(e.target.value)}
-                      onClick={() => handleSelectExample(name)}
-                      className="w-full h-96 px-4 py-3 border border-hairline border-gray-300 rounded-lg font-mono text-sm bg-white text-ink resize-none focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
-                      placeholder="Write your Loom program here..."
-                    />
-                  </div>
+        {/* Program selector */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-2">
+            {Object.keys(examples).map((name) => (
+              <button
+                key={name}
+                onClick={() => handleSelectExample(name)}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  selectedExample === name
+                    ? "bg-gold-600 text-night-950"
+                    : "bg-night-800/50 border border-night-600 text-slate-300 hover:border-gold-600/60 hover:text-gold-300"
+                }`}
+              >
+                {name.charAt(0).toUpperCase() + name.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                  <div className="space-y-3">
-                    <label className="stat-label">Target Model</label>
-                    <select
-                      value={targetModel}
-                      onChange={(e) => setTargetModel(e.target.value)}
-                      className="w-full px-4 py-2 border border-hairline border-gray-300 rounded-lg font-sans text-sm bg-white text-ink focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
-                    >
-                      {MODELS.map((model) => (
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Left pane: editor */}
+          <div className="md:col-span-2 space-y-6">
+            <div>
+              <label className="label">Program Source</label>
+              <textarea
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="input font-mono text-xs h-96 resize-none"
+                placeholder="Write your Loom program here..."
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="label">Target Model</label>
+              <select
+                value={targetModel}
+                onChange={(e) => setTargetModel(e.target.value)}
+                className="input"
+              >
+                {Object.entries(groupedModels).map(([group, models]) => {
+                  const validModels = models.filter((m) => m);
+                  if (validModels.length === 0) return null;
+                  return (
+                    <optgroup key={group} label={group}>
+                      {validModels.map((model) => (
                         <option key={model} value={model}>
-                          {model}
+                          {model.split("/").pop()}
                         </option>
                       ))}
-                    </select>
-                  </div>
+                    </optgroup>
+                  );
+                })}
+              </select>
+            </div>
 
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={handleExplain}
-                      disabled={explaining || !source.trim()}
-                      className="flex-1"
-                      size="lg"
-                    >
-                      {explaining && <Loader className="w-4 h-4 animate-spin" />}
-                      Explain
-                    </Button>
-                    <Button
-                      onClick={handleBuild}
-                      disabled={building || !source.trim()}
-                      className="flex-1"
-                      size="lg"
-                    >
-                      {building && <Loader className="w-4 h-4 animate-spin" />}
-                      Build on GPU
-                    </Button>
-                  </div>
-                </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleExplain}
+                disabled={explaining || !source.trim()}
+                className={`btn-ghost flex-1 gap-2 ${explaining ? "opacity-50" : ""}`}
+              >
+                {explaining ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Explaining...
+                  </>
+                ) : (
+                  <>
+                    <ArrowRight className="w-4 h-4" />
+                    Explain
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleBuild}
+                disabled={
+                  building || !source.trim() || !isAdmin || loading
+                }
+                className={`btn-gold flex-1 gap-2 ${
+                  building || !isAdmin ? "opacity-50" : ""
+                }`}
+              >
+                {building ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Building...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    Build
+                  </>
+                )}
+              </button>
+            </div>
 
-                {/* Right pane: output */}
-                <div className="space-y-4">
-                  {compilerRefusal && (
-                    <RefusalCallout message={compilerRefusal} />
-                  )}
-
-                  {error && (
-                    <Callout variant="error">
-                      {error}
-                    </Callout>
-                  )}
-
-                  {explainText && (
-                    <Card elevated>
-                      <h3 className="font-serif font-bold mb-4">Search Plan</h3>
-                      <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono text-body overflow-x-auto">
-                        {explainText}
-                      </pre>
-                    </Card>
-                  )}
-
-                  {!explainText && !error && !compilerRefusal && (
-                    <EmptyState
-                      icon={<Zap className="w-12 h-12 text-muted" />}
-                      title="Ready to compile"
-                      description="Click Explain to see the compiler's search plan"
-                    />
-                  )}
-                </div>
+            {/* Build restriction notice */}
+            {!isAdmin && !loading && (
+              <div className="card p-4 border-amber-500/50 bg-amber-500/5">
+                <p className="text-amber-300 text-sm">
+                  Running a build spends real GPU time and is limited to operators. Every
+                  prebuilt demo is open to you — try Explain to see how the compiler reasons
+                  about your program.
+                </p>
               </div>
-            </Tab>
-          ))}
-        </Tabs>
+            )}
+
+            {/* Error/refusal messages */}
+            {error && (
+              <div className="card p-4 border-rose-500/50 bg-rose-500/5">
+                <p className="text-rose-300 text-sm">{error}</p>
+              </div>
+            )}
+
+            {compilerRefusal && (
+              <div className="card p-4 border-amber-500/50 bg-amber-500/5">
+                <p className="text-amber-300 text-xs font-mono mb-2">Compiler Refusal (422)</p>
+                <p className="text-slate-300 text-sm whitespace-pre-wrap">
+                  {compilerRefusal}
+                </p>
+              </div>
+            )}
+
+            {explainText && (
+              <div className="card p-4 border-gold-600/50 bg-gold-600/5">
+                <p className="text-gold-300 text-xs font-mono uppercase tracking-wider mb-3">
+                  Compiler Explanation
+                </p>
+                <pre className="text-xs text-slate-300 overflow-x-auto">
+                  {explainText}
+                </pre>
+              </div>
+            )}
+          </div>
+
+          {/* Right pane: info */}
+          <div className="space-y-6">
+            <div className="card p-6">
+              <h3 className="font-display text-lg font-bold text-slate-100 mb-3">
+                Getting Started
+              </h3>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li className="flex gap-2">
+                  <span className="text-gold-400 flex-shrink-0">1.</span>
+                  <span>Select an example or write your own program</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-gold-400 flex-shrink-0">2.</span>
+                  <span>Click Explain to see how the compiler reasons about it</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-gold-400 flex-shrink-0">3.</span>
+                  <span>Operators can click Build to compile and run</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="card p-6">
+              <h3 className="font-display text-lg font-bold text-slate-100 mb-3">
+                Learn More
+              </h3>
+              <div className="space-y-2">
+                <Link href="/language">
+                  <div className="group cursor-pointer">
+                    <p className="text-gold-300 text-sm font-medium group-hover:text-gold-200 transition-colors">
+                      Language Reference
+                    </p>
+                    <p className="text-xs text-slate-500">Clauses and tune knobs</p>
+                  </div>
+                </Link>
+                <Link href="/compiler">
+                  <div className="group cursor-pointer">
+                    <p className="text-gold-300 text-sm font-medium group-hover:text-gold-200 transition-colors">
+                      Compiler Architecture
+                    </p>
+                    <p className="text-xs text-slate-500">ISA and lowering</p>
+                  </div>
+                </Link>
+                <Link href="/science">
+                  <div className="group cursor-pointer">
+                    <p className="text-gold-300 text-sm font-medium group-hover:text-gold-200 transition-colors">
+                      Science
+                    </p>
+                    <p className="text-xs text-slate-500">5 hypotheses, verified</p>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -220,7 +391,7 @@ function StudioContent() {
 
 export default function StudioPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-6 py-12"><p>Loading...</p></div>}>
+    <Suspense fallback={<div className="bg-night-950 min-h-screen" />}>
       <StudioContent />
     </Suspense>
   );

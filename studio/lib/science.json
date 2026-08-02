@@ -1,0 +1,549 @@
+{
+  "hypotheses": {
+    "H1": {
+      "prior": 0.5,
+      "posterior": 0.9047619047619048,
+      "layer": "Representation geometry",
+      "description": "A transformer trained on an HMM (Mess3) linearly embeds the belief-state simplex of the data process in its residual stream."
+    },
+    "H2": {
+      "prior": 0.5,
+      "posterior": 0.8571428571428571,
+      "layer": "Circuits / development",
+      "description": "Induction capability forms as a discrete phase transition, visible as a sharp rise in prefix-matching score co-timed with an in-context-learning loss drop."
+    },
+    "H3": {
+      "prior": 0.5,
+      "posterior": 0.15789473684210528,
+      "layer": "Features (SAE reckoning)",
+      "description": "Standard SAE quality metrics (reconstruction, sparsity, downstream CE) do NOT clearly separate SAEs trained on a trained model vs a randomly-initialized one.",
+      "followup_e6": {
+        "date": "2026-08-02",
+        "preregistered": false,
+        "updates_posterior": false,
+        "summary": "Real-LM replication (Qwen2.5-0.5B vs random init): FVU separation collapses to <0.5% \u2014 reconstruction metrics stay uninformative at scale; dead-latent fraction separates (36% vs 0.1%).",
+        "result": "results/e6_real_lm_sae/result.json"
+      }
+    },
+    "H4": {
+      "prior": 0.5,
+      "posterior": 0.8181818181818182,
+      "layer": "Features vs baselines",
+      "description": "For a known concept, a logistic-regression probe on raw activations matches or beats an SAE-feature probe."
+    },
+    "H5": {
+      "prior": 0.5,
+      "posterior": 0.5,
+      "layer": "Weights (imposed ISA)",
+      "description": "Training with weight sparsity yields a smaller, more faithful minimal circuit for an algorithmic task than a matched dense model, at similar task performance.",
+      "followup_e7": {
+        "date": "2026-08-02",
+        "preregistered": false,
+        "updates_posterior": false,
+        "summary": "Causal necessary-head count at shared absolute floors (0.80/0.85/0.90), 3 seeds, audit-deconfounded: parity at 0.80/0.85; at 0.90 sparse needs 4.0 vs dense 2.5 (one dense dropout). No support for 'sparse finds smaller circuits' at any level.",
+        "result": "results/e7_causal_size/result.json"
+      }
+    }
+  },
+  "claims": [
+    {
+      "id": "E1",
+      "statement": "A transformer trained on a hidden-Markov process linearly encodes the process's belief state in its residual stream",
+      "value": "R\u00b2 = 0.998",
+      "artifact": "results/final/e1_mess3/result.json",
+      "measured": true
+    },
+    {
+      "id": "E1c",
+      "statement": "\u2026and an untrained network of the same shape already scores this, which is why the incremental measure is the one that counts",
+      "value": "R\u00b2 = 0.887",
+      "artifact": "results/final/e1_mess3/result.json",
+      "measured": true
+    },
+    {
+      "id": "E1i",
+      "statement": "Belief information beyond what the last 8 tokens trivially explain",
+      "value": "0.0314",
+      "artifact": "results/final/e1_mess3/result.json",
+      "measured": true
+    },
+    {
+      "id": "E1ic",
+      "statement": "The same measure on an untrained control",
+      "value": "0.0003",
+      "artifact": "results/final/e1_mess3/result.json",
+      "measured": true
+    },
+    {
+      "id": "E2",
+      "statement": "Induction (in-context copying) forms as a discrete phase transition",
+      "value": "score 0.607",
+      "artifact": "results/e2_induction/result.json",
+      "measured": true
+    },
+    {
+      "id": "E2w",
+      "statement": "\u2026inside this fraction of training",
+      "value": "15.5%",
+      "artifact": "results/e2_induction/result.json",
+      "measured": true
+    },
+    {
+      "id": "E3",
+      "statement": "SAE reconstruction metrics separate trained from untrained models \u2014 in the wrong direction",
+      "value": "22.5\u03c3",
+      "artifact": "results/e3_sae_control/result.json",
+      "measured": true
+    },
+    {
+      "id": "E4r",
+      "statement": "A plain logistic probe on raw activations, on a known concept",
+      "value": "0.908",
+      "artifact": "results/e4_probe_baseline/result.json",
+      "measured": true
+    },
+    {
+      "id": "E4s",
+      "statement": "The SAE-feature probe on the same concept",
+      "value": "0.907",
+      "artifact": "results/e4_probe_baseline/result.json",
+      "measured": true
+    },
+    {
+      "id": "E5",
+      "statement": "Sparse-trained model's circuit size ratio \u2014 which turned out to equal the sparsity knob, making the measure uninformative",
+      "value": "0.2086",
+      "artifact": "results/e5_sparsity/result.json",
+      "measured": true
+    },
+    {
+      "id": "E5q",
+      "statement": "\u2026the imposed sparsity level it echoes",
+      "value": "q = 0.20",
+      "artifact": "results/e5_sparsity/result.json",
+      "measured": true
+    },
+    {
+      "id": "C1",
+      "statement": "Hand-compiled induction circuit: attention on the correct target, with zero training",
+      "value": "0.979",
+      "artifact": "results/loom_constructed_demo.json",
+      "measured": true
+    },
+    {
+      "id": "C2",
+      "statement": "\u2026its next-token accuracy on the copied region",
+      "value": "0.949",
+      "artifact": "results/loom_constructed_demo.json",
+      "measured": true
+    },
+    {
+      "id": "C3",
+      "statement": "\u2026nonzero weights in the compiled program",
+      "value": "13,152",
+      "artifact": "results/loom_constructed_demo.json",
+      "measured": true
+    },
+    {
+      "id": "CU1",
+      "statement": "Multi-skill build: in-context copying",
+      "value": "0.870",
+      "artifact": "results/loom_curriculum_demo.json",
+      "measured": true
+    },
+    {
+      "id": "CU2",
+      "statement": "Multi-skill build: state tracking",
+      "value": "0.940",
+      "artifact": "results/loom_curriculum_demo.json",
+      "measured": true
+    },
+    {
+      "id": "CU3",
+      "statement": "Multi-skill build: classification",
+      "value": "0.977",
+      "artifact": "results/loom_curriculum_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L3o",
+      "statement": "Host cost of an out-of-band linked unit",
+      "value": "0.0000 nats",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L3i",
+      "statement": "Host cost of reserving 32 residual dimensions instead",
+      "value": "0.0312 nats",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L1a",
+      "statement": "Host's own induction ability before linking",
+      "value": "0.052",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L1b",
+      "statement": "\u2026after linking a separately compiled unit it never trained with",
+      "value": "0.588",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L1g",
+      "statement": "\u2026at a write gain the linker solved for automatically",
+      "value": "0.0663",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L1c",
+      "statement": "\u2026and this is what the host paid for it",
+      "value": "0.335 nats",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L2a",
+      "statement": "Composition: a unit's own score drops when a second independently compiled unit is linked beside it",
+      "value": "-0.141",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "L2b",
+      "statement": "\u2026and the second unit is disturbed more",
+      "value": "-0.401",
+      "artifact": "results/loom_link_demo.json",
+      "measured": true
+    },
+    {
+      "id": "F1",
+      "statement": "Foundation model pretrained from scratch on real text: held-out loss",
+      "value": "4.046",
+      "artifact": "results/loom_foundation_demo.json",
+      "measured": true
+    },
+    {
+      "id": "F2",
+      "statement": "\u2026held-out perplexity",
+      "value": "57.2",
+      "artifact": "results/loom_foundation_demo.json",
+      "measured": true
+    },
+    {
+      "id": "F3",
+      "statement": "\u2026tokens of real English seen",
+      "value": "737,280,000",
+      "artifact": "results/loom_foundation_demo.json",
+      "measured": true
+    },
+    {
+      "id": "X1",
+      "statement": "The same program, executed on a hybrid state-space stack built here: can a declared feature be read off it?",
+      "value": "0.917",
+      "artifact": "results/loom_two_substrates.json",
+      "measured": true
+    },
+    {
+      "id": "X2",
+      "statement": "\u2026and on a downloaded 1.24B open-weight model, same source",
+      "value": "1.000",
+      "artifact": "results/loom_two_substrates.json",
+      "measured": true
+    },
+    {
+      "id": "X3",
+      "statement": "\u2026steering that feature on the open-weight substrate",
+      "value": "0.0734",
+      "artifact": "results/loom_two_substrates.json",
+      "measured": true
+    },
+    {
+      "id": "CL1",
+      "statement": "Compiling clinic.loom onto a downloaded 1.24B instruct model: held-out loss on medical text excluded from training, before adaptation",
+      "value": "2.0562",
+      "artifact": "results/loom_clinic_build.json",
+      "measured": true
+    },
+    {
+      "id": "CL2",
+      "statement": "\u2026and after, with the downloaded weights frozen and the material in an adapter",
+      "value": "2.0062",
+      "artifact": "results/loom_clinic_build.json",
+      "measured": true
+    },
+    {
+      "id": "CL3",
+      "statement": "\u2026share of the model's parameters the adaptation was allowed to move",
+      "value": "0.243%",
+      "artifact": "results/loom_clinic_build.json",
+      "measured": true
+    },
+    {
+      "id": "CL4",
+      "statement": "The same program built from scratch instead: vocabulary learned from that corpus",
+      "value": "6,487",
+      "artifact": "results/loom_clinic_scratch.json",
+      "measured": true
+    },
+    {
+      "id": "CL5",
+      "statement": "\u2026held-out perplexity of the model it trained, on sequences it never saw",
+      "value": "143.6",
+      "artifact": "results/loom_clinic_scratch.json",
+      "measured": true
+    },
+    {
+      "id": "CL6",
+      "statement": "\u2026sequences of real medical text held out from its training",
+      "value": "19",
+      "artifact": "results/loom_clinic_scratch.json",
+      "measured": true
+    },
+    {
+      "id": "SC1",
+      "statement": "Steering capacity: stating the smallest of four rules outright is worth this much",
+      "value": "0.0182",
+      "artifact": "results/steering_capacity.json",
+      "measured": true
+    },
+    {
+      "id": "SC2",
+      "statement": "\u2026and the largest, twenty-three times more",
+      "value": "0.4099",
+      "artifact": "results/steering_capacity.json",
+      "measured": true
+    },
+    {
+      "id": "SC3",
+      "statement": "\u2026yet a searched control delivers at most",
+      "value": "0.0179",
+      "artifact": "results/steering_capacity.json",
+      "measured": true
+    },
+    {
+      "id": "SC4",
+      "statement": "\u2026so the smallest behaviour is nearly fully recovered",
+      "value": "98.3%",
+      "artifact": "results/steering_capacity.json",
+      "measured": true
+    },
+    {
+      "id": "SC5",
+      "statement": "\u2026and the largest is barely touched",
+      "value": "1.1%",
+      "artifact": "results/steering_capacity.json",
+      "measured": true
+    },
+    {
+      "id": "S1",
+      "statement": "Supervised fine-tuning on real dialogue: held-out response perplexity before",
+      "value": "102.7",
+      "artifact": "results/loom_sft_real.json",
+      "measured": true
+    },
+    {
+      "id": "S2",
+      "statement": "\u2026and after, with loss computed on response tokens only",
+      "value": "47.0",
+      "artifact": "results/loom_sft_real.json",
+      "measured": true
+    },
+    {
+      "id": "M1",
+      "statement": "Merging a base and instruct checkpoint beats both parents",
+      "value": "14.69",
+      "artifact": "results/loom_surgery_demo.json",
+      "measured": true
+    },
+    {
+      "id": "M2",
+      "statement": "\u2026the better of the two parents it beats",
+      "value": "15.83",
+      "artifact": "results/loom_surgery_demo.json",
+      "measured": true
+    },
+    {
+      "id": "M3",
+      "statement": "Dropping 25% of a model's layers costs this much perplexity",
+      "value": "3,129",
+      "artifact": "results/loom_surgery_demo.json",
+      "measured": true
+    },
+    {
+      "id": "P0",
+      "statement": "Frozen open-weight model programmed without touching its weights",
+      "value": "1,235,814,400 params",
+      "artifact": "results/loom_port_demo.json",
+      "measured": true
+    },
+    {
+      "id": "P1",
+      "statement": "\u2026a monitor reading a concept off its residual stream (leave-one-out)",
+      "value": "1.000",
+      "artifact": "results/loom_port_demo.json",
+      "measured": true
+    },
+    {
+      "id": "P2",
+      "statement": "\u2026control strength at half-maximum effect, measured by dose-response",
+      "value": "0.650",
+      "artifact": "results/loom_port_demo.json",
+      "measured": true
+    },
+    {
+      "id": "P3",
+      "statement": "\u2026the largest effect available before over-steering reverses it",
+      "value": "0.0457 nats",
+      "artifact": "results/loom_port_demo.json",
+      "measured": true
+    },
+    {
+      "id": "BL",
+      "statement": "clinic.loom passes every expectation on Llama-3.2-1B-Instruct",
+      "value": "yes",
+      "artifact": "results/loom_clinic_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BLg",
+      "statement": "\u2026its guardrail's refusal margin on the composed model, off-domain minus in-domain",
+      "value": "0.500",
+      "artifact": "results/loom_clinic_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BLk",
+      "statement": "\u2026held-out loss on MedQuAD text excluded from training, after",
+      "value": "2.0049",
+      "artifact": "results/loom_clinic_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BQ",
+      "statement": "the same program, unchanged, passes on Qwen2.5-1.5B-Instruct",
+      "value": "yes",
+      "artifact": "results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BQg",
+      "statement": "\u2026its guardrail margin on the composed model",
+      "value": "0.167",
+      "artifact": "results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "SCQ",
+      "statement": "the most a steering write delivered on Qwen \u2014 the ceiling is substrate-specific",
+      "value": "0.0266 nats",
+      "artifact": "results/steering_capacity_qwen2_5-1_5b.json",
+      "measured": true
+    },
+    {
+      "id": "CP1",
+      "statement": "succession, hand-compiled beside induction, exact on its alphabet",
+      "value": "1.000",
+      "artifact": "results/loom_composed_demo.json",
+      "measured": true
+    },
+    {
+      "id": "CP2",
+      "statement": "induction inside the composed weights (0.909 alone)",
+      "value": "0.909",
+      "artifact": "results/loom_composed_demo.json",
+      "measured": true
+    },
+    {
+      "id": "CP3",
+      "statement": "largest logit change the second skill causes on traffic it should never see",
+      "value": "6.8e-13",
+      "artifact": "results/loom_composed_demo.json",
+      "measured": true
+    },
+    {
+      "id": "E6t",
+      "statement": "SAE reconstruction error on the trained real LM (Qwen2.5-0.5B)",
+      "value": "FVU 0.2314",
+      "artifact": "results/e6_real_lm_sae/result.json",
+      "measured": true
+    },
+    {
+      "id": "E6c",
+      "statement": "\u2026and on the same architecture at random initialization",
+      "value": "FVU 0.2356",
+      "artifact": "results/e6_real_lm_sae/result.json",
+      "measured": true
+    },
+    {
+      "id": "E7d",
+      "statement": "heads a dense-trained model needs to reach accuracy 0.9",
+      "value": "2.5",
+      "artifact": "results/e7_causal_size/result.json",
+      "measured": true
+    },
+    {
+      "id": "E7s",
+      "statement": "\u2026and a weight-sparse-trained model, same floor",
+      "value": "4.0",
+      "artifact": "results/e7_causal_size/result.json",
+      "measured": true
+    },
+    {
+      "id": "E7v",
+      "statement": "the direction holds at every floor tested",
+      "value": "no",
+      "artifact": "results/e7_causal_size/result.json",
+      "measured": true
+    },
+    {
+      "id": "BC",
+      "statement": "Counsel passes whole (insistence 0.5 closed its guardrail)",
+      "value": "yes",
+      "artifact": "results/loom_counsel_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BD",
+      "statement": "Desk passes whole",
+      "value": "yes",
+      "artifact": "results/loom_desk_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BF",
+      "statement": "Foreman passes whole",
+      "value": "yes",
+      "artifact": "results/loom_foreman_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BS",
+      "statement": "Stylist passes whole",
+      "value": "yes",
+      "artifact": "results/loom_stylist_build_Llama-3_2-1B-Instruct.json",
+      "measured": true
+    },
+    {
+      "id": "BG",
+      "statement": "Gemma-2-2b: the largest knowledge gain measured, guardrail open",
+      "value": "0.545 nats",
+      "artifact": "results/loom_clinic_build_gemma-2-2b-it.json",
+      "measured": true
+    },
+    {
+      "id": "B5090",
+      "statement": "a from-scratch build executed on the RTX 5090, device-proven",
+      "value": "NVIDIA GeForce RTX 5090",
+      "artifact": "results/loom_stylist_scratch_5090.json",
+      "measured": true
+    }
+  ],
+  "n_claims": 71,
+  "n_measured": 71
+}

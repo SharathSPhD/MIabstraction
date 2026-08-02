@@ -32,19 +32,19 @@ export function GpuStatus() {
     <div className="flex items-center gap-2">
       <div
         className={`w-2 h-2 rounded-full ${
-          status === "online" ? "bg-verified" : "bg-muted"
-        }`}
+          status === "online" ? "bg-emerald-400" : "status-dot-warn"
+        } ${status === "online" ? "" : "animate-pulse"}`}
       />
       <div className="font-mono text-xs">
-        {status === "loading" && <span className="text-muted">connecting...</span>}
+        {status === "loading" && <span className="text-slate-400">connecting...</span>}
         {status === "online" && (
           <>
-            <span className="text-verified font-semibold">GB10 online</span>
-            {queue > 0 && <span className="text-body"> · queue {queue}</span>}
+            <span className="text-emerald-400 font-semibold">GB10 online</span>
+            {queue > 0 && <span className="text-slate-400"> · queue {queue}</span>}
           </>
         )}
         {status === "offline" && (
-          <span className="text-muted">offline — replay only</span>
+          <span className="text-slate-500">offline — replay only</span>
         )}
       </div>
     </div>
