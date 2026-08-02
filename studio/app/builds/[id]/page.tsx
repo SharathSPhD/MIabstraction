@@ -269,7 +269,7 @@ export default function BuildDetailPage() {
       <div className="divider" />
 
       {/* L3: Program */}
-      <h2 className="section-heading">L3 · Program</h2>
+      <h2 className="section-heading" data-layer="L3">L3 · Program</h2>
       <ExpandableSection title="Program Source" defaultOpen={false}>
         {report.program_id ? (
           <div className="space-y-2">
@@ -291,7 +291,7 @@ export default function BuildDetailPage() {
       <div className="divider" />
 
       {/* L2: Capability Graph */}
-      <h2 className="section-heading">L2 · Capability Graph</h2>
+      <h2 className="section-heading" data-layer="L2">L2 · Capability Graph</h2>
       {report.capabilities.length > 0 ? (
         <div className="space-y-4 mb-12">
           {report.capabilities.map((cap, idx) => (
@@ -538,7 +538,7 @@ export default function BuildDetailPage() {
       <div className="divider" />
 
       {/* L0: Substrate */}
-      <h2 className="section-heading">L0 · Substrate</h2>
+      <h2 className="section-heading" data-layer="L0">L0 · Substrate</h2>
       <ExpandableSection title="Base Model & Configuration" defaultOpen={true}>
         <div className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">

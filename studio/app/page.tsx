@@ -119,6 +119,9 @@ export default function Home() {
                 <p className="text-sm text-body">
                   {prog.guardrail}
                 </p>
+                <p className="text-xs font-mono text-accent mt-3">
+                  Open in Studio &rarr;
+                </p>
               </div>
             </Link>
           ))}

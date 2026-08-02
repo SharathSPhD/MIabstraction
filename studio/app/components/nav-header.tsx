@@ -74,6 +74,7 @@ export function NavHeader() {
               Use
             </Link>
           </div>
+          <GpuStatus />
           <div className="border-l border-hairline border-gray-300 pl-6">
             {loading ? (
               <Loader className="w-4 h-4 animate-spin text-muted" />
@@ -97,7 +98,6 @@ export function NavHeader() {
               </div>
             ) : (
               <>
-                <GpuStatus />
                 <div className="mt-3">
                   <Link
                     href="/login"

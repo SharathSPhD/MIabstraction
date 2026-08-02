@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     if (!upstream.ok) {
       return Response.json(
-        { offline: true, detail: "GPU worker returned error" },
+        { offline: true, detail: "The GPU is busy or briefly offline — models will be listed again in a moment." },
         { status: upstream.status }
       );
     }
