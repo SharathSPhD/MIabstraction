@@ -405,8 +405,11 @@ def chat(req: ChatReq, x_loom_key: str | None = Header(default=None)):
            "answered_by": "the model",
            "policy": decision.to_dict(),
            "controls_active": len(getattr(lm, "controls", [])),
-           "controls": [{"capability": c.get("capability"), "kind": c.get("kind"),
-                         "layer": c.get("layer"), "strength": c.get("strength")}
+           # `name` is the clause the control was installed for. The direction vector
+           # is deliberately not sent: it is thousands of floats the page cannot use.
+           "controls": [{"capability": c.get("name") or c.get("capability"),
+                         "kind": c.get("kind"), "layer": c.get("layer"),
+                         "strength": c.get("strength")}
                         for c in (report.get("controls") or [])],
            "adapters": report.get("adapters_reapplied")
            or [p.name for p in sorted(d.glob("adapter*.pt"))]}
