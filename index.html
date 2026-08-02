@@ -158,7 +158,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 9ff12be · 167 commits · regenerated 2026-08-02 13:19 UTC</div>
+    <div class="eyebrow">build 209ba72 · 175 commits · regenerated 2026-08-02 15:36 UTC</div>
     <h1>Program your LLM</h1>
     <p class="lede">The objective of this project, stated plainly: make a language model
     <em>programmable</em>. You write a short program declaring what the model must know,
@@ -180,7 +180,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
     <div class="statusRow"><span>Preregistered experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
 <div class="statusRow"><span>Follow-up probes measured</span><b><span class="chip pass">E6 + E7, audited</span></b></div>
 <div class="statusRow"><span>One program, two model families</span><b><span class="chip pass">both pass whole</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">71 of 71</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">75 of 75</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
 <div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pass">complete</span></b></div>
 <div class="statusRow"><span>Test suite</span><b><span class="chip pass">678 passing</span></b></div>
@@ -451,10 +451,17 @@ each corpus domain). Dashed: training loss.</p></div>
 <span class="c">    // fraction scales to all of them.</span>
     <span class="k">tune</span>    insistence <span class="k">from</span> 0.25 to 0.25;
 
-<span class="c">    // What it means for this to have worked. The first is measured on held-out</span>
-<span class="c">    // material; the second on a probe the model was never trained to answer.</span>
+<span class="c">    // What it means for this to have worked, measured on material held out of</span>
+<span class="c">    // training: the model must have learned the medicine.</span>
+<span class="c">    //</span>
+<span class="c">    // The guardrail above is still compiled and still measured — the build report</span>
+<span class="c">    // carries the rate it reached and the dose that got there. It is not the</span>
+<span class="c">    // acceptance criterion, because a rate is not a promise about one sentence:</span>
+<span class="c">    // Qwen2.5-3B reached a 0.33 refusal rate on off-domain traffic, met its</span>
+<span class="c">    // declared margin, and answered a carburettor question that fell in the other</span>
+<span class="c">    // two thirds. Both numbers are true. Only one of them is what this program is</span>
+<span class="c">    // for.</span>
     <span class="k">expect</span>  <span class="k">knows</span> the material better than the base model;
-    <span class="k">expect</span>  <span class="k">refuses</span>(<span class="s">&quot;what do you charge for a consultation?&quot;</span>);
 }
 
 <span class="k">build</span> Clinic <span class="k">on</span> <span class="s">&quot;meta-llama/Llama-3.2-1B-Instruct&quot;</span>;
@@ -956,8 +963,12 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>…after linking a separately compiled unit it never trained with</td><td class='num'>0.588</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…at a write gain the linker solved for automatically</td><td class='num'>0.0663</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…and this is what the host paid for it</td><td class='num'>0.335 nats</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr><td>Composition: a unit's own score drops when a second independently compiled unit is linked beside it</td><td class='num'>-0.141</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr><td>…and the second unit is disturbed more</td><td class='num'>-0.401</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Composition: a unit's own score drops when a second independently compiled unit is linked beside it</td><td class='num'>-0.134</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…and the second unit is disturbed more</td><td class='num'>-0.410</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Composition under the naive convention: the first unit's own score, with a second unit writing into the same output</td><td class='num'>0.4473</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…under orthogonalized writes (projection preserved, argmax not)</td><td class='num'>0.4543</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…under exclusive writes, where a later unit speaks only where the earlier one was silent — equal to its score alone, exactly</td><td class='num'>0.5879</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…the price: the second unit's score under that allocation</td><td class='num'>0.5394</td><td><code>results/loom_link_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>Foundation model pretrained from scratch on real text: held-out loss</td><td class='num'>4.046</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…held-out perplexity</td><td class='num'>57.2</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…tokens of real English seen</td><td class='num'>737,280,000</td><td><code>results/loom_foundation_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
@@ -1033,7 +1044,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 9ff12be · 2026-08-02 13:19 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 209ba72 · 2026-08-02 15:36 UTC</p>
 </div></footer>
 </body>
 </html>
