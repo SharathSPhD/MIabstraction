@@ -42,17 +42,22 @@ console.log(`Embedded ${loomFiles.length} example files`);
 
 // Build showcase from result JSON files
 const showcase = [];
+const byKey = new Map();
 const buildFilePattern = /^loom_.*_build.*\.json$/;
 
 try {
   const resultFiles = fs.readdirSync(resultsDir).filter(f => buildFilePattern.test(f));
 
+  // One entry per (app, base model): passing builds beat failed ones, and the
+  // archive clinic report (no substrate suffix) is superseded by the canonical ones.
   for (const file of resultFiles) {
     try {
       const filepath = path.resolve(resultsDir, file);
       const data = JSON.parse(fs.readFileSync(filepath, "utf8"));
-      showcase.push({
-        id: `replay-${showcase.length}`,
+      if (!data.passed) continue;   // the showcase carries verified builds only
+      const key = `${data.app}::${data.base_model}`;
+      byKey.set(key, {
+        id: `replay-0`,
         app: data.app,
         base_model: data.base_model,
         passed: data.passed,
@@ -66,6 +71,11 @@ try {
   }
 } catch (e) {
   // Skip if results dir doesn't exist
+}
+
+for (const entry of byKey.values()) {
+  entry.id = `replay-${showcase.length}`;
+  showcase.push(entry);
 }
 
 fs.writeFileSync(
