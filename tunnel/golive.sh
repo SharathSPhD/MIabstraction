@@ -23,7 +23,7 @@ if [ ! -f "$ENVF" ]; then
 fi
 # shellcheck disable=SC1090
 source "$ENVF"
-export LOOM_WORKER_KEY
+export LOOM_WORKER_KEY HF_PUSH
 
 cd "$REPO"
 if ! pgrep -f "uvicorn worker.server:app" >/dev/null; then
