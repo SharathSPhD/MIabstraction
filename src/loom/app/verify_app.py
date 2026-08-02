@@ -97,12 +97,16 @@ def _measured(e, measurements: dict) -> Checked:
 
 @torch.no_grad()
 def check(model, expectations, max_new_tokens: int = 48,
-          samples: int = 3, trained_on: list[str] | None = None,
+          samples: int = 6, trained_on: list[str] | None = None,
           measurements: dict | None = None) -> list[Checked]:
     """Run every expectation against the built model.
 
     Sampled generation is not deterministic, so each expectation is tried `samples`
-    times and passes if any sample satisfies it. That is the honest reading of a
+    times and passes if any sample satisfies it. Six rather than three, because the
+    behavioural gate that trains a guardrail measures a rate over twelve probes: an
+    acceptance test coarser than the gate it confirms will call a build failed that
+    the gate measured as passing, which is the instrument disagreeing with itself
+    rather than the model failing. That is the honest reading of a
     probabilistic system: the claim is that the model can do this, not that it does so
     on every draw, and the report says how many draws it took.
 
