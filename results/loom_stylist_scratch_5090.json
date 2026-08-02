@@ -1,0 +1,87 @@
+{
+  "backend": "scratch",
+  "architecture_choice": "decoder (281w, 6L)",
+  "architecture_rationale": "Knowledge=1, Skills=0, Style=1, Guardrails=1. Using pure decoder stack (attention all layers). ",
+  "tokenizer_type": "bpe",
+  "tokenizer_vocab_size": 15592,
+  "tokenizer_description": "BPE trained on 1 file(s): corpus.txt",
+  "pretraining_corpus": "data/domains/literature/corpus.txt",
+  "pretraining": {
+    "ran": true,
+    "sources": [
+      "data/domains/literature/corpus.txt"
+    ],
+    "weights": {
+      "data/domains/literature/corpus.txt": 1.0
+    },
+    "sequences": 349,
+    "seq_len": 256,
+    "train_sequences": 314,
+    "heldout_sequences": 35,
+    "steps": 500,
+    "lr": 0.0001,
+    "final_train_loss": 6.5415
+  },
+  "tokens_seen": 1005568,
+  "val_loss": 6.944816970825196,
+  "val_ppl": 1037.7570400078516,
+  "wall_clock_s": 4.4,
+  "per_capability": [
+    {
+      "capability": "know the material in data/domains/literature/corpus.txt",
+      "kind": "knowledge",
+      "strategy": "pretraining_mixture",
+      "ok": true,
+      "reason": "the material is in the weights from the start, which is only possible when we are the ones training the model (chosen on scratch: pretrain available)"
+    },
+    {
+      "capability": "speak warm, plain",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "ok": true,
+      "reason": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training (chosen on scratch: steer, monitor available)"
+    },
+    {
+      "capability": "always says when a passage needs a human editor",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "ok": true,
+      "reason": "watch the internal signal for the property and push it when it slips, with a bounded side-effect (chosen on scratch: monitor, steer available)"
+    },
+    {
+      "capability": "never imitates a living author",
+      "kind": "prohibition",
+      "strategy": "suppress_topic_feature",
+      "ok": true,
+      "reason": "the topic is a direction; suppressing it is a runtime write, bounded by a side-effect budget so it cannot lobotomize the model (chosen on scratch: steer, monitor available)"
+    },
+    {
+      "capability": "refuse requests to write in the style of a named living author",
+      "kind": "guardrail",
+      "strategy": "amplify_refusal_feature",
+      "ok": true,
+      "reason": "refusal is a measured, dose-responsive direction; amplifying it hardens the model without retraining (chosen on scratch: steer, monitor available)"
+    }
+  ],
+  "gates": [
+    {
+      "metric": "val_loss",
+      "op": "<",
+      "threshold": 5.0,
+      "measured": 6.944816970825196,
+      "passed": false
+    },
+    {
+      "metric": "val_ppl",
+      "op": "<",
+      "threshold": 100.0,
+      "measured": 1037.7570400078516,
+      "passed": false
+    }
+  ],
+  "passed": false,
+  "compute_target": "local_gb10 (demo budget)",
+  "compute_rationale": "Pretraining is throughput-bound; training ~5k steps on 256-seq length on GB10 for demonstration (production would use RTX 5090 for full corpus).",
+  "substrate_advantage": "From-scratch substrate permits: (1) choosing the exact architecture (here, decoder) to match app demands, (2) training a tokenizer on the corpus (bpe), (3) controlling the data mixture by weight, (4) building the substrate INSIDE a circuit's verified envelope (unlike open-weight, where architecture is frozen). This executor demonstrates lever (4): when installing a compiled circuit, we can build the substrate to match the circuit's vocab and attention pattern, guaranteeing the install succeeds.",
+  "dispatched_to": "NVIDIA GeForce RTX 5090"
+}
