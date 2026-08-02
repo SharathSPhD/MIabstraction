@@ -36,13 +36,20 @@ FLOORS = [round(0.02 * i, 2) for i in range(51)]
 
 
 def coverages(gate: PolicyGate, requests: list[str]) -> list[float]:
-    """The gate's own score for each request, before any threshold is applied."""
+    """The gate's own score for each request, before any threshold is applied.
+
+    Asked of the gate rather than recomputed here. The first version of this script
+    reimplemented word-overlap inline, so when the gate's estimator changed the sweep
+    went on measuring the old one and reported byte-identical results as though nothing
+    had happened. A harness that does not call the thing it is testing is testing itself.
+    """
     out = []
     for r in requests:
-        c = _content(r)
-        if len(c) < 3:
+        if len(_content(r)) < 3:
             continue          # below the gate's evidence minimum; never acted on
-        out.append(sum(1 for w in c if w in gate.corpus_vocab) / len(c))
+        s = gate._coverage(r)
+        if s is not None:
+            out.append(s)
     return out
 
 

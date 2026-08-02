@@ -202,6 +202,20 @@ class PolicyGate:
         content = _content(request)
         if not self.corpus_vocab or len(content) < 3:
             return None
+        # Word overlap, and not for want of trying something better. The obvious
+        # objection to coverage is that it saturates: above a megabyte almost any
+        # ordinary word appears, so a baking question scores 0.40 against court opinions
+        # on "how", "make" and "need". The obvious fix is a likelihood ratio against a
+        # background model of ordinary English — a word that is merely common cancels,
+        # a subject word votes strongly, and a word belonging to some *other* subject
+        # votes negatively, which coverage cannot express. It was implemented against
+        # the 239MB general-English corpus and swept over all eight domains.
+        #
+        # It was worse. One domain separated cleanly instead of two: legal's margin
+        # widened to 0.295, and medical, which coverage handles, broke. Reverted, and
+        # recorded here rather than left in as dead code, because the next person to
+        # have this idea should know it was measured (results/policy_gate_resolution.json,
+        # and VALIDATION.md). Whatever fixes this gate is not a cleverer bag of words.
         return sum(1 for w in content if w in self.corpus_vocab) / len(content)
 
     def decide(self, request: str) -> Decision:

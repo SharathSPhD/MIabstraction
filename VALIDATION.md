@@ -298,3 +298,48 @@ measured on the same repeated-context sequences the unit is good at, so "the hos
 gained" means "on this traffic". A host outside the envelope is refused with the
 numbers that refused it, which is information about the host rather than a tooling
 failure.
+
+## The policy gate's estimator, and one idea that did not work (2026-08-03)
+
+Refusal left the weights because no dose could satisfy both halves of a physical
+contradiction: the same output must decline off-subject requests and must not decline
+in-subject ones. Moving scope to an intermediary in front of an unmodified model settles
+that half by construction — the model is not consulted differently, so in-subject
+behaviour is preserved exactly. What remains is a narrower and purely empirical
+question: can a gate tell, from a request, whether it is in the model's subject?
+
+The shipped answer is word coverage against the corpus the model was built on, and it is
+not good enough. Swept across the eight domains carrying contrast material
+(`results/policy_gate_resolution.json`), **only legal and medical separate their
+in-subject questions from their declared out-of-subject ones**. The rest overlap, and on
+the grammar corpus — 1,422 distinct subject words — in-subject questions score as low as
+0.00, so a fixed floor would have gated every question the app exists to answer. That is
+the over-refusal this design was created to remove, arriving by a different route.
+
+Two consequences were shipped. The floor is calibrated per build from the domain's own
+questions rather than being the constant 0.34 fitted to one domain, and a gate whose
+material cannot separate the classes **disables itself and records why**, so a declared
+clause reads `NOT ENFORCED` in the artifact instead of claiming an enforcement that never
+fires.
+
+The obvious improvement was tried and failed. Coverage saturates: above a megabyte almost
+any ordinary word appears in any corpus, so a sourdough question scores 0.40 against court
+opinions on the strength of *how*, *make* and *need*. A likelihood ratio does not
+saturate — score each word by the log ratio of its rate in this domain to its rate in
+ordinary English, so a merely-common word cancels, a subject word votes strongly, and a
+word belonging to some other subject votes *negatively*, which coverage cannot express.
+Implemented against the 239MB general-English corpus and swept over the same eight
+domains, it **separated one domain instead of two**: legal's margin widened to 0.295 and
+medical, which coverage handles, broke. It was reverted rather than shipped, and is
+recorded here so the next person to have the idea knows it was measured.
+
+The negative is informative. Both estimators are bags of words over a request of five to
+ten content words, and at that length the evidence is too thin for either statistic. The
+component that does this properly is recognition at the activation level — reading what
+the model itself makes of the request rather than counting its words — which is what
+prabodha implements and what this gate's interface exists to accept.
+
+One harness bug is worth recording with it: the sweep script computed coverage inline
+instead of asking the gate, so when the estimator changed the sweep went on measuring the
+old one and returned byte-identical results as though nothing had happened. A harness that
+does not call the thing it is testing is testing itself.
