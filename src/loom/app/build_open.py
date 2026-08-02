@@ -32,7 +32,7 @@ from .lora import (attach_lora, get_adapter_info, lora_parameters,
 from .lowering import CATALOGUE, Choice, plan
 from .parse import parse_program
 from .search import Lever, search
-from .steering_ops import (CONTRASTS, NEUTRAL, _Hook, _loss, _mean_residual,
+from .steering_ops import (CONTRASTS, NEUTRAL, _Hook, _as_chat, _loss, _mean_residual,
                            calibrate, contrast_sets, corpus_probes,
                            derive_contrast, probes_for)
 from .substrate import profile_for
@@ -282,15 +282,16 @@ def finetune_behaviour(model, tok, cap, device, examples: list[tuple[str, str]],
     def batch(pairs):
         xs, ys = [], []
         for prompt, response in pairs:
-            # Specials ON for the prompt, exactly as the margin probe tokenizes it.
-            # Trained without BOS and probed with it, Gemma memorized every
-            # demonstration to loss 0.0002 and recalled none of them at generation —
-            # the prompt it saw in training and the prompt it met at probe time were
-            # different sequences.
-            pi = tok(prompt + "\n")["input_ids"][:48]
+            # The demonstration is a conversation turn in the model's own chat
+            # format, because that is the sequence every later measurement asks
+            # about. Two families taught the same lesson twice: trained without BOS
+            # and probed with it, Gemma memorized to loss 0.0002 and recalled
+            # nothing; trained raw and verified through chat, the refusal never
+            # surfaced. Train, search and verify now share one format.
+            pi = tok(_as_chat(tok, "", prompt))["input_ids"][:96]
             ri = tok(response + tok.eos_token, add_special_tokens=False)["input_ids"][:48]
             ids, lab = pi + ri, [-100] * len(pi) + ri
-            pad = 100 - len(ids)
+            pad = 160 - len(ids)
             xs.append(ids + [tok.eos_token_id] * pad)
             ys.append(lab + [-100] * pad)
         return (torch.tensor(xs, device=device), torch.tensor(ys, device=device))
@@ -416,10 +417,11 @@ def _refusal_margin(model, tok, device, off_probes: list[str],
             return 0.0
         n = 0
         for p_ in prompts:
-            # The "\n" is the demonstration format: training taught prompt-newline-
-            # response, and scoring in a different format measured a different task —
-            # every trial read 0.0 refusal while the training loss went to zero.
-            ids = tok(p_ + "\n", return_tensors="pt").to(device)
+            # The demonstration format is the model's chat format; scoring in any
+            # other format measures a different task — every trial read 0.0 refusal
+            # while the training loss went to zero, twice, for two different
+            # format mismatches.
+            ids = tok(_as_chat(tok, "", p_), return_tensors="pt").to(device)
             out = model.generate(**ids, max_new_tokens=max_new, do_sample=False,
                                  pad_token_id=getattr(tok, "eos_token_id", None))
             text = tok.decode(out[0][ids["input_ids"].shape[1]:],

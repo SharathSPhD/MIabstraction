@@ -83,13 +83,20 @@ class LoomModel:
     def respond(self, prompt: str, max_new_tokens: int = 60) -> str:
         if self.tokenizer is None:
             return "(this build has no tokenizer; it is a token-level model)"
-        ids = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+        # The model's own conversation format, when it has one. A chat-tuned model
+        # handed a bare string may simply emit EOS — Gemma verified as "(no
+        # continuation)" three times on a guardrail its gate had measurably trained —
+        # and a user meets the artifact through chat, so verification must too.
+        from .steering_ops import _as_chat
+        text_in = _as_chat(self.tokenizer, "", prompt)
+        ids = self.tokenizer(text_in, return_tensors="pt").to(self.device)
+        n_in = ids["input_ids"].shape[1]
         out = self.module.generate(**ids, max_new_tokens=max_new_tokens,
                                    do_sample=True, temperature=0.7,
                                    pad_token_id=getattr(self.tokenizer, "eos_token_id",
                                                         None))
-        text = self.tokenizer.decode(out[0], skip_special_tokens=True)
-        return text[len(prompt):].strip() or "(no continuation)"
+        text = self.tokenizer.decode(out[0][n_in:], skip_special_tokens=True)
+        return text.strip() or "(no continuation)"
 
     def describe(self) -> str:
         caps = self.plan.get("capabilities", [])
