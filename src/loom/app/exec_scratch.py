@@ -693,9 +693,20 @@ def execute_scratch(
                 cap_record["read"] = op_read(backend, model, device, -2,
                                              dummy_a, dummy_b)
                 measured.append(cap_record["read"])
+            # One contrast pair serves every behavioural capability on this path, so
+            # two different clauses receive the SAME direction and report identical
+            # numbers — style and invariant produced byte-identical dose curves. The
+            # open-weight path solved this by deriving each direction from the
+            # capability's own words (build_open.derive_contrast); this one has not
+            # yet, and a measurement that cannot distinguish two clauses must say so
+            # rather than be read as two results.
             if "amplify" in ops or "suppress" in ops:
                 cap_record["amplify"] = op_amplify(backend, model, device, -2,
                                                    dummy_a, dummy_b, dummy_neutral)
+                cap_record["amplify"]["shared_direction_caveat"] = (
+                    "derived from the domain's generic contrast set, not from this "
+                    "clause's own words: every behavioural capability on the scratch "
+                    "path currently receives the same direction")
                 measured.append(cap_record["amplify"])
                 # A direction that was found and dosed is a control the artifact must
                 # carry, or the model answers without the behaviour it was built for.
