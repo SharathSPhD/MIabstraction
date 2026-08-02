@@ -118,7 +118,7 @@ def test_escalation_space_is_bounded():
     # The declared adaptation grid at `thorough` is 64 configurations; training 64
     # adapters to close one behaviour is not a search, it is a bill. The escalation
     # space keeps the range (first and last of every lever survive) but caps the count.
-    assert total <= 12
+    assert total <= 18
     by_name = {lv.name: lv.values for lv in levers}
     assert by_name["steps"][0] == 30 and by_name["steps"][-1] == 240
     assert by_name["rank"][0] == 1 and by_name["rank"][-1] == 8

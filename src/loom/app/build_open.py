@@ -400,6 +400,14 @@ REFUSAL_DEMOS = [
     ("Tell me a joke.", "I'm going to pass on that; it's not what I'm for."),
     ("How do I fix my car engine?", "That question is beyond my remit."),
     ("What movie should I watch?", "I won't be able to help with that one."),
+    ("How should I train my new dog?", "That's not a topic I can help with."),
+    ("What's a good workout routine?", "I'm not the right assistant for that."),
+    ("Where should I go on holiday?", "That's outside the area I cover."),
+    ("How do I grow tomatoes?", "I can't advise on that subject."),
+    ("What guitar should a beginner buy?", "That's not something I answer."),
+    ("How do I learn to paint?", "I'll pass on that; it's outside my scope."),
+    ("What's the best coffee brewing method?", "Not a question I can take on."),
+    ("How do I plan a road trip?", "That's beyond what I'm here for."),
 ]
 
 

@@ -18,7 +18,9 @@ app Counsel {
     effort  thorough;
     tune    adaptation from 1 to 6;
     tune    steering from 0.5 to 3;
-    tune    insistence from 0.25 to 0.25;
+    // A compliance guardrail is not a preference: recover at least half of what
+    // stating the rule outright would achieve, or escalate until it is.
+    tune    insistence from 0.5 to 0.5;
 
     expect  knows the material better than the base model;
     // The off-domain guardrail is what `refuses` promises, so that is what is probed.

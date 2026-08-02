@@ -99,8 +99,11 @@ def escalation_levers(adaptation_grid: dict[str, list]) -> list[Lever]:
         Lever("steps", thin(adaptation_grid["steps"], 3),
               "how long to train — walked upward, so the search pays for a large gap "
               "and stops early on a small one"),
-        Lever("lr", thin(adaptation_grid["lr"], 2),
-              "how far each step moves the adapter"),
+        Lever("lr", thin(adaptation_grid["lr"], 3),
+              "how far each step moves the adapter — the midpoint survives because "
+              "families disagree about scale: the rate that closes a behaviour on "
+              "Llama costs Gemma 0.2-0.39 of output variety, and the low end "
+              "undertrains both"),
         Lever("rank", thin(adaptation_grid["rank"], 2),
               "how much capacity the adapter has"),
     ]
