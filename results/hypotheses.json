@@ -16,7 +16,14 @@
       "prior": 0.5,
       "posterior": 0.15789473684210528,
       "layer": "Features (SAE reckoning)",
-      "description": "Standard SAE quality metrics (reconstruction, sparsity, downstream CE) do NOT clearly separate SAEs trained on a trained model vs a randomly-initialized one."
+      "description": "Standard SAE quality metrics (reconstruction, sparsity, downstream CE) do NOT clearly separate SAEs trained on a trained model vs a randomly-initialized one.",
+      "followup_e6": {
+        "date": "2026-08-02",
+        "preregistered": false,
+        "updates_posterior": false,
+        "summary": "Real-LM replication (Qwen2.5-0.5B vs random init): FVU separation collapses to <0.5% \u2014 reconstruction metrics stay uninformative at scale; dead-latent fraction separates (36% vs 0.1%).",
+        "result": "results/e6_real_lm_sae/result.json"
+      }
     },
     "H4": {
       "prior": 0.5,
@@ -28,7 +35,14 @@
       "prior": 0.5,
       "posterior": 0.5,
       "layer": "Weights (imposed ISA)",
-      "description": "Training with weight sparsity yields a smaller, more faithful minimal circuit for an algorithmic task than a matched dense model, at similar task performance."
+      "description": "Training with weight sparsity yields a smaller, more faithful minimal circuit for an algorithmic task than a matched dense model, at similar task performance.",
+      "followup_e7": {
+        "date": "2026-08-02",
+        "preregistered": false,
+        "updates_posterior": false,
+        "summary": "Causal necessary-head count at shared absolute floors (0.80/0.85/0.90), 3 seeds, audit-deconfounded: parity at 0.80/0.85; at 0.90 sparse needs 4.0 vs dense 2.5 (one dense dropout). No support for 'sparse finds smaller circuits' at any level.",
+        "result": "results/e7_causal_size/result.json"
+      }
     }
   },
   "update_history": [

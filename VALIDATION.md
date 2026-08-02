@@ -173,3 +173,35 @@ conservative for that reason: one controlled experiment moves belief, it does no
 The next decisive step is re-running E3/E4 on a real LM's activations (Pythia-160M), where
 the Heap et al. control has its intended meaning, and pushing E5 past the point where
 sparsity starts costing accuracy.
+
+## Follow-up probes (2026-08-02, unpreregistered — recorded, not scored)
+
+Neither of these updates a posterior: they were designed after the verdicts above, so
+they carry the full garden-of-forking-paths discount. They are recorded because each
+answers the specific "next decisive step" its hypothesis left open.
+
+**E6 — the SAE control on a real LM** (`results/e6_real_lm_sae/`). Qwen2.5-0.5B-Instruct
+vs the same architecture at random init, three SAE seeds per arm, 90k tokens of real
+text. FVU: trained 0.2314±0.0014, random 0.2356±0.0002. The toy separation direction
+(random easier to reconstruct) does **not** replicate at scale; reconstruction quality
+tells the two apart by under half a percent, which is the Heap et al. worry in its
+intended habitat. What does separate them is dead-latent fraction (36% trained vs 0.1%
+random). H3's refutation stands on its preregistered toy test; this is the footnote that
+says the metric's uninformativeness is not a toy artefact.
+
+**E7 — algorithm size by causal ablation** (`results/e7_causal_size/`). The measure H5
+lacked: necessary-head count by greedy ablation against an absolute accuracy floor
+shared by every model, calibrated first on the hand-compiled induction circuit (reports
+exactly its 3 wired heads; declines to count an idle one). The first run used a floor
+relative to each model's own accuracy and was withdrawn after adversarial audit found
+r=0.938 between accuracy and count — the stopping rule, not the circuit, was being
+measured. Deconfounded, three seeds, floors 0.80/0.85/0.90: dense and sparse models are
+at parity at 0.80 and 0.85 (means 1.0-1.3 heads); at 0.90 the sparse models need 4.0
+heads against 2.5 for the two dense models that reached that level (the third never
+did — a survivorship caveat the report carries). Direction is not stable across floors,
+so no strong claim is made in either direction. What the probe does establish: under a
+measure that is free to vary and cannot echo the sparsity knob, **H5's hypothesized
+direction — sparse training finds smaller circuits — finds no support at any
+performance level**. H5's posterior stays 0.50; the sentence it needed changes from
+"undecidable, the ruler was broken" to "measured with a working ruler, and the
+hypothesized effect is absent at this scale".
