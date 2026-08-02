@@ -17,101 +17,101 @@
     "corpus_chars_budget": 250000000,
     "sequences": 233521,
     "seq_len": 256,
-    "train_sequences": 210168,
-    "heldout_sequences": 23353,
-    "heldout_split": "last 10% of each source, by position",
+    "train_sequences": 210225,
+    "heldout_sequences": 23296,
+    "heldout_split": "every 10th contiguous block of 64 sequences, drawn through the whole length of each source",
     "steps": 40000,
     "lr": 0.0003,
-    "epochs_over_train_set": 3.05,
-    "final_train_loss": 3.463,
-    "mean_train_loss": 3.915,
+    "epochs_over_train_set": 3.04,
+    "final_train_loss": 3.3606,
+    "mean_train_loss": 3.7897,
     "curve": [
       {
         "step": 2000,
-        "train_loss": 5.5657
+        "train_loss": 5.3984
       },
       {
         "step": 4000,
-        "train_loss": 4.8165
+        "train_loss": 4.6551
       },
       {
         "step": 6000,
-        "train_loss": 4.4898
+        "train_loss": 4.3269
       },
       {
         "step": 8000,
-        "train_loss": 4.2678
+        "train_loss": 4.114
       },
       {
         "step": 10000,
-        "train_loss": 4.1269
+        "train_loss": 3.9946
       },
       {
         "step": 12000,
-        "train_loss": 4.0262
+        "train_loss": 3.8893
       },
       {
         "step": 14000,
-        "train_loss": 3.8989
+        "train_loss": 3.7705
       },
       {
         "step": 16000,
-        "train_loss": 3.8001
+        "train_loss": 3.68
       },
       {
         "step": 18000,
-        "train_loss": 3.7819
+        "train_loss": 3.6662
       },
       {
         "step": 20000,
-        "train_loss": 3.7537
+        "train_loss": 3.6385
       },
       {
         "step": 22000,
-        "train_loss": 3.7306
+        "train_loss": 3.6102
       },
       {
         "step": 24000,
-        "train_loss": 3.7068
+        "train_loss": 3.5933
       },
       {
         "step": 26000,
-        "train_loss": 3.6859
+        "train_loss": 3.5691
       },
       {
         "step": 28000,
-        "train_loss": 3.5346
+        "train_loss": 3.4236
       },
       {
         "step": 30000,
-        "train_loss": 3.5301
+        "train_loss": 3.4197
       },
       {
         "step": 32000,
-        "train_loss": 3.5302
+        "train_loss": 3.4217
       },
       {
         "step": 34000,
-        "train_loss": 3.5358
+        "train_loss": 3.4232
       },
       {
         "step": 36000,
-        "train_loss": 3.5323
+        "train_loss": 3.4201
       },
       {
         "step": 38000,
-        "train_loss": 3.5239
+        "train_loss": 3.4193
       },
       {
         "step": 40000,
-        "train_loss": 3.463
+        "train_loss": 3.3606
       }
     ]
   },
-  "tokens_seen": 163833856,
-  "val_loss": 3.2544534150868247,
-  "val_ppl": 25.9054511348422,
-  "wall_clock_s": 1413.1,
+  "tokens_seen": 163828480,
+  "val_loss": 3.5605192500074487,
+  "val_ppl": 35.181460376667346,
+  "wall_clock_s": 1409.7,
   "per_capability": [
     {
       "capability": "know the material in data/domains/english/corpus.txt",
@@ -121,8 +121,8 @@
       "reason": "the material is in the weights from the start, which is only possible when we are the ones training the model (chosen on scratch: pretrain available)",
       "ok": true,
       "evidence": {
-        "val_loss": 3.2544534150868247,
-        "val_ppl": 25.9054511348422
+        "val_loss": 3.5605192500074487,
+        "val_ppl": 35.181460376667346
       }
     },
     {
@@ -142,33 +142,33 @@
         "ok": false,
         "dose_curve": [
           {
-            "strength": 0.9779,
-            "effect": -0.0129,
-            "side_effect": 0.0103
+            "strength": 1.6963,
+            "effect": -0.044,
+            "side_effect": 0.0428
           },
           {
-            "strength": 1.9558,
-            "effect": -0.026,
-            "side_effect": 0.0208
+            "strength": 3.3926,
+            "effect": -0.088,
+            "side_effect": 0.0857
           },
           {
-            "strength": 3.9117,
-            "effect": -0.0526,
-            "side_effect": 0.0421
+            "strength": 6.7853,
+            "effect": -0.1759,
+            "side_effect": 0.1719
           },
           {
-            "strength": 7.8233,
-            "effect": -0.1078,
-            "side_effect": 0.0872
+            "strength": 13.5706,
+            "effect": -0.3492,
+            "side_effect": 0.3444
           },
           {
-            "strength": 15.6466,
-            "effect": -0.2252,
-            "side_effect": 0.1859
+            "strength": 27.1412,
+            "effect": -0.6746,
+            "side_effect": 0.6824
           }
         ],
         "ec50": null,
-        "max_effect": -0.0129,
+        "max_effect": -0.044,
         "chosen": null,
         "direction": null,
         "chosen_strength": null,
@@ -184,14 +184,14 @@
       "metric": "val_loss",
       "op": "<",
       "threshold": 5.0,
-      "measured": 3.2544534150868247,
+      "measured": 3.5605192500074487,
       "passed": true
     },
     {
       "metric": "val_ppl",
       "op": "<",
       "threshold": 100.0,
-      "measured": 25.9054511348422,
+      "measured": 35.181460376667346,
       "passed": true
     }
   ],
@@ -202,6 +202,7 @@
   "model_dir": "checkpoints/model",
   "controls": [],
   "n_controls_installed": 0,
+  "policy": [],
   "app": "Scribe",
   "base_model": "scratch(medium)",
   "substrate": "scratch",
@@ -217,8 +218,8 @@
       "reason": "the material is in the weights from the start, which is only possible when we are the ones training the model (chosen on scratch: pretrain available)",
       "ok": true,
       "evidence": {
-        "val_loss": 3.2544534150868247,
-        "val_ppl": 25.9054511348422
+        "val_loss": 3.5605192500074487,
+        "val_ppl": 35.181460376667346
       }
     },
     {
@@ -238,33 +239,33 @@
         "ok": false,
         "dose_curve": [
           {
-            "strength": 0.9779,
-            "effect": -0.0129,
-            "side_effect": 0.0103
+            "strength": 1.6963,
+            "effect": -0.044,
+            "side_effect": 0.0428
           },
           {
-            "strength": 1.9558,
-            "effect": -0.026,
-            "side_effect": 0.0208
+            "strength": 3.3926,
+            "effect": -0.088,
+            "side_effect": 0.0857
           },
           {
-            "strength": 3.9117,
-            "effect": -0.0526,
-            "side_effect": 0.0421
+            "strength": 6.7853,
+            "effect": -0.1759,
+            "side_effect": 0.1719
           },
           {
-            "strength": 7.8233,
-            "effect": -0.1078,
-            "side_effect": 0.0872
+            "strength": 13.5706,
+            "effect": -0.3492,
+            "side_effect": 0.3444
           },
           {
-            "strength": 15.6466,
-            "effect": -0.2252,
-            "side_effect": 0.1859
+            "strength": 27.1412,
+            "effect": -0.6746,
+            "side_effect": 0.6824
           }
         ],
         "ec50": null,
-        "max_effect": -0.0129,
+        "max_effect": -0.044,
         "chosen": null,
         "direction": null,
         "chosen_strength": null,
@@ -285,7 +286,6 @@
       "evidence": ""
     }
   ],
-  "policy": [],
-  "expectations_note": "The from-scratch substrate realizes capabilities but its acceptance tests are the program's, and the clinic's two were written for a model that already speaks. The measurement that does mean something here is the held-out perplexity: 25.9054511348422.",
+  "expectations_note": "The from-scratch substrate realizes capabilities but its acceptance tests are the program's, and the clinic's two were written for a model that already speaks. The measurement that does mean something here is the held-out perplexity: 35.181460376667346.",
   "dispatched_to": "NVIDIA GeForce RTX 5090"
 }
