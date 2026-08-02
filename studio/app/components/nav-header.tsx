@@ -13,6 +13,20 @@ export function NavHeader() {
   const supabase = createClient();
 
   useEffect(() => {
+    if (!supabase) return;
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const email = session?.user?.email || null;
+      setUser(email ? { email } : null);
+      if (!email) setIsAdmin(false);
+      else
+        supabase.from("app_admins").select("email").eq("email", email)
+          .then(({ data }) => setIsAdmin(Boolean(data && data.length > 0)));
+    });
+    return () => sub.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (!supabase) {
       setLoading(false);
       return;
@@ -70,7 +84,7 @@ export function NavHeader() {
             <Link href="/builds" className="text-ink hover:text-accent transition-colors">
               Builds
             </Link>
-            <Link href="/use" className="text-ink hover:text-accent transition-colors">
+            <Link href="/use" prefetch={false} className="text-ink hover:text-accent transition-colors">
               Use
             </Link>
           </div>

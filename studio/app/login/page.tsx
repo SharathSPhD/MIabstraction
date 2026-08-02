@@ -45,7 +45,12 @@ function LoginContent() {
       setError(err.message);
     } else {
       setSuccess("Signed in successfully!");
-      setTimeout(() => router.push("/"), 500);
+      // Full navigation, deliberately: router.push would reuse the client router
+      // cache, which may hold the pre-login redirect for guarded routes.
+      setTimeout(() => {
+        const next = searchParams.get("next") || "/";
+        window.location.assign(next);
+      }, 400);
     }
     setLoading(false);
   };
