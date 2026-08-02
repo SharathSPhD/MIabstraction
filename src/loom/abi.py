@@ -52,6 +52,34 @@ class ReadKind(str, Enum):
     RESIDUAL = "residual"      # the unit reads the host residual at read_layer
 
 
+class WriteAlloc(str, Enum):
+    """How the writes of several linked units share one output.
+
+    SHARED is the naive convention: every unit adds its contribution and they
+    collide — measured, a unit scoring 0.588 alone fell to 0.447 beside another.
+    ORTHOGONAL is the allocation this project needed to make separate compilation
+    real: at each position the units are taken in their declared order and each
+    write is projected onto the orthogonal complement of the writes before it, so an
+    earlier unit's own component is preserved exactly. It is the linker's version of
+    what the constructed backend gets for free by putting two skills in disjoint
+    coordinate blocks.
+
+    EXCLUSIVE is what the measurement forced. Orthogonalizing the writes barely
+    moved the composition (induction 0.447 -> 0.454; the other unit slightly worse),
+    because behaviour is decided by argmax and an orthogonal addition can still
+    change which coordinate is largest. Preserving a projection is not preserving a
+    prediction. What the constructed backend actually had was not orthogonal writes
+    but DISJOINT SUPPORT: the second skill's coordinates were identically zero on
+    the first skill's traffic, so there was nothing to interfere with. The linker's
+    analogue is mutual exclusivity in firing: a later unit writes only at positions
+    where every earlier unit stayed silent, which needs the `when` conditions the
+    ABI already carries.
+    """
+    SHARED = "shared"
+    ORTHOGONAL = "orthogonal"
+    EXCLUSIVE = "exclusive"
+
+
 class WriteKind(str, Enum):
     LOGITS = "logits"          # contributes to the output distribution
     RESIDUAL = "residual"      # writes back into the host residual at write_layer

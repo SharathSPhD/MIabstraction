@@ -205,3 +205,40 @@ direction — sparse training finds smaller circuits — finds no support at any
 performance level**. H5's posterior stays 0.50; the sentence it needed changes from
 "undecidable, the ruler was broken" to "measured with a working ruler, and the
 hypothesized effect is absent at this scale".
+
+## Write allocation: what separate compilation needed (2026-08-02)
+
+The ABI gave a unit private state and a declared write, and said nothing about what
+happens when two units write at once. Measured, they collide, and the linker refused
+the composition — an honest refusal, and the thing standing between this project and
+the claim that makes an abstraction layer real.
+
+Three allocations, same two units, same host, measured side by side
+(`results/loom_link_demo.json`, `L2_composition.by_write_allocation`):
+
+| allocation | first unit | shift | second unit | shift |
+|---|---|---|---|---|
+| shared (naive) | 0.4473 | −0.1406 | 0.5804 | −0.4006 |
+| orthogonal | 0.4543 | −0.1336 | 0.5714 | −0.4096 |
+| **exclusive** | **0.5879** | **+0.0000** | 0.5394 | −0.4416 |
+
+Both units score 0.5879 and 0.9810 alone.
+
+**Orthogonalizing the writes did almost nothing**, and the reason is the useful part:
+behaviour is decided by an argmax, and a vector added at right angles to a write can
+still change which coordinate is largest. Preserving a projection is not preserving a
+prediction. The analogy to the constructed backend — where induction and succession
+share one weight set with bit-identical non-interference — was wrong: what that
+backend has is not orthogonal writes but **disjoint support**, the second skill's
+coordinates being identically zero on the first skill's traffic.
+
+**Exclusive allocation is that guarantee expressed for a shared output**: a later
+unit writes only at positions where every earlier unit stayed silent. The first
+unit's score is then *exactly* its solo score — not close, equal — and the entire
+price of the overlap lands on the second, which loses 0.44.
+
+So the honest claim is narrower and more useful than "units compose": **separate
+compilation into a shared output can preserve one unit exactly, and the allocation is
+priority-ordered, not symmetric.** Whether both units survive depends on whether their
+firing conditions are genuinely disjoint — which is a property of the programs, not of
+the linker, and is now something a program can be written to satisfy.

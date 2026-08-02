@@ -126,6 +126,22 @@ CLAIMS = [
           "results/loom_link_demo.json", "L2_composition.interference.a_shift", "{:+.3f}"),
     Claim("L2b", "…and the second unit is disturbed more",
           "results/loom_link_demo.json", "L2_composition.interference.b_shift", "{:+.3f}"),
+
+    # Write allocation: the ABI extension that made composition exact for one unit.
+    Claim("WA0", "Composition under the naive convention: the first unit's own score, "
+          "with a second unit writing into the same output",
+          "results/loom_link_demo.json",
+          'L2_composition.by_write_allocation.shared.a_with_b', "{:.4f}"),
+    Claim("WA1", "…under orthogonalized writes (projection preserved, argmax not)",
+          "results/loom_link_demo.json",
+          'L2_composition.by_write_allocation.orthogonal.a_with_b', "{:.4f}"),
+    Claim("WA2", "…under exclusive writes, where a later unit speaks only where the "
+          "earlier one was silent — equal to its score alone, exactly",
+          "results/loom_link_demo.json",
+          'L2_composition.by_write_allocation.exclusive.a_with_b', "{:.4f}"),
+    Claim("WA3", "…the price: the second unit's score under that allocation",
+          "results/loom_link_demo.json",
+          'L2_composition.by_write_allocation.exclusive.b_with_a', "{:.4f}"),
     Claim("F1", "Foundation model pretrained from scratch on real text: held-out loss",
           "results/loom_foundation_demo.json", "val_loss", "{:.3f}"),
     Claim("F2", "…held-out perplexity",

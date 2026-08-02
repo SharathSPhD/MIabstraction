@@ -72,6 +72,24 @@
   },
   "L2_composition": {
     "budget": 1.25,
+    "by_write_allocation": {
+      "shared": {
+        "a_with_b": 0.447265625,
+        "b_with_a": 0.5803656578063965,
+        "host_delta": 0.9774972796440125
+      },
+      "orthogonal": {
+        "a_with_b": 0.454296875,
+        "b_with_a": 0.5713551640510559,
+        "host_delta": 0.9596843421459198
+      },
+      "exclusive": {
+        "a_with_b": 0.587890625,
+        "b_with_a": 0.5394334197044373,
+        "host_delta": 0.9185872375965118
+      }
+    },
+    "allocation_note": "SHARED is the naive convention: both units add into one output and collide. ORTHOGONAL is the ABI extension \u2014 at each position the units are taken in their declared order and each write is projected onto the orthogonal complement of the writes before it, so the earlier unit's own component survives exactly. Whether that is enough for both gates to hold is what these two rows measure.",
     "linked": false,
     "gains": {
       "induction": 0.06628908034679974,
@@ -83,7 +101,7 @@
         "icl_acc": 0.587890625,
         "joint": {
           "passed": false,
-          "icl_acc": 0.447265625
+          "icl_acc": 0.454296875
         }
       },
       "token_bias": {
@@ -91,18 +109,18 @@
         "favored_mass": 0.6397614479064941,
         "joint": {
           "passed": true,
-          "favored_mass": 0.5803656578063965
+          "favored_mass": 0.5713551640510559
         }
       }
     },
-    "host_delta": 0.9774972796440125,
+    "host_delta": 0.9596843421459198,
     "interference": {
       "a_alone": 0.587890625,
-      "a_with_b": 0.447265625,
-      "a_shift": -0.140625,
+      "a_with_b": 0.454296875,
+      "a_shift": -0.13359375,
       "b_alone": 0.9809991717338562,
-      "b_with_a": 0.5803656578063965,
-      "b_shift": -0.4006335139274597
+      "b_with_a": 0.5713551640510559,
+      "b_shift": -0.4096440076828003
     },
     "diagnosis": "Link refused: ['induction'] met their gates alone but fail once linked alongside the other units. Units write to the same output and interfere; raising one unit's gain to compensate costs the host more. Link them separately, or re-verify the set as a whole after adjusting gains."
   },
@@ -116,6 +134,6 @@
     "out_of_band_dims_taken": 0,
     "verdict": "out-of-band cheaper"
   },
-  "wall_clock_s": 109.9,
+  "wall_clock_s": 110.8,
   "device": "cuda"
 }

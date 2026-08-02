@@ -202,6 +202,22 @@ def run(device: str = "cuda", out: str = "results/loom_link_demo.json") -> dict:
                      {"induction": gate_a, "token_bias": gate_b},
                      device=dev, budget=compose_budget)
 
+    # The same composition under the two write allocations, measured side by side.
+    # SHARED is the naive convention where both units add into one output; ORTHOGONAL
+    # projects each write out of the ones before it. The comparison is the point: it
+    # says whether an allocation, rather than a smaller gain, is what separate
+    # compilation was missing.
+    from ..abi import WriteAlloc
+    from ..linker import LinkedModel as _LMa
+    alloc_rows = {}
+    for alloc in (WriteAlloc.SHARED, WriteAlloc.ORTHOGONAL, WriteAlloc.EXCLUSIVE):
+        pair = _LMa(host, [unit_a2, unit_b], device=dev, alloc=alloc)
+        alloc_rows[alloc.value] = {
+            "a_with_b": induction_gate(pair, ind_tokens, gaps)["icl_acc"],
+            "b_with_a": gate_b(pair)["favored_mass"],
+            "host_delta": host_loss(pair, held, dev) - base_host_loss,
+        }
+
     # Measure interference whether or not the link is accepted — a refusal is only
     # informative if it says by how much the units disturbed each other.
     from ..linker import LinkedModel as _LM
@@ -251,6 +267,14 @@ def run(device: str = "cuda", out: str = "results/loom_link_demo.json") -> dict:
         },
         "L2_composition": {
             "budget": compose_budget,
+            "by_write_allocation": alloc_rows,
+            "allocation_note": (
+                "SHARED is the naive convention: both units add into one output and "
+                "collide. ORTHOGONAL is the ABI extension — at each position the "
+                "units are taken in their declared order and each write is projected "
+                "onto the orthogonal complement of the writes before it, so the "
+                "earlier unit's own component survives exactly. Whether that is "
+                "enough for both gates to hold is what these two rows measure."),
             "linked": rep2.linked,
             "gains": rep2.gains,
             "gates": rep2.unit_gates,

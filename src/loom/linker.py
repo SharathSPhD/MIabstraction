@@ -30,7 +30,8 @@ from dataclasses import dataclass, field
 import torch
 import torch.nn.functional as F
 
-from .abi import Mode, ReadKind, Unit, WriteKind, check_no_clobber
+from .abi import (Mode, ReadKind, Unit, WriteAlloc, WriteKind,
+                  check_no_clobber)
 
 
 @dataclass
@@ -55,11 +56,13 @@ class LinkReport:
 class LinkedModel(torch.nn.Module):
     """Host model with units linked in through the ABI. The host is never retrained."""
 
-    def __init__(self, host: torch.nn.Module, units: list[Unit], device: str = "cpu"):
+    def __init__(self, host: torch.nn.Module, units: list[Unit], device: str = "cpu",
+                 alloc: WriteAlloc = WriteAlloc.ORTHOGONAL):
         super().__init__()
         check_no_clobber(units)
         self.host = host
         self.units = units
+        self.alloc = alloc
         self.device_ = device
         self.enabled = {u.name: True for u in units}
         # Fraction of positions where each unit actually fires — the envelope signal.
@@ -76,9 +79,26 @@ class LinkedModel(torch.nn.Module):
             out = out[0]
         return out
 
+    @staticmethod
+    def _orthogonalize(contrib: torch.Tensor,
+                       prior: list[torch.Tensor]) -> torch.Tensor:
+        """Remove, per position, everything this write shares with earlier writes.
+
+        Gram-Schmidt over the vocabulary axis. What remains is the part of this
+        unit's opinion that no earlier unit expressed, which is exactly the part it
+        can contribute without disturbing them.
+        """
+        out = contrib
+        for q in prior:
+            denom = (q * q).sum(-1, keepdim=True).clamp_min(1e-12)
+            out = out - q * ((out * q).sum(-1, keepdim=True) / denom)
+        return out
+
     def forward(self, tokens: torch.Tensor) -> torch.Tensor:
         host_out = self.host(tokens)
         logits = host_out[0] if isinstance(host_out, tuple) else host_out
+        placed: list[torch.Tensor] = []
+        fired: list[torch.Tensor] = []
 
         for u in self.units:
             if not self.enabled[u.name]:
@@ -111,6 +131,23 @@ class LinkedModel(torch.nn.Module):
                     contrib = contrib * mask.unsqueeze(-1)
                 else:
                     self.firing_rate[u.name] = 1.0
+                if self.alloc is WriteAlloc.ORTHOGONAL and placed:
+                    contrib = self._orthogonalize(contrib, placed)
+                elif self.alloc is WriteAlloc.EXCLUSIVE and fired:
+                    # Disjoint support, the constructed backend's guarantee expressed
+                    # for a shared output: this unit writes only where every earlier
+                    # unit stayed silent. A unit with no `when` claims every position,
+                    # so ordering it first silences the rest — which is the honest
+                    # consequence of declaring an unconditional write, not a bug.
+                    free = torch.ones_like(fired[0])
+                    for m in fired:
+                        free = free * (1.0 - m)
+                    contrib = contrib * free.unsqueeze(-1)
+                placed.append(contrib)
+                fired.append(
+                    mask if u.when is not None else torch.ones(
+                        contrib.shape[:-1], dtype=contrib.dtype,
+                        device=contrib.device))
                 logits = logits + u.gain * contrib
             else:
                 raise NotImplementedError(
