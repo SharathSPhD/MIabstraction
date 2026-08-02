@@ -60,7 +60,11 @@ ALLOWED_MODELS = {
     "gpt2",
 }
 SCRATCH_TARGETS = {"scratch(demo)", "scratch(flagship)"}
-ALLOWED_CORPORA_PREFIX = "data/domains/"
+# A corpus must resolve to real files inside this repository. That is the whole
+# rule: it stops a program reading /etc/passwd without deciding for the programmer
+# which of the repo's corpora are respectable. The earlier prefix check refused
+# examples/corpus/*.txt — a corpus that ships with the project — which is the
+# compiler getting in the way of the thing it exists to do.
 MAX_QUEUE = 4
 
 app = FastAPI(title="loom-studio-worker")
@@ -135,10 +139,22 @@ def _validate(source: str, target: str) -> tuple:
     from loom.app.capability import Kind
     for c in app_.of(Kind.KNOWLEDGE):
         pat = c.args.get("corpus", "")
-        if not pat.startswith(ALLOWED_CORPORA_PREFIX):
+        if not pat:
+            continue
+        if Path(pat).is_absolute() or ".." in Path(pat).parts:
             raise HTTPException(
-                422, f"knows-from path {pat!r} is outside {ALLOWED_CORPORA_PREFIX}; "
-                     "the studio builds only against the manifested domain corpora")
+                422, f"knows-from path {pat!r} must be a path inside the project")
+        matches = [q for q in ROOT.glob(pat) if q.is_file()]
+        if not matches:
+            raise HTTPException(
+                422, f"knows-from path {pat!r} matches no files in the project. "
+                     f"Corpora that ship here: " +
+                     ", ".join(sorted(
+                         str(d.relative_to(ROOT))
+                         for d in list(ROOT.glob("data/domains/*/corpus.txt"))
+                         + list(ROOT.glob("examples/corpus/*.txt")))[:8]))
+        if not all(str(q.resolve()).startswith(str(ROOT.resolve())) for q in matches):
+            raise HTTPException(422, "knows-from must stay inside the project")
     return prog, app_
 
 

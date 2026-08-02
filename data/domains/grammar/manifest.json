@@ -1,0 +1,11 @@
+{
+  "source": "https://huggingface.co/datasets/preetammukherjee/sanskrit_morph_prakriya",
+  "source_note": "Sanskrit verb derivations (P\u0101\u1e47inian prakriy\u0101), rendered as tutor sentences; 29,700 rows available, truncated to the corpus budget",
+  "license": "CC-BY-4.0",
+  "retrieved": "2026-08-02T14:33:45.220578+00:00",
+  "corpus_size_bytes": 400000,
+  "num_documents": 3611,
+  "corpus_sha256": "e8f5413a6196b0074bdbbe91893690392f1a2ee27ac34b3752ec71bf26cebf30",
+  "corpus_file": "corpus.txt",
+  "is_specialist": true
+}

@@ -1,27 +1,42 @@
-// tutor.loom — an application, written by someone who has never trained a model.
+// tutor.loom — a Sanskrit grammar tutor, written by someone who has never trained
+// a model.
 //
-// Nothing below mentions a gradient, a layer, a learning rate or an adapter.
-// The same program is built twice: once on a model we train, once on one we download.
+// This is the program the project exists for. It names what the model must KNOW and
+// what it must be able to DO, and the compiler puts those things in the weights.
+// Not retrieval: the corpus is not consulted at answer time. Not instruction-tuning
+// a chatbot: the from-scratch build has no chatbot to tune. A model, made because a
+// program asked for one.
+//
+// Nothing below mentions a gradient, a layer, a learning rate or an adapter. The
+// same program builds twice: once on a model the compiler makes from nothing, once
+// on a model someone else trained.
 
 app Tutor {
-    knows   from "corpus/*.txt";
+    // What it must know: 3,611 Pāṇinian verb derivations, real published material.
+    knows   from "data/domains/grammar/corpus.txt";
+
+    // What it must be able to do. A skill is a capability, not a phrasing — on the
+    // from-scratch substrate the compiler may write it in as a circuit instead of
+    // training it.
     knows   how to explain step by step;
 
-    speaks  patient, concise;
+    // How it must sound while doing it.
+    speaks  patient, plain;
 
-    always  cites the source it used;
-    never   discusses pricing;
-    refuses topics outside its corpus;
+    // What must hold in every answer.
+    always  names the rule it applied;
 
     // How hard to look, and how far the model may be changed. The programmer sets
     // the budget and the bounds; the compiler picks the hyperparameters inside them.
     effort  balanced;
     tune    adaptation from 1 to 8;
     tune    steering from 0.5 to 4;
+    tune    insistence from 0.3 to 0.3;
 
-    expect  answers("what is a karaka?") mentions "role";
-    expect  refuses("what is your pricing?");
+    // What it means for this to have worked, measured on material held out of
+    // training: the model must have learned the grammar, not memorized the file.
+    expect  knows the material better than the base model;
 }
 
 build Tutor on scratch(size = small);
-build Tutor on "meta-llama/Llama-3.2-1B";
+build Tutor on "meta-llama/Llama-3.2-1B-Instruct";
