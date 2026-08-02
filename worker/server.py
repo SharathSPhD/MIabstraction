@@ -121,6 +121,10 @@ class ExplainReq(BaseModel):
 class ChatReq(BaseModel):
     artifact: str                     # build uuid, or a named artifact directory
     message: str
+    # Answer the same question with the untouched base model too. This is the only view
+    # that shows what the *program* bought rather than what the base model already did —
+    # and on a from-scratch build it shows there is no base to credit.
+    compare_to_base: bool = False
 
 
 class BuildReq(BaseModel):
@@ -299,6 +303,30 @@ def _load_chat_model(d: Path):
     return lm
 
 
+_base_cache: dict = {}
+
+
+def _load_base_model(name: str):
+    """The base model as it came, with nothing this compiler did applied to it.
+
+    Kept in its own cache: `_load_chat_model` evicts everything before loading, and a
+    comparison that evicted one side to load the other would answer the two halves with
+    different models resident and pay a full load per turn.
+    """
+    if name in _base_cache:
+        return _base_cache[name]
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from loom.app.runtime import LoomModel
+    module = AutoModelForCausalLM.from_pretrained(name, dtype=torch.bfloat16)
+    module.to("cuda").eval()
+    tok = AutoTokenizer.from_pretrained(name)
+    _base_cache.clear()
+    lm = LoomModel(module, tok, [], {}, {"base_model": name}, "cuda")
+    _base_cache[name] = lm
+    return lm
+
+
 def _drop_chat_cache():
     for k in list(_chat_cache):
         m = _chat_cache.pop(k)
@@ -372,10 +400,46 @@ def chat(req: ChatReq, x_loom_key: str | None = Header(default=None)):
     with _chat_lock:
         lm = _load_chat_model(d)
         reply = lm.respond(req.message, max_new_tokens=200)
-    return {"artifact": d.name, "reply": reply,
-            "answered_by": "the model",
-            "policy": decision.to_dict(),
-            "controls_active": len(getattr(lm, "controls", []))}
+        base = _base_comparison(req, report) if req.compare_to_base else None
+    out = {"artifact": d.name, "reply": reply,
+           "answered_by": "the model",
+           "policy": decision.to_dict(),
+           "controls_active": len(getattr(lm, "controls", [])),
+           "controls": [{"capability": c.get("capability"), "kind": c.get("kind"),
+                         "layer": c.get("layer"), "strength": c.get("strength")}
+                        for c in (report.get("controls") or [])],
+           "adapters": report.get("adapters_reapplied")
+           or [p.name for p in sorted(d.glob("adapter*.pt"))]}
+    if base is not None:
+        out["base"] = base
+    return out
+
+
+def _base_comparison(req: ChatReq, report: dict) -> dict:
+    """The same question put to the model this one was made from.
+
+    A from-scratch build has no such model. Saying so is not a missing feature: it is
+    the difference between the two substrates stated where a user can see it, and the
+    only place the phrase "created the model itself" is checkable by the person reading.
+    """
+    base_name = report.get("base_model") or ""
+    if not base_name or str(base_name).startswith("scratch"):
+        return {
+            "available": False,
+            "why": ("this model was made from nothing — its architecture was chosen, "
+                    "its tokenizer learned and its weights trained by the compiler, so "
+                    "there is no prior model whose credit could be subtracted"),
+            "base_model": base_name or None,
+        }
+    try:
+        base_lm = _load_base_model(base_name)
+        return {"available": True, "base_model": base_name,
+                "reply": base_lm.respond(req.message, max_new_tokens=200),
+                "note": ("the untouched base model, with no adapter and no control "
+                         "applied — the difference is what the program bought")}
+    except Exception as exc:                                        # noqa: BLE001
+        return {"available": False, "base_model": base_name,
+                "why": f"the base model could not be loaded here: {exc}"[:300]}
 
 
 _chat_lock = threading.Lock()

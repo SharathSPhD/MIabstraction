@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -29,8 +29,13 @@ export async function POST(req: NextRequest) {
           "X-Loom-Key": process.env.LOOM_GPU_KEY ?? "",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ artifact: body.artifact, message: body.message }),
-        signal: AbortSignal.timeout(90_000),
+        body: JSON.stringify({
+          artifact: body.artifact,
+          message: body.message,
+          compare_to_base: body.compare_to_base === true,
+        }),
+        // A comparison turn answers twice and may load the base model first.
+        signal: AbortSignal.timeout(body.compare_to_base ? 170_000 : 90_000),
         cache: "no-store" as RequestCache,
       }
     );

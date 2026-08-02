@@ -182,14 +182,39 @@ class _ScratchLM(LoomModel):
     language model up as a chat model."""
 
     @torch.no_grad()
-    def respond(self, prompt: str, max_new_tokens: int = 60) -> str:
+    def respond(self, prompt: str, max_new_tokens: int = 60,
+                temperature: float = 0.8, top_p: float = 0.92,
+                repetition_penalty: float = 1.15) -> str:
+        """Continue the prompt by sampling from the nucleus rather than taking the
+        argmax at every step.
+
+        Greedy decoding on the flagship produced "a good deal of a good deal of a
+        patient", and "The door was open" three times in a row. That is not the model
+        failing at English — its held-out perplexity is 25.9 — it is argmax
+        continuation finding a fixed point and staying there, which is a property of
+        the decoding rule rather than of these weights. Sampling from the top-p mass,
+        with already-emitted tokens penalised, shows what the model learned instead of
+        the one path its mode happens to walk.
+        """
         ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(self.device)
         out = ids
+        eos = getattr(self.tokenizer, "eos_token_id", -1)
         for _ in range(max_new_tokens):
-            logits = self.module(out[:, -self.max_len:])
-            nxt = logits[:, -1].argmax(-1, keepdim=True)
+            logits = self.module(out[:, -self.max_len:])[:, -1].float()
+            if repetition_penalty != 1.0:
+                for t in set(out[0].tolist()):
+                    logits[0, t] /= repetition_penalty
+            probs = torch.softmax(logits / max(temperature, 1e-5), dim=-1)
+            srt, idx = torch.sort(probs, descending=True, dim=-1)
+            # Keep the smallest set of tokens whose mass reaches top_p, always at
+            # least one — subtracting srt makes the comparison exclusive of the token
+            # that crosses the threshold, so the first token is never dropped.
+            keep = (torch.cumsum(srt, dim=-1) - srt) < top_p
+            srt = torch.where(keep, srt, torch.zeros_like(srt))
+            srt = srt / srt.sum(dim=-1, keepdim=True).clamp_min(1e-9)
+            nxt = idx.gather(-1, torch.multinomial(srt, 1))
             out = torch.cat([out, nxt], dim=1)
-            if int(nxt) == getattr(self.tokenizer, "eos_token_id", -1):
+            if int(nxt) == eos:
                 break
         text = self.tokenizer.decode(out[0].tolist())
         return text[len(prompt):].strip() or text.strip() or "(no continuation)"
