@@ -88,10 +88,13 @@ def run(cfg: ExperimentConfig) -> dict:
     control = AutoModelForCausalLM.from_config(AutoConfig.from_pretrained(name))
     control.to(torch.bfloat16).to(dev)
 
-    from datasets import load_dataset
-    ds = load_dataset(cfg.data["dataset"], cfg.data.get("config"),
-                      split=cfg.data.get("split", "train"))
-    text = "\n".join(t for t in ds["text"] if t.strip())
+    # Real third-party text read straight off disk — no dataset library between the
+    # experiment and its data, and a glob that matches nothing is an error upstream
+    # in chunk_tokens rather than silently substituted prose.
+    from pathlib import Path
+    files = sorted(Path.home().glob(cfg.data["glob"]))
+    text = "\n".join(p.read_text(errors="ignore")
+                     for p in files)[:cfg.data.get("max_chars", 2_000_000)]
     ids = tok(text, add_special_tokens=False)["input_ids"]
     tokens = torch.from_numpy(chunk_tokens(ids, cfg.data["seq_len"],
                                            cfg.data["n_seq"]))

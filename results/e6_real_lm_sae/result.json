@@ -1,0 +1,76 @@
+{
+  "experiment": "e6_real_lm_sae",
+  "hypothesis": "H3",
+  "seed": 0,
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "resid_layer": 12,
+  "d_model": 896,
+  "n_tokens_probed": 90000,
+  "trained": [
+    {
+      "fvu": 0.23150795698165894,
+      "l0": 32.0,
+      "dead_frac": 0.362548828125
+    },
+    {
+      "fvu": 0.233013316988945,
+      "l0": 32.0,
+      "dead_frac": 0.373779296875
+    },
+    {
+      "fvu": 0.2296062707901001,
+      "l0": 32.0,
+      "dead_frac": 0.353515625
+    }
+  ],
+  "control": [
+    {
+      "fvu": 0.2355843186378479,
+      "l0": 32.0,
+      "dead_frac": 0.000732421875
+    },
+    {
+      "fvu": 0.23531484603881836,
+      "l0": 32.0,
+      "dead_frac": 0.001220703125
+    },
+    {
+      "fvu": 0.23585854470729828,
+      "l0": 32.0,
+      "dead_frac": 0.001220703125
+    }
+  ],
+  "separation": {
+    "fvu": {
+      "trained_mean": 0.23137584825356802,
+      "trained_std": 0.0013940541565984773,
+      "control_mean": 0.2355859031279882,
+      "control_std": 0.00022196687963667435,
+      "gap": -0.004210054874420166,
+      "direction": "trained_easier_to_reconstruct",
+      "zero_variance_flag": false
+    },
+    "l0": {
+      "trained_mean": 32.0,
+      "trained_std": 0.0,
+      "control_mean": 32.0,
+      "control_std": 0.0,
+      "gap": 0.0,
+      "direction": "control_higher",
+      "zero_variance_flag": true
+    },
+    "dead_frac": {
+      "trained_mean": 0.36328125,
+      "trained_std": 0.008288804932624502,
+      "control_mean": 0.0010579427083333333,
+      "control_std": 0.00023017798866749594,
+      "gap": 0.3622233072916667,
+      "direction": "trained_higher",
+      "zero_variance_flag": false
+    }
+  },
+  "toy_result_replicates": false,
+  "note": "On the toy model the refutation of H3 ran through the control being easier to reconstruct; this records whether a full-scale pretrained model shows the same direction. No Bayesian update follows from an unpreregistered replication probe.",
+  "wall_clock_s": 83.3,
+  "git_sha": "63f898f"
+}

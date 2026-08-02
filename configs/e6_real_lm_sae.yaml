@@ -6,9 +6,8 @@ model:
   name: Qwen/Qwen2.5-0.5B-Instruct
   resid_layer: 12          # of 24; hidden_states index, 0 = embedding
 data:
-  dataset: wikitext
-  config: wikitext-103-raw-v1
-  split: "train[:1%]"
+  glob: ".cache/huggingface/hub/datasets--BabyLM-community--BabyLM-2026-Strict/snapshots/*/simple_wiki.train.txt"
+  max_chars: 2000000
   n_seq: 1500
   seq_len: 64
 analysis:
