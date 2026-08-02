@@ -1,89 +1,125 @@
+"use client";
+
 import Link from "next/link";
-import { Code, BookOpen, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { BuildReport } from "@/lib/types";
+
+const PROGRAMS = [
+  {
+    name: "Clinic",
+    tagline: "Medical reference",
+    guardrail: "Refuses to diagnose",
+  },
+  {
+    name: "Counsel",
+    tagline: "Legal research",
+    guardrail: "Never gives advice",
+  },
+  {
+    name: "Desk",
+    tagline: "Financial analysis",
+    guardrail: "Refuses recommendations",
+  },
+  {
+    name: "Foreman",
+    tagline: "Safety protocols",
+    guardrail: "Never authorizes work",
+  },
+  {
+    name: "Stylist",
+    tagline: "Editorial house style",
+    guardrail: "Refuses living-author imitation",
+  },
+];
 
 export default function Home() {
+  const [showcase, setShowcase] = useState<BuildReport[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/showcase")
+      .then((r) => r.json())
+      .then((data) => {
+        setShowcase(data || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
+
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      <section className="mb-16 text-center">
-        <h2 className="font-serif text-4xl font-bold mb-4">
-          Program Your LLM
-        </h2>
-        <p className="text-lg text-body mb-8">
-          Write consequences. The compiler measures, searches, and verifies them.
+    <div className="bg-paper">
+      {/* Hero section */}
+      <div className="max-w-4xl mx-auto px-6 py-16 md:py-24">
+        <h1 className="font-serif text-5xl md:text-6xl font-bold tracking-tight mb-6">
+          Write consequences for your LLM.
+        </h1>
+        <p className="text-lg text-body mb-8 max-w-2xl leading-relaxed">
+          The compiler measures real capabilities, searches the parameter space, and verifies your expectations. Not simulation—actual behavioral proof.
         </p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-wrap gap-4">
           <Link href="/studio" className="button-primary">
             Open Editor
           </Link>
           <Link href="/builds" className="button-secondary">
-            View Builds
+            View Verified Builds
           </Link>
         </div>
-      </section>
+      </div>
 
-      <section className="grid md:grid-cols-2 gap-6 mb-12">
-        <div className="card">
-          <div className="flex items-center gap-3 mb-4">
-            <Code className="w-6 h-6 text-ink" />
-            <h3 className="font-serif text-xl font-bold">Write Programs</h3>
-          </div>
-          <p className="text-body">
-            Define model behavior using Loom clauses: what it knows, how it speaks, and what it refuses.
-          </p>
-        </div>
+      <div className="divider max-w-7xl mx-auto px-6" />
 
-        <div className="card">
-          <div className="flex items-center gap-3 mb-4">
-            <Zap className="w-6 h-6 text-ink" />
-            <h3 className="font-serif text-xl font-bold">Verify Behavior</h3>
-          </div>
-          <p className="text-body">
-            The compiler measures real capabilities, searches the parameter space, and verifies your expectations.
-          </p>
-        </div>
-      </section>
-
-      <section>
-        <h3 className="font-serif text-2xl font-bold mb-6">Example Programs</h3>
-        <p className="text-body mb-8">
-          Explore these built and verified Loom programs:
-        </p>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            {
-              name: "Clinic",
-              description:
-                "Medical reference assistant trained on held-out MedQuAD material",
-            },
-            {
-              name: "Counsel",
-              description:
-                "Legal advisor that cites statutes and case law correctly",
-            },
-            {
-              name: "Desk",
-              description:
-                "Reference desk staff that knows a library's collection",
-            },
-            {
-              name: "Foreman",
-              description:
-                "Workplace safety overseer that enforces protocols",
-            },
-            {
-              name: "Stylist",
-              description:
-                "Fashion advisor that maintains a consistent aesthetic",
-            },
-          ].map((prog) => (
-            <div key={prog.name} className="card">
-              <h4 className="font-serif font-bold mb-2">{prog.name}</h4>
-              <p className="text-sm text-body">{prog.description}</p>
-            </div>
+      {/* Programs section */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="section-heading">Real Programs</div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {PROGRAMS.map((prog) => (
+            <Link key={prog.name} href={`/studio?example=${prog.name.toLowerCase()}`}>
+              <div className="card-hover p-4 cursor-pointer h-full">
+                <h3 className="font-serif text-lg font-bold mb-2">
+                  {prog.name}
+                </h3>
+                <p className="text-xs text-muted mb-3 font-mono uppercase">
+                  {prog.tagline}
+                </p>
+                <p className="text-sm text-body">
+                  {prog.guardrail}
+                </p>
+              </div>
+            </Link>
           ))}
         </div>
-      </section>
+      </div>
+
+      {/* Verified builds section */}
+      {!loading && showcase.length > 0 && (
+        <>
+          <div className="divider max-w-7xl mx-auto px-6" />
+          <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="section-heading">Verified Builds</div>
+            <div className="grid auto-cols-max gap-3 overflow-x-auto pb-4">
+              {showcase.slice(0, 6).map((build, idx) => (
+                <Link key={idx} href={`/builds/replay-${idx}`}>
+                  <div className="card-hover px-4 py-3 cursor-pointer whitespace-nowrap">
+                    <div className="font-serif font-bold mb-1">{build.app}</div>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs font-mono text-muted">
+                        {build.base_model.split("/").pop()}
+                      </span>
+                      {build.passed ? (
+                        <span className="badge-pass">PASS</span>
+                      ) : (
+                        <span className="badge-fail">FAIL</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

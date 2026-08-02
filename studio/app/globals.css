@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,60 +7,123 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    /* Subtle grain texture */
+    background-image:
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.02) 2px,
+        rgba(0, 0, 0, 0.02) 4px
+      );
   }
 
   body {
-    @apply bg-paper text-ink font-sans;
+    @apply bg-paper text-ink font-sans leading-relaxed;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
+  h1 {
+    @apply font-serif text-4xl font-bold tracking-tight mb-4;
+  }
+
+  h2 {
+    @apply font-serif text-3xl font-bold tracking-tight mb-6;
+  }
+
+  h3 {
+    @apply font-serif text-2xl font-bold tracking-tight mb-4;
+  }
+
+  h4 {
+    @apply font-serif text-lg font-bold mb-3;
+  }
+
   h5,
   h6 {
-    @apply font-serif font-bold;
+    @apply font-serif font-bold mb-2;
+  }
+
+  p {
+    @apply mb-4 text-body;
   }
 
   a {
-    @apply text-ink hover:text-body underline-offset-2;
+    @apply text-accent hover:text-ink transition-colors duration-150;
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
   }
 
   pre {
-    @apply bg-panel p-4 rounded font-mono text-sm overflow-x-auto;
+    @apply bg-panel p-4 font-mono text-xs overflow-x-auto border border-hairline border-gray-300;
   }
 
   code {
-    @apply font-mono text-sm;
+    @apply font-mono text-xs tabular-nums;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-lg border border-panel shadow-sm p-6;
+    @apply bg-white border border-hairline border-gray-300 p-6 transition-all duration-150;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-sm hover:border-accent;
   }
 
   .button-primary {
-    @apply inline-block px-6 py-2 bg-ink text-paper rounded-lg hover:bg-body transition-colors;
+    @apply inline-block px-4 py-2 bg-accent text-paper font-sans font-medium hover:bg-ink transition-colors duration-150 border border-hairline border-accent;
   }
 
   .button-secondary {
-    @apply inline-block px-6 py-2 bg-panel text-ink rounded-lg hover:bg-muted transition-colors;
+    @apply inline-block px-4 py-2 bg-panel text-ink font-sans font-medium hover:bg-muted transition-colors duration-150 border border-hairline border-gray-300;
+  }
+
+  .button-ghost {
+    @apply inline-block px-3 py-2 text-ink hover:bg-panel transition-colors duration-150;
   }
 
   .diagnostic-box {
-    @apply bg-amber-50 border-l-4 border-amber-400 p-4 rounded text-sm text-amber-900;
+    @apply bg-yellow-50 border-l-2 border-refusal p-4 text-sm text-yellow-900;
   }
 
   .badge-pass {
-    @apply inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold;
+    @apply inline-block px-2 py-1 bg-green-50 text-verified font-mono text-xs font-semibold border border-hairline border-verified;
   }
 
   .badge-fail {
-    @apply inline-block px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold;
+    @apply inline-block px-2 py-1 bg-red-50 text-red-700 font-mono text-xs font-semibold border border-hairline border-red-300;
   }
 
   .badge-pending {
-    @apply inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold;
+    @apply inline-block px-2 py-1 bg-blue-50 text-blue-700 font-mono text-xs font-semibold border border-hairline border-blue-300;
+  }
+
+  .badge-live {
+    @apply inline-block px-2 py-1 bg-verified text-white font-mono text-xs font-semibold animate-pulse-subtle;
+  }
+
+  .badge-replay {
+    @apply inline-block px-2 py-1 bg-gray-400 text-white font-mono text-xs font-semibold;
+  }
+
+  .divider {
+    @apply border-b border-hairline border-gray-300 my-8;
+  }
+
+  .section-heading {
+    @apply font-serif text-2xl font-bold mb-8 pb-4 border-b border-hairline border-gray-300;
+  }
+
+  .stat-card {
+    @apply bg-white border border-hairline border-gray-300 p-4;
+  }
+
+  .stat-label {
+    @apply text-xs text-muted mb-1 font-mono uppercase;
+  }
+
+  .stat-value {
+    @apply font-mono text-lg font-bold tabular-nums;
   }
 }
