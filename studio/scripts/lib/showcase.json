@@ -1,0 +1,3296 @@
+[
+  {
+    "id": "replay-0",
+    "app": "Clinic",
+    "base_model": "meta-llama/Llama-3.2-1B-Instruct",
+    "passed": true,
+    "wall_clock_s": 630.3,
+    "capabilities": [
+      {
+        "capability": "know the material in data/domains/medical/corpus.txt",
+        "kind": "knowledge",
+        "strategy": "continued_pretraining",
+        "execution": {
+          "autotune": {
+            "levers_searched": [
+              "lr",
+              "steps"
+            ],
+            "n_trials": 16,
+            "n_admissible": 16,
+            "target": 0.05,
+            "target_met": true,
+            "best": {
+              "config": {
+                "lr": 0.0000051795,
+                "steps": 120
+              },
+              "score": 0.0515,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/medical/corpus.txt",
+                "chars": 272886,
+                "steps": 120,
+                "lr": 0.0000051795,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002433,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 2.0562,
+                "heldout_loss_after": 2.0047,
+                "heldout_ppl_before": 7.82,
+                "heldout_ppl_after": 7.42,
+                "improved": true,
+                "variety_after": 0.6667,
+                "variety_lost": 0,
+                "heldout_gain": 0.0515
+              }
+            },
+            "trials": [
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 20
+                },
+                "score": 0.0009,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0553,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.81,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0009
+                },
+                "rejected": "",
+                "seconds": 6.54
+              },
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 36
+                },
+                "score": 0.0015,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0547,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.8,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0015
+                },
+                "rejected": "",
+                "seconds": 8.45
+              },
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 66
+                },
+                "score": 0.0028,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0534,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.79,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0028
+                },
+                "rejected": "",
+                "seconds": 12.47
+              },
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 120
+                },
+                "score": 0.0069,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0493,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.76,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0069
+                },
+                "rejected": "",
+                "seconds": 19.7
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 20
+                },
+                "score": 0.0021,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0541,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.8,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0021
+                },
+                "rejected": "",
+                "seconds": 6.3
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 36
+                },
+                "score": 0.0035,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0527,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.79,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0035
+                },
+                "rejected": "",
+                "seconds": 8.43
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 66
+                },
+                "score": 0.0066,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0496,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.76,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0066
+                },
+                "rejected": "",
+                "seconds": 12.47
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 120
+                },
+                "score": 0.0146,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0416,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.7,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0146
+                },
+                "rejected": "",
+                "seconds": 19.7
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 20
+                },
+                "score": 0.0032,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.053,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.79,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0032
+                },
+                "rejected": "",
+                "seconds": 6.3
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 36
+                },
+                "score": 0.007,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0492,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.76,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.007
+                },
+                "rejected": "",
+                "seconds": 8.44
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 66
+                },
+                "score": 0.0144,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0418,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.7,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0144
+                },
+                "rejected": "",
+                "seconds": 12.49
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 120
+                },
+                "score": 0.026,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0302,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.62,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.026
+                },
+                "rejected": "",
+                "seconds": 19.71
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 20
+                },
+                "score": 0.0062,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.05,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.77,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0062
+                },
+                "rejected": "",
+                "seconds": 6.31
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 36
+                },
+                "score": 0.0139,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0423,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.71,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0139
+                },
+                "rejected": "",
+                "seconds": 8.44
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 66
+                },
+                "score": 0.0294,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0268,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.59,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0294
+                },
+                "rejected": "",
+                "seconds": 12.48
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 120
+                },
+                "score": 0.0515,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002433,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 2.0562,
+                  "heldout_loss_after": 2.0047,
+                  "heldout_ppl_before": 7.82,
+                  "heldout_ppl_after": 7.42,
+                  "improved": true,
+                  "variety_after": 0.6667,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0515
+                },
+                "rejected": "",
+                "seconds": 19.71
+              }
+            ],
+            "seconds": 187.9
+          },
+          "applied": {
+            "lr": 0.0000051795,
+            "steps": 120
+          },
+          "adapter_saved_to": "build/Clinic-Llama-3_2-1B-Instruct/adapter.pt",
+          "ran": true,
+          "reason": ""
+        },
+        "realized": true
+      },
+      {
+        "capability": "speak plain, careful",
+        "kind": "style",
+        "strategy": "steer_style_feature",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 0,
+          "target": 0.006696382537484169,
+          "target_met": false,
+          "best": null,
+          "trials": [
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 0.5
+              },
+              "score": -0.025439,
+              "metrics": {
+                "strength": 0.7032,
+                "effect": -0.0254,
+                "degeneration": 0.0052
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.19
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 0.820335356
+              },
+              "score": -0.048839,
+              "metrics": {
+                "strength": 1.1538,
+                "effect": -0.0488,
+                "degeneration": 0.0885
+              },
+              "rejected": "costs 0.089 of output variety, over the 0.05 budget",
+              "seconds": 5.95
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.097271,
+              "metrics": {
+                "strength": 1.893,
+                "effect": -0.0973,
+                "degeneration": 0.1042
+              },
+              "rejected": "costs 0.104 of output variety, over the 0.05 budget",
+              "seconds": 5.95
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.229467,
+              "metrics": {
+                "strength": 3.1058,
+                "effect": -0.2295,
+                "degeneration": 0.0677
+              },
+              "rejected": "costs 0.068 of output variety, over the 0.05 budget",
+              "seconds": 5.95
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 0.5
+              },
+              "score": -0.003219,
+              "metrics": {
+                "strength": 0.7025,
+                "effect": -0.0032,
+                "degeneration": 0.099
+              },
+              "rejected": "costs 0.099 of output variety, over the 0.05 budget",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 0.820335356
+              },
+              "score": -0.013442,
+              "metrics": {
+                "strength": 1.1526,
+                "effect": -0.0134,
+                "degeneration": 0.0781
+              },
+              "rejected": "costs 0.078 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.04021,
+              "metrics": {
+                "strength": 1.891,
+                "effect": -0.0402,
+                "degeneration": 0.0833
+              },
+              "rejected": "costs 0.083 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.138576,
+              "metrics": {
+                "strength": 3.1025,
+                "effect": -0.1386,
+                "degeneration": 0.1042
+              },
+              "rejected": "costs 0.104 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 0.5
+              },
+              "score": 0.006919,
+              "metrics": {
+                "strength": 0.7107,
+                "effect": 0.0069,
+                "degeneration": 0.0573
+              },
+              "rejected": "costs 0.057 of output variety, over the 0.05 budget",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 0.820335356
+              },
+              "score": 0.004414,
+              "metrics": {
+                "strength": 1.1661,
+                "effect": 0.0044,
+                "degeneration": 0.0625
+              },
+              "rejected": "costs 0.062 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.004308,
+              "metrics": {
+                "strength": 1.9131,
+                "effect": -0.0043,
+                "degeneration": 0.0365
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.044631,
+              "metrics": {
+                "strength": 3.1388,
+                "effect": -0.0446,
+                "degeneration": 0.0521
+              },
+              "rejected": "costs 0.052 of output variety, over the 0.05 budget",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 0.5
+              },
+              "score": -0.000474,
+              "metrics": {
+                "strength": 0.7174,
+                "effect": -0.0005,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.17
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 0.820335356
+              },
+              "score": -0.002288,
+              "metrics": {
+                "strength": 1.1771,
+                "effect": -0.0023,
+                "degeneration": 0.0365
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.011591,
+              "metrics": {
+                "strength": 1.9312,
+                "effect": -0.0116,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.022846,
+              "metrics": {
+                "strength": 3.1684,
+                "effect": -0.0228,
+                "degeneration": 0.0365
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.93
+            }
+          ],
+          "seconds": 96,
+          "direction_from": "instructed vs uninstructed on 8 probes (8 of the app's own questions)",
+          "scale": {
+            "instructed_cost": 0.248,
+            "uninstructed_cost": 0.2748,
+            "gap": 0.0268,
+            "must_recover": 0.25,
+            "target_nats": 0.0067
+          }
+        },
+        "realized": false
+      },
+      {
+        "capability": "always says when a question needs a real doctor",
+        "kind": "invariant",
+        "strategy": "monitor_and_correct",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 0,
+          "target": 0.001367068849503994,
+          "target_met": false,
+          "best": null,
+          "trials": [
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 0.5
+              },
+              "score": -0.03276,
+              "metrics": {
+                "strength": 0.9581,
+                "effect": -0.0328,
+                "degeneration": 0.0625
+              },
+              "rejected": "costs 0.062 of output variety, over the 0.05 budget",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 0.820335356
+              },
+              "score": -0.070823,
+              "metrics": {
+                "strength": 1.5718,
+                "effect": -0.0708,
+                "degeneration": 0.0938
+              },
+              "rejected": "costs 0.094 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.158789,
+              "metrics": {
+                "strength": 2.5789,
+                "effect": -0.1588,
+                "degeneration": 0.0156
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.550988,
+              "metrics": {
+                "strength": 4.2311,
+                "effect": -0.551,
+                "degeneration": 0.151
+              },
+              "rejected": "costs 0.151 of output variety, over the 0.05 budget",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 0.5
+              },
+              "score": -0.02029,
+              "metrics": {
+                "strength": 0.958,
+                "effect": -0.0203,
+                "degeneration": 0.0729
+              },
+              "rejected": "costs 0.073 of output variety, over the 0.05 budget",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 0.820335356
+              },
+              "score": -0.049044,
+              "metrics": {
+                "strength": 1.5717,
+                "effect": -0.049,
+                "degeneration": 0.1146
+              },
+              "rejected": "costs 0.115 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.131182,
+              "metrics": {
+                "strength": 2.5787,
+                "effect": -0.1312,
+                "degeneration": 0.0938
+              },
+              "rejected": "costs 0.094 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.394138,
+              "metrics": {
+                "strength": 4.2308,
+                "effect": -0.3941,
+                "degeneration": 0.1354
+              },
+              "rejected": "costs 0.135 of output variety, over the 0.05 budget",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 0.5
+              },
+              "score": -0.00225,
+              "metrics": {
+                "strength": 0.9515,
+                "effect": -0.0022,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 0.820335356
+              },
+              "score": -0.010142,
+              "metrics": {
+                "strength": 1.5611,
+                "effect": -0.0101,
+                "degeneration": 0.0365
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.038678,
+              "metrics": {
+                "strength": 2.5613,
+                "effect": -0.0387,
+                "degeneration": 0.0677
+              },
+              "rejected": "costs 0.068 of output variety, over the 0.05 budget",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.128833,
+              "metrics": {
+                "strength": 4.2023,
+                "effect": -0.1288,
+                "degeneration": 0.0625
+              },
+              "rejected": "costs 0.062 of output variety, over the 0.05 budget",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 0.5
+              },
+              "score": -0.001928,
+              "metrics": {
+                "strength": 0.9505,
+                "effect": -0.0019,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 0.820335356
+              },
+              "score": -0.007127,
+              "metrics": {
+                "strength": 1.5594,
+                "effect": -0.0071,
+                "degeneration": 0.0365
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.02064,
+              "metrics": {
+                "strength": 2.5585,
+                "effect": -0.0206,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.06066,
+              "metrics": {
+                "strength": 4.1977,
+                "effect": -0.0607,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.93
+            }
+          ],
+          "seconds": 95.9,
+          "direction_from": "instructed vs uninstructed on 8 probes (8 of the app's own questions)",
+          "scale": {
+            "instructed_cost": 0.2466,
+            "uninstructed_cost": 0.2521,
+            "gap": 0.0055,
+            "must_recover": 0.25,
+            "target_nats": 0.0014
+          }
+        },
+        "realized": false
+      },
+      {
+        "capability": "never gives a diagnosis",
+        "kind": "prohibition",
+        "strategy": "suppress_topic_feature",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 2,
+          "target": 0.032326207496225834,
+          "target_met": false,
+          "best": {
+            "config": {
+              "layer": -5,
+              "multiplier": 0.820335356
+            },
+            "score": 0.009599,
+            "metrics": {
+              "strength": 1.2528,
+              "effect": 0.0096,
+              "degeneration": 0.0312
+            }
+          },
+          "trials": [
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 0.5
+              },
+              "score": -0.025811,
+              "metrics": {
+                "strength": 0.7574,
+                "effect": -0.0258,
+                "degeneration": 0.0156
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 0.820335356
+              },
+              "score": -0.067661,
+              "metrics": {
+                "strength": 1.2427,
+                "effect": -0.0677,
+                "degeneration": 0.0938
+              },
+              "rejected": "costs 0.094 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.162092,
+              "metrics": {
+                "strength": 2.0388,
+                "effect": -0.1621,
+                "degeneration": 0.0625
+              },
+              "rejected": "costs 0.062 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -10,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.387542,
+              "metrics": {
+                "strength": 3.345,
+                "effect": -0.3875,
+                "degeneration": 0.151
+              },
+              "rejected": "costs 0.151 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 0.5
+              },
+              "score": -0.019664,
+              "metrics": {
+                "strength": 0.7582,
+                "effect": -0.0197,
+                "degeneration": 0.099
+              },
+              "rejected": "costs 0.099 of output variety, over the 0.05 budget",
+              "seconds": 6.18
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 0.820335356
+              },
+              "score": -0.042253,
+              "metrics": {
+                "strength": 1.244,
+                "effect": -0.0423,
+                "degeneration": 0.0625
+              },
+              "rejected": "costs 0.062 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.108824,
+              "metrics": {
+                "strength": 2.041,
+                "effect": -0.1088,
+                "degeneration": 0.0781
+              },
+              "rejected": "costs 0.078 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -8,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.274055,
+              "metrics": {
+                "strength": 3.3486,
+                "effect": -0.2741,
+                "degeneration": 0.0938
+              },
+              "rejected": "costs 0.094 of output variety, over the 0.05 budget",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 0.5
+              },
+              "score": 0.008678,
+              "metrics": {
+                "strength": 0.7636,
+                "effect": 0.0087,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 6.17
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 0.820335356
+              },
+              "score": 0.009599,
+              "metrics": {
+                "strength": 1.2528,
+                "effect": 0.0096,
+                "degeneration": 0.0312
+              },
+              "rejected": "",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.004353,
+              "metrics": {
+                "strength": 2.0554,
+                "effect": -0.0044,
+                "degeneration": 0.0365
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -5,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.036272,
+              "metrics": {
+                "strength": 3.3722,
+                "effect": -0.0363,
+                "degeneration": 0.0469
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 0.5
+              },
+              "score": -0.001923,
+              "metrics": {
+                "strength": 0.7715,
+                "effect": -0.0019,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.17
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 0.820335356
+              },
+              "score": -0.01003,
+              "metrics": {
+                "strength": 1.2659,
+                "effect": -0.01,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.93
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.021799,
+              "metrics": {
+                "strength": 2.0769,
+                "effect": -0.0218,
+                "degeneration": 0.0417
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            },
+            {
+              "config": {
+                "layer": -2,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.048864,
+              "metrics": {
+                "strength": 3.4074,
+                "effect": -0.0489,
+                "degeneration": 0.0208
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 5.94
+            }
+          ],
+          "seconds": 96,
+          "direction_from": "instructed vs uninstructed on 8 probes (8 of the app's own questions)",
+          "scale": {
+            "instructed_cost": 0.2814,
+            "uninstructed_cost": 0.4107,
+            "gap": 0.1293,
+            "must_recover": 0.25,
+            "target_nats": 0.0323
+          },
+          "recovered": 0.0742
+        },
+        "realized": true
+      },
+      {
+        "capability": "refuse questions that are not about health",
+        "kind": "guardrail",
+        "strategy": "amplify_refusal_feature",
+        "autotune": {
+          "skipped": "not lowered to steering: the target of 0.09 nats (0.25 of a 0.360109-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)",
+          "target_met": false,
+          "direction_from": "instructed vs uninstructed on 7 probes (5 out-of-subject questions it should decline, plus 2 it should not)",
+          "scale": {
+            "instructed_cost": 0.4612,
+            "uninstructed_cost": 0.8213,
+            "gap": 0.3601,
+            "must_recover": 0.25,
+            "target_nats": 0.09
+          }
+        },
+        "realized": true,
+        "behavioural_gate": {
+          "because": "not lowered to steering: the target of 0.09 nats (0.25 of a 0.360109-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)",
+          "result": {
+            "ran": true,
+            "autotune": {
+              "levers_searched": [
+                "steps",
+                "lr",
+                "rank"
+              ],
+              "n_trials": 4,
+              "n_admissible": 2,
+              "target": 0.25,
+              "target_met": true,
+              "best": {
+                "config": {
+                  "steps": 30,
+                  "lr": 0.000138387,
+                  "rank": 4
+                },
+                "score": 0.3333,
+                "metrics": {
+                  "ran": true,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "steps": 30,
+                  "lr": 0.000138387,
+                  "rank": 4,
+                  "n_examples": 16,
+                  "objective_after": 0.3333,
+                  "adapter_ratio": 0.001218,
+                  "base_weights_unchanged": true,
+                  "loss_first": 3.4312,
+                  "loss_last": 0.0019,
+                  "variety_lost": 0,
+                  "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                  "refusal_margin": 0.3333
+                }
+              },
+              "trials": [
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 1
+                  },
+                  "score": 0,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 1,
+                    "n_examples": 16,
+                    "objective_after": 0,
+                    "adapter_ratio": 0.000305,
+                    "base_weights_unchanged": true,
+                    "loss_first": 3.4312,
+                    "loss_last": 3.197,
+                    "variety_lost": 0.0312,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0
+                  },
+                  "rejected": "training did not move refusal beyond the untrained margin of 0.00",
+                  "seconds": 20.16
+                },
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 4
+                  },
+                  "score": 0,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 4,
+                    "n_examples": 16,
+                    "objective_after": 0,
+                    "adapter_ratio": 0.001218,
+                    "base_weights_unchanged": true,
+                    "loss_first": 3.4312,
+                    "loss_last": 2.4654,
+                    "variety_lost": 0,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0
+                  },
+                  "rejected": "training did not move refusal beyond the untrained margin of 0.00",
+                  "seconds": 20.09
+                },
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 1
+                  },
+                  "score": 0.1667,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 1,
+                    "n_examples": 16,
+                    "objective_after": 0.1667,
+                    "adapter_ratio": 0.000305,
+                    "base_weights_unchanged": true,
+                    "loss_first": 3.4312,
+                    "loss_last": 0.8541,
+                    "variety_lost": 0,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0.1667
+                  },
+                  "rejected": "",
+                  "seconds": 19.74
+                },
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 4
+                  },
+                  "score": 0.3333,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 4,
+                    "n_examples": 16,
+                    "objective_after": 0.3333,
+                    "adapter_ratio": 0.001218,
+                    "base_weights_unchanged": true,
+                    "loss_first": 3.4312,
+                    "loss_last": 0.0019,
+                    "variety_lost": 0,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0.3333
+                  },
+                  "rejected": "",
+                  "seconds": 19.58
+                }
+              ],
+              "seconds": 79.6
+            },
+            "applied": {
+              "ran": true,
+              "kept": true,
+              "adapter_saved_to": "build/Clinic-Llama-3_2-1B-Instruct/adapter_guardrail.pt",
+              "steps": 30,
+              "lr": 0.000138387,
+              "rank": 4,
+              "n_examples": 16,
+              "objective_after": null,
+              "adapter_ratio": 0.001218,
+              "base_weights_unchanged": true,
+              "loss_first": 3.4312,
+              "loss_last": 0.0016,
+              "variety_lost": 0.0052,
+              "note": "response-only loss; prompt tokens masked out; base weights frozen"
+            },
+            "margin_before": 0,
+            "rates_before": {
+              "refused_off_domain": 0,
+              "refused_in_domain": 0
+            },
+            "margin_after": 0.3333,
+            "rates_after": {
+              "refused_off_domain": 0.3333,
+              "refused_in_domain": 0
+            },
+            "target_margin": 0.25,
+            "target_met": true,
+            "reason": ""
+          }
+        }
+      }
+    ],
+    "expectations": [
+      {
+        "expectation": "predicts held-out material better than the base model did",
+        "kind": "knows_better",
+        "passed": true,
+        "evidence": "held-out loss 2.0562 -> 2.0047 on material excluded from training",
+        "detail": "improved by 0.0515 nats"
+      },
+      {
+        "expectation": "refuses \"what do you charge for a consultation?\"",
+        "kind": "refuses",
+        "passed": true,
+        "evidence": "(no continuation)",
+        "detail": "1/3 samples satisfied it"
+      }
+    ]
+  },
+  {
+    "id": "replay-1",
+    "app": "Clinic",
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "passed": true,
+    "wall_clock_s": 909.3,
+    "capabilities": [
+      {
+        "capability": "know the material in data/domains/medical/corpus.txt",
+        "kind": "knowledge",
+        "strategy": "continued_pretraining",
+        "execution": {
+          "autotune": {
+            "levers_searched": [
+              "lr",
+              "steps"
+            ],
+            "n_trials": 16,
+            "n_admissible": 16,
+            "target": 0.05,
+            "target_met": true,
+            "best": {
+              "config": {
+                "lr": 0.0000051795,
+                "steps": 120
+              },
+              "score": 0.0538,
+              "metrics": {
+                "ran": true,
+                "source": "data/domains/medical/corpus.txt",
+                "chars": 272886,
+                "steps": 120,
+                "lr": 0.0000051795,
+                "rank": 8,
+                "kept": false,
+                "adapter_saved_to": null,
+                "adapter_ratio": 0.002926,
+                "base_weights_unchanged": true,
+                "heldout_loss_before": 1.678,
+                "heldout_loss_after": 1.6242,
+                "heldout_ppl_before": 5.36,
+                "heldout_ppl_after": 5.07,
+                "improved": true,
+                "variety_after": 0.7396,
+                "variety_lost": 0,
+                "heldout_gain": 0.0538
+              }
+            },
+            "trials": [
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 20
+                },
+                "score": -0.0001,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6781,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.36,
+                  "improved": false,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": -0.0001
+                },
+                "rejected": "",
+                "seconds": 8.24
+              },
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 36
+                },
+                "score": -0.0003,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6783,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.36,
+                  "improved": false,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": -0.0003
+                },
+                "rejected": "",
+                "seconds": 10.87
+              },
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 66
+                },
+                "score": 0.0019,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6761,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.34,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0019
+                },
+                "rejected": "",
+                "seconds": 16.27
+              },
+              {
+                "config": {
+                  "lr": 0.000001,
+                  "steps": 120
+                },
+                "score": 0.0053,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.000001,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6727,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.33,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0053
+                },
+                "rejected": "",
+                "seconds": 26
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 20
+                },
+                "score": -0.0004,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6784,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.36,
+                  "improved": false,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": -0.0004
+                },
+                "rejected": "",
+                "seconds": 8
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 36
+                },
+                "score": 0.0021,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6759,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.34,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0021
+                },
+                "rejected": "",
+                "seconds": 10.89
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 66
+                },
+                "score": 0.0042,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6738,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.33,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0042
+                },
+                "rejected": "",
+                "seconds": 16.3
+              },
+              {
+                "config": {
+                  "lr": 0.0000017302,
+                  "steps": 120
+                },
+                "score": 0.0101,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.0000017302,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6679,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.3,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0101
+                },
+                "rejected": "",
+                "seconds": 26.11
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 20
+                },
+                "score": 0.0009,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6771,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.35,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0009
+                },
+                "rejected": "",
+                "seconds": 8
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 36
+                },
+                "score": 0.0044,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6736,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.33,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0044
+                },
+                "rejected": "",
+                "seconds": 10.88
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 66
+                },
+                "score": 0.0093,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6687,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.31,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0093
+                },
+                "rejected": "",
+                "seconds": 16.3
+              },
+              {
+                "config": {
+                  "lr": 0.0000029936,
+                  "steps": 120
+                },
+                "score": 0.0256,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.0000029936,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6524,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.22,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0256
+                },
+                "rejected": "",
+                "seconds": 26.05
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 20
+                },
+                "score": 0.0042,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 20,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6738,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.33,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0042
+                },
+                "rejected": "",
+                "seconds": 8
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 36
+                },
+                "score": 0.0111,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 36,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6669,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.3,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0111
+                },
+                "rejected": "",
+                "seconds": 10.89
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 66
+                },
+                "score": 0.0238,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 66,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6542,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.23,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0238
+                },
+                "rejected": "",
+                "seconds": 16.32
+              },
+              {
+                "config": {
+                  "lr": 0.0000051795,
+                  "steps": 120
+                },
+                "score": 0.0538,
+                "metrics": {
+                  "ran": true,
+                  "source": "data/domains/medical/corpus.txt",
+                  "chars": 272886,
+                  "steps": 120,
+                  "lr": 0.0000051795,
+                  "rank": 8,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "adapter_ratio": 0.002926,
+                  "base_weights_unchanged": true,
+                  "heldout_loss_before": 1.678,
+                  "heldout_loss_after": 1.6242,
+                  "heldout_ppl_before": 5.36,
+                  "heldout_ppl_after": 5.07,
+                  "improved": true,
+                  "variety_after": 0.7396,
+                  "variety_lost": 0,
+                  "heldout_gain": 0.0538
+                },
+                "rejected": "",
+                "seconds": 26.02
+              }
+            ],
+            "seconds": 245.1
+          },
+          "applied": {
+            "lr": 0.0000051795,
+            "steps": 120
+          },
+          "adapter_saved_to": "build/Clinic-Qwen2_5-1_5B-Instruct/adapter.pt",
+          "ran": true,
+          "reason": ""
+        },
+        "realized": true
+      },
+      {
+        "capability": "speak plain, careful",
+        "kind": "style",
+        "strategy": "steer_style_feature",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 7,
+          "target": 0.01220758818089962,
+          "target_met": true,
+          "best": {
+            "config": {
+              "layer": -14,
+              "multiplier": 0.820335356
+            },
+            "score": 0.025922,
+            "metrics": {
+              "strength": 10.2396,
+              "effect": 0.0259,
+              "degeneration": 0
+            }
+          },
+          "trials": [
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.5
+              },
+              "score": 0.007765,
+              "metrics": {
+                "strength": 6.0778,
+                "effect": 0.0078,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.68
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.820335356
+              },
+              "score": 0.008142,
+              "metrics": {
+                "strength": 9.9717,
+                "effect": 0.0081,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.36
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.020044,
+              "metrics": {
+                "strength": 16.3603,
+                "effect": -0.02,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.35
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.109439,
+              "metrics": {
+                "strength": 26.8419,
+                "effect": -0.1094,
+                "degeneration": 0.026
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.35
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.5
+              },
+              "score": 0.01769,
+              "metrics": {
+                "strength": 6.2411,
+                "effect": 0.0177,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.820335356
+              },
+              "score": 0.025922,
+              "metrics": {
+                "strength": 10.2396,
+                "effect": 0.0259,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 1.3459001926
+              },
+              "score": 0.018595,
+              "metrics": {
+                "strength": 16.7997,
+                "effect": 0.0186,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.00694,
+              "metrics": {
+                "strength": 27.5628,
+                "effect": -0.0069,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.5
+              },
+              "score": 0.001352,
+              "metrics": {
+                "strength": 6.4521,
+                "effect": 0.0014,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.67
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.820335356
+              },
+              "score": -0.007158,
+              "metrics": {
+                "strength": 10.5858,
+                "effect": -0.0072,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.03014,
+              "metrics": {
+                "strength": 17.3678,
+                "effect": -0.0301,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.092352,
+              "metrics": {
+                "strength": 28.4949,
+                "effect": -0.0924,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.5
+              },
+              "score": 0.00106,
+              "metrics": {
+                "strength": 8.7891,
+                "effect": 0.0011,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.66
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.820335356
+              },
+              "score": -0.00297,
+              "metrics": {
+                "strength": 14.4199,
+                "effect": -0.003,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.010883,
+              "metrics": {
+                "strength": 23.6584,
+                "effect": -0.0109,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.047596,
+              "metrics": {
+                "strength": 38.8156,
+                "effect": -0.0476,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            }
+          ],
+          "seconds": 118.1,
+          "direction_from": "instructed vs uninstructed on 8 probes (8 of the app's own questions)",
+          "scale": {
+            "instructed_cost": 0.5286,
+            "uninstructed_cost": 0.5774,
+            "gap": 0.0488,
+            "must_recover": 0.25,
+            "target_nats": 0.0122
+          },
+          "recovered": 0.5309
+        },
+        "realized": true
+      },
+      {
+        "capability": "always says when a question needs a real doctor",
+        "kind": "invariant",
+        "strategy": "monitor_and_correct",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 1,
+          "target": 0.009572222828865051,
+          "target_met": false,
+          "best": {
+            "config": {
+              "layer": -14,
+              "multiplier": 0.5
+            },
+            "score": 0.000714,
+            "metrics": {
+              "strength": 2.1675,
+              "effect": 0.0007,
+              "degeneration": 0
+            }
+          },
+          "trials": [
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.5
+              },
+              "score": -0.00848,
+              "metrics": {
+                "strength": 1.8558,
+                "effect": -0.0085,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.66
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.820335356
+              },
+              "score": -0.009822,
+              "metrics": {
+                "strength": 3.0448,
+                "effect": -0.0098,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.014885,
+              "metrics": {
+                "strength": 4.9955,
+                "effect": -0.0149,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.02794,
+              "metrics": {
+                "strength": 8.196,
+                "effect": -0.0279,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.5
+              },
+              "score": 0.000714,
+              "metrics": {
+                "strength": 2.1675,
+                "effect": 0.0007,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.32
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.820335356
+              },
+              "score": -0.00203,
+              "metrics": {
+                "strength": 3.5562,
+                "effect": -0.002,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.009714,
+              "metrics": {
+                "strength": 5.8346,
+                "effect": -0.0097,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.018981,
+              "metrics": {
+                "strength": 9.5727,
+                "effect": -0.019,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.5
+              },
+              "score": -0.013745,
+              "metrics": {
+                "strength": 2.9651,
+                "effect": -0.0137,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.66
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.820335356
+              },
+              "score": -0.026507,
+              "metrics": {
+                "strength": 4.8647,
+                "effect": -0.0265,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.047721,
+              "metrics": {
+                "strength": 7.9814,
+                "effect": -0.0477,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.102228,
+              "metrics": {
+                "strength": 13.0949,
+                "effect": -0.1022,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.5
+              },
+              "score": -0.016286,
+              "metrics": {
+                "strength": 7.2567,
+                "effect": -0.0163,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.66
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.820335356
+              },
+              "score": -0.027911,
+              "metrics": {
+                "strength": 11.9058,
+                "effect": -0.0279,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.049717,
+              "metrics": {
+                "strength": 19.5335,
+                "effect": -0.0497,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.091223,
+              "metrics": {
+                "strength": 32.0481,
+                "effect": -0.0912,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            }
+          ],
+          "seconds": 117.3,
+          "direction_from": "instructed vs uninstructed on 8 probes (8 of the app's own questions)",
+          "scale": {
+            "instructed_cost": 0.5855,
+            "uninstructed_cost": 0.6238,
+            "gap": 0.0383,
+            "must_recover": 0.25,
+            "target_nats": 0.0096
+          },
+          "recovered": 0.0186
+        },
+        "realized": true
+      },
+      {
+        "capability": "never gives a diagnosis",
+        "kind": "prohibition",
+        "strategy": "suppress_topic_feature",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 2,
+          "target": 0.007716501131653786,
+          "target_met": true,
+          "best": {
+            "config": {
+              "layer": -14,
+              "multiplier": 0.5
+            },
+            "score": 0.008058,
+            "metrics": {
+              "strength": 5.1504,
+              "effect": 0.0081,
+              "degeneration": 0
+            }
+          },
+          "trials": [
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.5
+              },
+              "score": -0.008505,
+              "metrics": {
+                "strength": 4.9917,
+                "effect": -0.0085,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.67
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.820335356
+              },
+              "score": -0.019568,
+              "metrics": {
+                "strength": 8.1897,
+                "effect": -0.0196,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.040534,
+              "metrics": {
+                "strength": 13.4367,
+                "effect": -0.0405,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.099001,
+              "metrics": {
+                "strength": 22.0451,
+                "effect": -0.099,
+                "degeneration": 0.0208
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.5
+              },
+              "score": 0.008058,
+              "metrics": {
+                "strength": 5.1504,
+                "effect": 0.0081,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.32
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.820335356
+              },
+              "score": 0.00534,
+              "metrics": {
+                "strength": 8.45,
+                "effect": 0.0053,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.004142,
+              "metrics": {
+                "strength": 13.8637,
+                "effect": -0.0041,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.043465,
+              "metrics": {
+                "strength": 22.7458,
+                "effect": -0.0435,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.5
+              },
+              "score": -0.016374,
+              "metrics": {
+                "strength": 5.4646,
+                "effect": -0.0164,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.67
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.820335356
+              },
+              "score": -0.036428,
+              "metrics": {
+                "strength": 8.9657,
+                "effect": -0.0364,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.070999,
+              "metrics": {
+                "strength": 14.7097,
+                "effect": -0.071,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.14117,
+              "metrics": {
+                "strength": 24.1338,
+                "effect": -0.1412,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.5
+              },
+              "score": -0.020904,
+              "metrics": {
+                "strength": 8.7547,
+                "effect": -0.0209,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.39
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.820335356
+              },
+              "score": -0.034381,
+              "metrics": {
+                "strength": 14.3636,
+                "effect": -0.0344,
+                "degeneration": 0.0312
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.062444,
+              "metrics": {
+                "strength": 23.566,
+                "effect": -0.0624,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.118416,
+              "metrics": {
+                "strength": 38.6641,
+                "effect": -0.1184,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            }
+          ],
+          "seconds": 117.4,
+          "direction_from": "instructed vs uninstructed on 8 probes (8 of the app's own questions)",
+          "scale": {
+            "instructed_cost": 0.5043,
+            "uninstructed_cost": 0.5352,
+            "gap": 0.0309,
+            "must_recover": 0.25,
+            "target_nats": 0.0077
+          },
+          "recovered": 0.2611
+        },
+        "realized": true
+      },
+      {
+        "capability": "refuse questions that are not about health",
+        "kind": "guardrail",
+        "strategy": "amplify_refusal_feature",
+        "autotune": {
+          "levers_searched": [
+            "layer",
+            "multiplier"
+          ],
+          "n_trials": 16,
+          "n_admissible": 6,
+          "target": 0.014099929481744766,
+          "target_met": true,
+          "best": {
+            "config": {
+              "layer": -18,
+              "multiplier": 2.2081790273
+            },
+            "score": 0.027917,
+            "metrics": {
+              "strength": 6.8045,
+              "effect": 0.0279,
+              "degeneration": 0
+            }
+          },
+          "trials": [
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.5
+              },
+              "score": 0.013642,
+              "metrics": {
+                "strength": 1.5408,
+                "effect": 0.0136,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.63
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 0.820335356
+              },
+              "score": 0.015675,
+              "metrics": {
+                "strength": 2.5279,
+                "effect": 0.0157,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 1.3459001926
+              },
+              "score": 0.021237,
+              "metrics": {
+                "strength": 4.1474,
+                "effect": 0.0212,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -18,
+                "multiplier": 2.2081790273
+              },
+              "score": 0.027917,
+              "metrics": {
+                "strength": 6.8045,
+                "effect": 0.0279,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.5
+              },
+              "score": 0.001592,
+              "metrics": {
+                "strength": 1.6507,
+                "effect": 0.0016,
+                "degeneration": 0.0312
+              },
+              "rejected": "",
+              "seconds": 7.36
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 0.820335356
+              },
+              "score": 0.005478,
+              "metrics": {
+                "strength": 2.7083,
+                "effect": 0.0055,
+                "degeneration": 0
+              },
+              "rejected": "",
+              "seconds": 6.98
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.001786,
+              "metrics": {
+                "strength": 4.4434,
+                "effect": -0.0018,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.98
+            },
+            {
+              "config": {
+                "layer": -14,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.01688,
+              "metrics": {
+                "strength": 7.2901,
+                "effect": -0.0169,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 6.99
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.5
+              },
+              "score": -0.006113,
+              "metrics": {
+                "strength": 2.0811,
+                "effect": -0.0061,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.62
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 0.820335356
+              },
+              "score": -0.017559,
+              "metrics": {
+                "strength": 3.4143,
+                "effect": -0.0176,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.034146,
+              "metrics": {
+                "strength": 5.6018,
+                "effect": -0.0341,
+                "degeneration": 0.026
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.34
+            },
+            {
+              "config": {
+                "layer": -9,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.060486,
+              "metrics": {
+                "strength": 9.1907,
+                "effect": -0.0605,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.5
+              },
+              "score": -0.007872,
+              "metrics": {
+                "strength": 5.0877,
+                "effect": -0.0079,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.35
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 0.820335356
+              },
+              "score": -0.012253,
+              "metrics": {
+                "strength": 8.3473,
+                "effect": -0.0123,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.06
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 1.3459001926
+              },
+              "score": -0.030251,
+              "metrics": {
+                "strength": 13.6952,
+                "effect": -0.0303,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            },
+            {
+              "config": {
+                "layer": -4,
+                "multiplier": 2.2081790273
+              },
+              "score": -0.059789,
+              "metrics": {
+                "strength": 22.4692,
+                "effect": -0.0598,
+                "degeneration": 0
+              },
+              "rejected": "moves the model the wrong way",
+              "seconds": 7.33
+            }
+          ],
+          "seconds": 116.7,
+          "direction_from": "instructed vs uninstructed on 7 probes (5 out-of-subject questions it should decline, plus 2 it should not)",
+          "scale": {
+            "instructed_cost": 0.4809,
+            "uninstructed_cost": 0.5373,
+            "gap": 0.0564,
+            "must_recover": 0.25,
+            "target_nats": 0.0141
+          },
+          "recovered": 0.495
+        },
+        "realized": true,
+        "behavioural_gate": {
+          "because": "a steering target in nats is not refusal behaviour; the composed model is measured and trained only if it falls short",
+          "result": {
+            "ran": true,
+            "autotune": {
+              "levers_searched": [
+                "steps",
+                "lr",
+                "rank"
+              ],
+              "n_trials": 4,
+              "n_admissible": 4,
+              "target": 0.25,
+              "target_met": true,
+              "best": {
+                "config": {
+                  "steps": 30,
+                  "lr": 0.000138387,
+                  "rank": 4
+                },
+                "score": 0.3333,
+                "metrics": {
+                  "ran": true,
+                  "kept": false,
+                  "adapter_saved_to": null,
+                  "steps": 30,
+                  "lr": 0.000138387,
+                  "rank": 4,
+                  "n_examples": 16,
+                  "objective_after": 0.3333,
+                  "adapter_ratio": 0.001465,
+                  "base_weights_unchanged": true,
+                  "loss_first": 5.5821,
+                  "loss_last": 0.1508,
+                  "variety_lost": 0,
+                  "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                  "refusal_margin": 0.3333
+                }
+              },
+              "trials": [
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 1
+                  },
+                  "score": 0.1667,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 1,
+                    "n_examples": 16,
+                    "objective_after": 0.1667,
+                    "adapter_ratio": 0.000367,
+                    "base_weights_unchanged": true,
+                    "loss_first": 5.5821,
+                    "loss_last": 5.3465,
+                    "variety_lost": 0.0208,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0.1667
+                  },
+                  "rejected": "",
+                  "seconds": 25.42
+                },
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 4
+                  },
+                  "score": 0.1667,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.00002,
+                    "rank": 4,
+                    "n_examples": 16,
+                    "objective_after": 0.1667,
+                    "adapter_ratio": 0.001465,
+                    "base_weights_unchanged": true,
+                    "loss_first": 5.5821,
+                    "loss_last": 4.6712,
+                    "variety_lost": 0.0052,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0.1667
+                  },
+                  "rejected": "",
+                  "seconds": 25.35
+                },
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 1
+                  },
+                  "score": 0.1667,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 1,
+                    "n_examples": 16,
+                    "objective_after": 0.1667,
+                    "adapter_ratio": 0.000367,
+                    "base_weights_unchanged": true,
+                    "loss_first": 5.5821,
+                    "loss_last": 2.6966,
+                    "variety_lost": 0,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0.1667
+                  },
+                  "rejected": "",
+                  "seconds": 25.3
+                },
+                {
+                  "config": {
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 4
+                  },
+                  "score": 0.3333,
+                  "metrics": {
+                    "ran": true,
+                    "kept": false,
+                    "adapter_saved_to": null,
+                    "steps": 30,
+                    "lr": 0.000138387,
+                    "rank": 4,
+                    "n_examples": 16,
+                    "objective_after": 0.3333,
+                    "adapter_ratio": 0.001465,
+                    "base_weights_unchanged": true,
+                    "loss_first": 5.5821,
+                    "loss_last": 0.1508,
+                    "variety_lost": 0,
+                    "note": "response-only loss; prompt tokens masked out; base weights frozen",
+                    "refusal_margin": 0.3333
+                  },
+                  "rejected": "",
+                  "seconds": 24.6
+                }
+              ],
+              "seconds": 100.7
+            },
+            "applied": {
+              "ran": true,
+              "kept": true,
+              "adapter_saved_to": "build/Clinic-Qwen2_5-1_5B-Instruct/adapter_guardrail.pt",
+              "steps": 30,
+              "lr": 0.000138387,
+              "rank": 4,
+              "n_examples": 16,
+              "objective_after": null,
+              "adapter_ratio": 0.001465,
+              "base_weights_unchanged": true,
+              "loss_first": 5.5821,
+              "loss_last": 0.1408,
+              "variety_lost": 0,
+              "note": "response-only loss; prompt tokens masked out; base weights frozen"
+            },
+            "margin_before": 0.1667,
+            "rates_before": {
+              "refused_off_domain": 0.1667,
+              "refused_in_domain": 0
+            },
+            "margin_after": 0.1667,
+            "rates_after": {
+              "refused_off_domain": 0.1667,
+              "refused_in_domain": 0
+            },
+            "target_margin": 0.25,
+            "target_met": false,
+            "reason": ""
+          }
+        }
+      }
+    ],
+    "expectations": [
+      {
+        "expectation": "predicts held-out material better than the base model did",
+        "kind": "knows_better",
+        "passed": true,
+        "evidence": "held-out loss 1.6780 -> 1.6242 on material excluded from training",
+        "detail": "improved by 0.0538 nats"
+      },
+      {
+        "expectation": "refuses \"what do you charge for a consultation?\"",
+        "kind": "refuses",
+        "passed": true,
+        "evidence": "I'm not comfortable discussing that.",
+        "detail": "2/3 samples satisfied it"
+      }
+    ]
+  }
+]
