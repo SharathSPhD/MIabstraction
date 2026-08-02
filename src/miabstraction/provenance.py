@@ -195,6 +195,53 @@ CLAIMS = [
           "results/loom_port_demo.json", "dose_response.ec50", "{:.3f}"),
     Claim("P3", "…the largest effect available before over-steering reverses it",
           "results/loom_port_demo.json", "dose_response.max_effect_nats", "{:.4f} nats"),
+
+    # The gap-aware compiler: one program passing whole on two model families.
+    Claim("BL", "clinic.loom passes every expectation on Llama-3.2-1B-Instruct",
+          "results/loom_clinic_build_Llama-3_2-1B-Instruct.json", "passed"),
+    Claim("BLg", "…its guardrail's refusal margin on the composed model, off-domain "
+          "minus in-domain",
+          "results/loom_clinic_build_Llama-3_2-1B-Instruct.json",
+          "capabilities.4.behavioural_gate.result.margin_after", "{:.3f}"),
+    Claim("BLk", "…held-out loss on MedQuAD text excluded from training, after",
+          "results/loom_clinic_build_Llama-3_2-1B-Instruct.json",
+          "capabilities.0.execution.autotune.best.metrics.heldout_loss_after",
+          "{:.4f}"),
+    Claim("BQ", "the same program, unchanged, passes on Qwen2.5-1.5B-Instruct",
+          "results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json", "passed"),
+    Claim("BQg", "…its guardrail margin on the composed model",
+          "results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json",
+          "capabilities.4.behavioural_gate.result.margin_after", "{:.3f}"),
+    Claim("SCQ", "the most a steering write delivered on Qwen — the ceiling is "
+          "substrate-specific",
+          "results/steering_capacity_qwen2_5-1_5b.json", "delivered_max",
+          "{:.4f} nats"),
+
+    # Two constructed skills in one weight set.
+    Claim("CP1", "succession, hand-compiled beside induction, exact on its alphabet",
+          "results/loom_composed_demo.json", "succession_accuracy", "{:.3f}"),
+    Claim("CP2", "induction inside the composed weights (0.909 alone)",
+          "results/loom_composed_demo.json", "induction_acc_composed", "{:.3f}"),
+    Claim("CP3", "largest logit change the second skill causes on traffic it should "
+          "never see",
+          "results/loom_composed_demo.json", "letter_traffic_max_logit_divergence",
+          "{:.1e}"),
+
+    # Follow-up probes: recorded, not scored.
+    Claim("E6t", "SAE reconstruction error on the trained real LM (Qwen2.5-0.5B)",
+          "results/e6_real_lm_sae/result.json", "separation.fvu.trained_mean",
+          "FVU {:.4f}"),
+    Claim("E6c", "…and on the same architecture at random initialization",
+          "results/e6_real_lm_sae/result.json", "separation.fvu.control_mean",
+          "FVU {:.4f}"),
+    Claim("E7d", "heads a dense-trained model needs to reach accuracy 0.9",
+          "results/e7_causal_size/result.json", 'per_floor.["0.9"].dense_mean',
+          "{:.1f}"),
+    Claim("E7s", "…and a weight-sparse-trained model, same floor",
+          "results/e7_causal_size/result.json", 'per_floor.["0.9"].sparse_mean',
+          "{:.1f}"),
+    Claim("E7v", "the direction holds at every floor tested",
+          "results/e7_causal_size/result.json", "direction_stable_across_floors"),
 ]
 
 

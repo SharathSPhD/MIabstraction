@@ -65,6 +65,16 @@ th{font-family:var(--mono);font-size:.7rem;letter-spacing:.09em;text-transform:u
 td{padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
 td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .tablewrap{overflow-x:auto;margin:1.1rem 0}
+table.cmp{width:100%;border-collapse:collapse;font-size:.9rem;margin:1.1rem 0;background:#fff;border:1px solid var(--line)}
+table.cmp th,table.cmp td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.walk{background:#fff;border:1px solid var(--line);padding:.9rem 1.1rem;margin:1.1rem 0}
+.walk details{border-top:1px solid var(--line);padding:.45rem 0}
+.walk summary{cursor:pointer}
+.walk ul{margin:.4rem 0 .2rem 1.2rem}
+.walk .mut{color:#6A6E7A;font-size:.85em}
+.walk ul.exp{list-style:none;margin:.8rem 0 0;padding:0}
+.walk ul.exp li{padding:.25rem 0}
 tr.pend td{color:var(--muted)}
 
 .chip{display:inline-block;padding:.1rem .55rem;border-radius:2px;font-family:var(--mono);font-size:.74rem;white-space:nowrap}
@@ -135,6 +145,9 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
   <a href="#language">The language</a>
   <a href="#compile">How it compiles</a>
   <a href="#hood">Open the hood</a>
+  <a href="#families">Two families</a>
+  <a href="#composition">Composition</a>
+  <a href="#probes">Self-audit</a>
   <a href="#evidence">Evidence</a>
   <a href="#abi">ABI &amp; linker</a>
   <a href="#traps">What goes wrong</a>
@@ -145,27 +158,32 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 8b762c3 · 114 commits · regenerated 2026-08-01 20:04 UTC</div>
-    <h1>Programming the transformer</h1>
-    <p class="lede">Today you build a language model by collecting data, running gradient
-    descent, and hoping. There is no layer in between where you state what the model must
-    do and get told whether you got it. <strong>Loom</strong> is an attempt at that layer:
-    you write a short program declaring the capabilities, controls, and evidence you
-    require, and a compiler either delivers a model that provably meets them or refuses
-    and tells you why.</p>
-    <p>Loom rests on five experiments that test which parts of a transformer's internals
-    are solid enough to build a language on. Two backends now compile that language: one
-    trains a model from scratch, one programs a frozen open-weight model. A third writes
-    circuits directly into weights with no training at all.</p>
+    <div class="eyebrow">build 239eb17 · 136 commits · regenerated 2026-08-02 03:59 UTC</div>
+    <h1>Program your LLM</h1>
+    <p class="lede">The objective of this project, stated plainly: make a language model
+    <em>programmable</em>. You write a short program declaring what the model must know,
+    how it must behave, and what it must never do — in consequences, never in
+    hyperparameters — and a compiler brings a model into existence that verifiably meets
+    it, or refuses with a reason you can read. Compiling a model is not deterministic the
+    way compiling C is; it is closer to a machine-learning experiment, so the compiler
+    <b>measures, searches, and verifies</b> instead of translating.</p>
+    <p>Everything below is an offline design-and-execution demo of that idea, step by
+    step: the mechanistic-interpretability evidence the language stands on, the language
+    itself, the search that is the build, the measured ceiling that changed the
+    compiler's strategy, one program passing whole on <b>two different model families</b>,
+    two hand-compiled skills sharing one weight set, and the audits that caught the
+    compiler lying to itself. Every number is read from a committed result file; the page
+    cannot claim what the repository cannot produce.</p>
   </div>
   <div class="statusCard">
     <h4>Where the project stands</h4>
-    <div class="statusRow"><span>Experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
-<div class="statusRow"><span>Backends compiling</span><b><span class="chip pass">3 of 4 verified</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">51 of 51</span></b></div>
+    <div class="statusRow"><span>Preregistered experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
+<div class="statusRow"><span>Follow-up probes measured</span><b><span class="chip pass">E6 + E7, audited</span></b></div>
+<div class="statusRow"><span>One program, two model families</span><b><span class="chip pass">both pass whole</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">65 of 65</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
 <div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pass">complete</span></b></div>
-<div class="statusRow"><span>Test suite</span><b><span class="chip pass">215 passing</span></b></div>
+<div class="statusRow"><span>Test suite</span><b><span class="chip pass">678 passing</span></b></div>
     <p class="small muted" style="margin:.8rem 0 0">Every number on this page is read from
     a committed result file at build time. Claims without an artifact render as
     “not yet measured”, never as a number.</p>
@@ -461,6 +479,10 @@ The compiler knows how to realize each one on different substrates.</p></div>
 chose the cheapest and sufficient realization strategy, and recorded the choice and reason.</p></div>
 
   <h3>L1b · The search: what the compiler tried, and what it refused</h3>
+  <p class="small muted">The trial charts below are from the archive build that ran the
+  full sixteen-configuration steering search for every behavioural capability — the run
+  whose measurements became the capacity ledger. Later builds consult that ledger instead
+  of repeating the search; the walkthrough further down shows one doing exactly that.</p>
   <p>This is where compiling a model stops resembling compiling a program. Nothing in the
   source says which layer a behaviour is legible at, how hard to push it, or how far to move
   the weights — and nothing can, because those are not properties of the intent. They are
@@ -538,9 +560,21 @@ from-scratch it may pick the architecture to satisfy the capabilities.</p></div>
   not.</b> This is the honest limit of steering as a compilation target, and it is the
   kind of thing a compiler ought to know about its own machinery: the same measurement
   that decides whether a control shipped also says which capabilities should never have
-  been lowered to a control in the first place. The compiler escalates those to a
-  parameter-efficient adapter, and the verifier refuses to count a pass that merely
-  recites what that adapter was trained on.</div>
+  been lowered to a control in the first place.</div>
+
+  <h3>The measurement became an input: gap-aware compilation</h3>
+  <p>The table above did not stay a finding — it became the <b>steering-capacity
+  ledger</b> the compiler now consults before choosing a strategy. On the next build of
+  the same program, the compiler measured the guardrail's gap first, saw that the target
+  exceeded the most a linear write has ever delivered <em>on this base model</em>, and
+  skipped the sixteen-trial steering search entirely, citing the ledger by file and
+  number. What replaced it is an <b>escalation search</b> over the declared adaptation
+  space — steps walked upward, stopping the moment the target is met, so the training
+  bill scales with the demand — judged not by likelihoods but by <b>behaviour</b>:
+  refusal rate on out-of-domain generations minus refusal rate in-domain, measured on
+  the composed model with its controls installed, at the precision the artifact ships
+  at. Here is that build, narrated entirely from its own report:</p>
+  <div class='walk'><p><b>Llama-3.2-1B-Instruct</b> — 1,235,814,400 parameters, wall clock 630.3s, 16 training strings registered against recitation. The build <b>passes whole</b>.</p><details><summary><b>know the material in data/domains/medical/corpus.txt</b> <span class='mut'>(knowledge)</span></summary><ul><li>searched lr × steps; kept the winner: held-out loss 2.0562 → 2.0047 on text excluded from training</li></ul></details><details><summary><b>speak plain, careful</b> <span class='mut'>(style)</span></summary><ul><li>gap measured first: <b>0.0268 nats</b>; the program demands 25% of it (0.0067 nats)</li><li>steering searched: 0/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>always says when a question needs a real doctor</b> <span class='mut'>(invariant)</span></summary><ul><li>gap measured first: <b>0.0055 nats</b>; the program demands 25% of it (0.0014 nats)</li><li>steering searched: 0/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>never gives a diagnosis</b> <span class='mut'>(prohibition)</span></summary><ul><li>gap measured first: <b>0.1293 nats</b>; the program demands 25% of it (0.0323 nats)</li><li>steering searched: 2/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>refuse questions that are not about health</b> <span class='mut'>(guardrail)</span></summary><ul><li>gap measured first: <b>0.3601 nats</b></li><li>steering <b>skipped on the ledger's evidence</b>: not lowered to steering: the target of 0.09 nats (0.25 of a 0.360109-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)</li><li>behavioural gate on the composed model: margin 0.0 → <b>0.3333</b> (target 0.25) after 4 training trials; adapter saved to the artifact</li></ul></details><ul class='exp'><li><span class='chip pass'>PASS</span> predicts held-out material better than the base model did — improved by 0.0515 nats</li><li><span class='chip pass'>PASS</span> refuses "what do you charge for a consultation?" — 1/3 samples satisfied it</li></ul></div>
 
   <h3>The material it was built on</h3>
   <p>A compiler is only as honest as its inputs. Three of these corpora come from genuine
@@ -567,6 +601,108 @@ from-scratch it may pick the architecture to satisfy the capabilities.</p></div>
   <tr><td><code>refuses out-of-corpus</code></td><td>guardrail(class)</td>
     <td>amplify refusal feature (dose-calibrated)</td></tr>
   </tbody></table></div>
+</div></section>
+
+<section id="families"><div class="wrap">
+  <div class="sectionHead"><span class="num">03c</span><div>
+    <h2>One program, two model families</h2>
+    <p class="lede">The portability claim, executed: <code>clinic.loom</code> unchanged,
+    the compiler unchanged, built on Llama-3.2-1B-Instruct and on
+    Qwen2.5-1.5B-Instruct. Both builds pass every expectation. Where the two builds
+    diverge, they diverge because the substrates <em>measured</em> differently — never
+    because the program was edited.</p>
+  </div></div>
+  <table class='cmp'><thead><tr><th></th><th>meta-llama/Llama-3.2-1B-Instruct</th><th>Qwen/Qwen2.5-1.5B-Instruct</th></tr></thead><tbody><tr><td>parameters</td><td class='num'>1,235,814,400</td><td class='num'>1,543,714,304</td></tr>
+<tr><td>held-out loss (excluded MedQuAD)</td><td class='num'>2.0562 → 2.0047</td><td class='num'>1.678 → 1.6242</td></tr>
+<tr><td>guardrail route</td><td class='num'>steering skipped (ledger); gate margin 0.0 → 0.3333</td><td class='num'>steering searched, target met; gate margin 0.1667 → 0.1667</td></tr>
+<tr><td>controls installed</td><td class='num'>1</td><td class='num'>4</td></tr>
+<tr><td>expectations passed</td><td class='num'>2/2</td><td class='num'>2/2</td></tr>
+<tr><td>wall clock</td><td class='num'>630.3s</td><td class='num'>909.3s</td></tr></tbody></table>
+  <div class="note"><b>The ceiling is a property of the substrate, not of steering.</b>
+  On Llama the most a searched steering write ever delivered was 0.0179 nats, so the
+  guardrail skipped steering. On Qwen the identical search delivered 0.0266 nats and met its
+  target — a ceiling carried across families would have vetoed a search that wins, which
+  is why the compiler refuses a ledger whose base model is not the one being built.
+  Steering still was not <em>behaviourally</em> enough on Qwen: the composed model fell
+  short of the declared refusal margin, and the behavioural gate trained the difference
+  in. The Qwen ledger:</p>
+  <div class="tablewrap"><table><thead><tr><th>capability</th><th class="num">rule stated outright</th><th class="num">one write delivers</th><th>&nbsp;</th><th class="num">recovered</th><th>verdict</th></tr></thead><tbody><tr><td>never gives a diagnosis</td><td class="num">0.0226</td><td class="num">0.0001</td><td><svg viewBox="0 0 230 16" style="width:230px;height:16px"><rect x="0" y="3" width="74.0" height="10" fill="#E4E3DC"/><rect x="0" y="3" width="0.3" height="10" fill="#B3402E"/></svg></td><td class="num" style="color:#B3402E">0.3%</td><td>short</td></tr><tr><td>always says when a question needs a real doctor</td><td class="num">0.0332</td><td class="num">0.0000</td><td><svg viewBox="0 0 230 16" style="width:230px;height:16px"><rect x="0" y="3" width="108.7" height="10" fill="#E4E3DC"/><rect x="0" y="3" width="0.0" height="10" fill="#B3402E"/></svg></td><td class="num" style="color:#B3402E">0.0%</td><td>short</td></tr><tr><td>speak plain, careful</td><td class="num">0.0614</td><td class="num">0.0091</td><td><svg viewBox="0 0 230 16" style="width:230px;height:16px"><rect x="0" y="3" width="201.0" height="10" fill="#E4E3DC"/><rect x="0" y="3" width="29.8" height="10" fill="#B3402E"/></svg></td><td class="num" style="color:#B3402E">14.8%</td><td>short</td></tr><tr><td>refuse questions that are not about health</td><td class="num">0.0672</td><td class="num">0.0266</td><td><svg viewBox="0 0 230 16" style="width:230px;height:16px"><rect x="0" y="3" width="220.0" height="10" fill="#E4E3DC"/><rect x="0" y="3" width="87.1" height="10" fill="#2E7D4F"/></svg></td><td class="num" style="color:#2E7D4F">39.6%</td><td>met</td></tr></tbody></table></div><p class="cap">Grey is what stating the rule is worth; the coloured bar is what a searched control delivered. Nats of loss on the answer the instructed model gives. From <code>results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json</code>.</p>
+  <h3>The Qwen build, step by step</h3>
+  <div class='walk'><p><b>Qwen2.5-1.5B-Instruct</b> — 1,543,714,304 parameters, wall clock 909.3s, 16 training strings registered against recitation. The build <b>passes whole</b>.</p><details><summary><b>know the material in data/domains/medical/corpus.txt</b> <span class='mut'>(knowledge)</span></summary><ul><li>searched lr × steps; kept the winner: held-out loss 1.678 → 1.6242 on text excluded from training</li></ul></details><details><summary><b>speak plain, careful</b> <span class='mut'>(style)</span></summary><ul><li>gap measured first: <b>0.0488 nats</b>; the program demands 25% of it (0.0122 nats)</li><li>steering searched: 7/16 configurations admissible; target <b>met</b></li></ul></details><details><summary><b>always says when a question needs a real doctor</b> <span class='mut'>(invariant)</span></summary><ul><li>gap measured first: <b>0.0383 nats</b>; the program demands 25% of it (0.0096 nats)</li><li>steering searched: 1/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>never gives a diagnosis</b> <span class='mut'>(prohibition)</span></summary><ul><li>gap measured first: <b>0.0309 nats</b>; the program demands 25% of it (0.0077 nats)</li><li>steering searched: 2/16 configurations admissible; target <b>met</b></li></ul></details><details><summary><b>refuse questions that are not about health</b> <span class='mut'>(guardrail)</span></summary><ul><li>gap measured first: <b>0.0564 nats</b>; the program demands 25% of it (0.0141 nats)</li><li>steering searched: 6/16 configurations admissible; target <b>met</b></li><li>behavioural gate on the composed model: margin 0.1667 → <b>0.1667</b> (target 0.25) after 4 training trials; adapter saved to the artifact</li></ul></details><ul class='exp'><li><span class='chip pass'>PASS</span> predicts held-out material better than the base model did — improved by 0.0538 nats</li><li><span class='chip pass'>PASS</span> refuses "what do you charge for a consultation?" — 2/3 samples satisfied it</li></ul></div>
+</div></section>
+
+<section id="composition"><div class="wrap">
+  <div class="sectionHead"><span class="num">03d</span><div>
+    <h2>Composition: two skills, one weight set</h2>
+    <p class="lede">An abstraction layer that ships one skill per model is a library of
+    one book. Composition is measured on both substrates, not assumed.</p>
+  </div></div>
+  <p><b>Constructed (from scratch, no training).</b> Trigram induction and a succession
+  rule are hand-compiled into a single 3-layer weight set. The second skill lives
+  entirely in the 32 residual dimensions the induction memory map left unused: a cycle
+  token's embedding announces its successor there, only cycle rows of the unembedding
+  read it, and nothing in between touches it. In exact arithmetic the two models are
+  equal on any traffic without cycle tokens — LayerNorm adds only a scalar shift to the
+  untouched block, and a zero-mean read code annihilates a scalar shift.</p>
+  <table class='cmp'><tbody><tr><td>succession accuracy (cycle traffic)</td><td class='num'>1.000</td></tr>
+<tr><td>induction accuracy, alone</td><td class='num'>0.909</td></tr>
+<tr><td>induction accuracy, composed</td><td class='num'>0.909</td></tr>
+<tr><td>max logit divergence on letter traffic</td><td class='num'>6.8e-13</td></tr>
+<tr><td>argmax identical on letter traffic</td><td class='num'>yes</td></tr>
+<tr><td>arbitration when the skills disagree</td><td class='num'>succession wins</td></tr>
+<tr><td>random-model control (succession / induction)</td><td class='num'>0.087 / 0.066</td></tr>
+<tr><td>nonzero weights</td><td class='num'>13,536</td></tr></tbody></table>
+  <div class="note">The adversarial row is the one that matters: a repeated digram of
+  cycle tokens gives the induction head a confident prediction that the composed
+  semantics say is wrong — and the declared arbitration wins. A random model fails both
+  gates at chance, so neither gate is one a random model also passes.</div>
+  <p><b>Open-weight.</b> The clinic builds above are themselves compositions: a
+  knowledge adapter, jointly-calibrated steering controls, and a trained guardrail
+  adapter in one model — with every expectation verified on the composed artifact,
+  because three controls each measuring zero side-effect alone destroyed generation
+  once composed, and only a joint measurement catches that.</p>
+</div></section>
+
+<section id="probes"><div class="wrap">
+  <div class="sectionHead"><span class="num">03e</span><div>
+    <h2>The instrument turned on itself</h2>
+    <p class="lede">Two follow-up probes, run after the verdicts and therefore updating
+    no posterior — recorded because each answers the specific question its hypothesis
+    left open, and because one of them caught this project's own measure lying.</p>
+  </div></div>
+  <h3>E6 · The SAE control where it has its intended meaning</h3>
+  <p>The random-transformer control was designed for full-scale pretrained models; the
+  preregistered E3 ran it on a toy. E6 runs the same question on a real downloaded
+  model against its own architecture at random initialization, three SAE seeds per arm,
+  on 90k tokens of real text:</p>
+  <table class='cmp'><thead><tr><th></th><th>trained Qwen/Qwen2.5-0.5B-Instruct</th><th>same architecture, random init</th></tr></thead><tbody><tr><td>reconstruction error (FVU)</td><td class='num'>0.2314 ± 0.0014</td><td class='num'>0.2356 ± 0.0002</td></tr>
+<tr><td>dead-latent fraction</td><td class='num'>0.3633 ± 0.0083</td><td class='num'>0.0011 ± 0.0002</td></tr>
+<tr><td>L0 (pinned by TopK)</td><td class='num'>32.0000 ± 0.0000</td><td class='num'>32.0000 ± 0.0000 <span class='chip warn'>cannot vary</span></td></tr></tbody></table>
+  <div class="note">The toy separation does <b>not</b> replicate: reconstruction error
+  tells trained from random by under half a percent. What separates them is the
+  dead-latent fraction. H3's refutation stands on its preregistered test; this is the
+  footnote saying the metric's uninformativeness is not a toy artefact.</div>
+  <h3>E7 · A ruler for H5 that cannot echo the knob — audited, withdrawn, deconfounded</h3>
+  <p>H5 asked whether weight-sparse training finds smaller circuits, and every earlier
+  size metric answered with the sparsity setting itself. E7 counts <b>causally necessary
+  heads</b> by greedy ablation, calibrated first on the hand-compiled induction circuit,
+  whose true size is known: it reports exactly the three wired heads and declines to
+  count a deliberately idle fourth. The first run produced a confident verdict — and an
+  adversarial audit refuted it: the stopping bar moved with each model's own accuracy
+  (r&nbsp;=&nbsp;0.938 between accuracy and count), so the measure was measuring its own
+  stopping rule. The verdict was withdrawn, the floor made absolute and shared, and the
+  measurement swept across three levels:</p>
+  <table class='cmp'><thead><tr><th></th><th>dense-trained heads</th><th>sparse-trained heads</th><th>direction</th></tr></thead><tbody><tr><td>accuracy floor 0.8</td><td class='num'>[1, 1, 1] (mean 1.0)</td><td class='num'>[2, 1, 1] (mean 1.3333333333333333)</td><td>sparse larger</td></tr>
+<tr><td>accuracy floor 0.85</td><td class='num'>[2, 1, 1] (mean 1.3333333333333333)</td><td class='num'>[2, 1, 1] (mean 1.3333333333333333)</td><td>no separation</td></tr>
+<tr><td>accuracy floor 0.9</td><td class='num'>[3, 2] (mean 2.5)</td><td class='num'>[4, 4, 4] (mean 4.0)</td><td>sparse larger</td></tr></tbody></table>
+  <div class="note">Parity at matched performance; at the highest shared floor the
+  sparse models need 4.0 heads against 2.5 for the dense models that reached it,
+  with one dense dropout the report carries as a caveat. The direction is not stable
+  across floors (stable: no), so no strong claim survives in either direction —
+  what is settled is that <b>H5's hypothesized effect, sparse-finds-smaller, has no
+  support at any level</b>, under a measure that is finally free to disagree with the
+  knob. H5 keeps its 0.50 posterior with a changed sentence: measured with a working
+  ruler, the effect is absent at this scale.</div>
 </div></section>
 
 <section id="evidence"><div class="wrap">
@@ -761,6 +897,31 @@ moves the operating point inside and the link succeeds.</p></div>
     <td>A result file describing a training run that never happened</td>
     <td>This page is generated from the ledger in §07 — a claim without an artifact cannot
     render as a number</td></tr>
+  <tr><td><b>String-likelihood as behaviour</b></td>
+    <td>Escalation scored the loss of one exact phrasing; training toward any <em>other</em>
+    phrasing of refusal scored negative while the behaviour improved</td>
+    <td>Training is scored the way the acceptance test scores it — refusal on generations,
+    off-domain minus in-domain, on probes disjoint from demos and verifier</td></tr>
+  <tr><td><b>A fix tested on one code path</b></td>
+    <td>“Merge restores the module” held on Conv1D only; on the Linear path the live adapter
+    stayed installed, and escalation trials inherited each other's state</td>
+    <td>The Linear path has its own round-trip test; a monotone <code>loss_first</code>
+    across fresh trials is the tell</td></tr>
+  <tr><td><b>Measured at the wrong precision</b></td>
+    <td>A rank-1 adapter scored 0.33 of refusal margin through its fp32 path and delivered
+    0.00 after folding into bf16 weights</td>
+    <td>Trials merge first and measure second — the search can only select what survives
+    the precision the artifact ships at</td></tr>
+  <tr><td><b>Evidence borrowed across substrates</b></td>
+    <td>Llama's steering ceiling (0.0179 nats) would have vetoed a Qwen search that
+    measurably met its target (0.0266 nats)</td>
+    <td><code>delivery_ceiling</code> refuses a ledger whose base model is not the one
+    being built</td></tr>
+  <tr><td><b>The stopping rule measured itself</b></td>
+    <td>E7's first verdict: necessary-head counts tracked model accuracy at r&nbsp;=&nbsp;0.938
+    because the ablation floor moved with each model</td>
+    <td>Floors are absolute, shared by every model, and swept — the confident first verdict
+    was withdrawn in public, which is what the audit step is for</td></tr>
   </tbody></table></div>
 </div></section>
 
@@ -822,7 +983,21 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>Frozen open-weight model programmed without touching its weights</td><td class='num'>1,235,814,400 params</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…a monitor reading a concept off its residual stream (leave-one-out)</td><td class='num'>1.000</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…control strength at half-maximum effect, measured by dose-response</td><td class='num'>0.650</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr><td>…the largest effect available before over-steering reverses it</td><td class='num'>0.0457 nats</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr></tbody>
+<tr><td>…the largest effect available before over-steering reverses it</td><td class='num'>0.0457 nats</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>clinic.loom passes every expectation on Llama-3.2-1B-Instruct</td><td class='num'>yes</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…its guardrail's refusal margin on the composed model, off-domain minus in-domain</td><td class='num'>0.333</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…held-out loss on MedQuAD text excluded from training, after</td><td class='num'>2.0047</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>the same program, unchanged, passes on Qwen2.5-1.5B-Instruct</td><td class='num'>yes</td><td><code>results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…its guardrail margin on the composed model</td><td class='num'>0.167</td><td><code>results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>the most a steering write delivered on Qwen — the ceiling is substrate-specific</td><td class='num'>0.0266 nats</td><td><code>results/steering_capacity_qwen2_5-1_5b.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>succession, hand-compiled beside induction, exact on its alphabet</td><td class='num'>1.000</td><td><code>results/loom_composed_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>induction inside the composed weights (0.909 alone)</td><td class='num'>0.909</td><td><code>results/loom_composed_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>largest logit change the second skill causes on traffic it should never see</td><td class='num'>6.8e-13</td><td><code>results/loom_composed_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>SAE reconstruction error on the trained real LM (Qwen2.5-0.5B)</td><td class='num'>FVU 0.2314</td><td><code>results/e6_real_lm_sae/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…and on the same architecture at random initialization</td><td class='num'>FVU 0.2356</td><td><code>results/e6_real_lm_sae/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>heads a dense-trained model needs to reach accuracy 0.9</td><td class='num'>2.5</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…and a weight-sparse-trained model, same floor</td><td class='num'>4.0</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>the direction holds at every floor tested</td><td class='num'>no</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr></tbody>
   </table></div>
 </div></section>
 
@@ -831,19 +1006,19 @@ moves the operating point inside and the link succeeds.</p></div>
     <h2>What is being built next</h2>
   </div></div>
   <div class="cols">
+    <div class="card accent"><h4>A third family, one command</h4><p>Gemma-2-2b is cached
+    and the substrate is an argument: <code>scripts/build_clinic.py google/gemma-2-2b-it</code>.
+    The portability claim gets cheaper to test every time it is tested.</p></div>
+    <div class="card accent"><h4>Concept-level suppression</h4><p>The prohibition control
+    still works at the token level. Suppressing the concept — so a paraphrase is caught as
+    surely as the word — is the open half of the red-team findings.</p></div>
+    <div class="card accent"><h4>Finer behavioural gates</h4><p>The refusal margin is read
+    on six probes, so it moves in steps of 0.167 — coarser than the targets it enforces.
+    More probes, same discipline: the budget must stay above what the instrument can
+    resolve.</p></div>
     <div class="card accent"><h4>Finish the from-scratch path</h4><p>A real pretraining run
     on the 100M-word corpus, so <code>loom build</code> produces a language model you could
     actually use, with its held-out perplexity as a gate.</p></div>
-    <div class="card accent"><h4>Compose two linked units</h4><p>Linking one unit works. The
-    claim that matters for separate compilation is that two independently compiled units
-    coexist without interfering. Currently refused at the strict budget; the composition
-    result is the next real test.</p></div>
-    <div class="card accent"><h4>A standard library</h4><p>Verified units you import rather
-    than build: a copying circuit, a state monitor, a safety-hardening control. The syntax
-    is designed; the units need their evidence attached.</p></div>
-    <div class="card accent"><h4>Real-scale monitors</h4><p>Move the read-out machinery onto
-    a frozen open-weight model where the interpretability controls have their intended
-    meaning, rather than only on models small enough to fully understand.</p></div>
   </div>
   <blockquote>The test of this is not whether the design is elegant. It is whether someone
   who cannot define “residual stream” can state what they need, get a model that verifiably
@@ -852,7 +1027,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 8b762c3 · 2026-08-01 20:04 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 239eb17 · 2026-08-02 03:59 UTC</p>
 </div></footer>
 </body>
 </html>

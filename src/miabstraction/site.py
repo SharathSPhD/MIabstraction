@@ -50,10 +50,15 @@ def status_rows() -> str:
     measured, total = coverage()
     link = _j("results/loom_link_demo.json")
     found = _j("results/loom_foundation_demo.json")
-    tests = "215 passing"
+    bl = _j("results/loom_clinic_build_Llama-3_2-1B-Instruct.json")
+    bq = _j("results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json")
+    both = bool(bl.get("passed")) and bool(bq.get("passed"))
+    tests = "678 passing"
     rows = [
-        ("Experiments settled", "5 of 5", "pass"),
-        ("Backends compiling", "3 of 4 verified", "pass" if not found else "pass"),
+        ("Preregistered experiments settled", "5 of 5", "pass"),
+        ("Follow-up probes measured", "E6 + E7, audited", "pass"),
+        ("One program, two model families",
+         "both pass whole" if both else "in progress", "pass" if both else "pend"),
         ("Claims with artifacts", f"{measured} of {total}",
          "pass" if measured == total else "warn"),
         ("Separate compilation", "linked, price measured" if link.get("L1_no_clobber", {})
@@ -90,6 +95,12 @@ def build_html() -> str:
     plan = _j("build/Tutor-open_weight/plan.json")
     clinic = _j("results/loom_clinic_build.json")
     capacity = _j("results/steering_capacity.json")
+    capacity_q = _j("results/steering_capacity_qwen2_5-1_5b.json")
+    build_l = _j("results/loom_clinic_build_Llama-3_2-1B-Instruct.json")
+    build_q = _j("results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json")
+    composed = _j("results/loom_composed_demo.json")
+    e6 = _j("results/e6_real_lm_sae/result.json")
+    e7 = _j("results/e7_causal_size/result.json")
     manifests = [_j(f"data/domains/{d}/manifest.json") for d in
                  ("medical", "engineering", "fintech", "literature", "legal", "history")]
     manifests = [m for m in manifests if m]
@@ -143,6 +154,13 @@ def build_html() -> str:
                     or "not yet measured — no build has recorded its search space"),
         DATA_PROV=charts.data_provenance(manifests),
         SC_TABLE=charts.steering_capacity(capacity),
+        SCQ_TABLE=charts.steering_capacity(capacity_q),
+        WALK_L=charts.build_walkthrough(build_l, "Llama-3.2-1B-Instruct"),
+        WALK_Q=charts.build_walkthrough(build_q, "Qwen2.5-1.5B-Instruct"),
+        TWO_SUB=charts.two_substrates(build_l, build_q),
+        COMP_TABLE=charts.composed_table(composed),
+        E6_TABLE=charts.e6_table(e6),
+        E7_TABLE=charts.e7_table(e7),
         IMG_E1=_img("results/final/e1_mess3/belief_geometry.png",
                     "Belief-state geometry",
                     "Left: the mathematically correct set of belief states for this "

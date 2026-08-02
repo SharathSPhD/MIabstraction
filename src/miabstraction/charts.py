@@ -426,3 +426,169 @@ def steering_capacity(report: dict) -> str:
             f'<p class="cap">Grey is what stating the rule is worth; the coloured bar is '
             f'what a searched control delivered. Nats of loss on the answer the instructed '
             f'model gives. From <code>{report.get("source", "?")}</code>.</p>')
+
+
+def build_walkthrough(report: dict, label: str) -> str:
+    """One build narrated step by step from its own report — the execution half of
+    the demo. Every line is read from the report; nothing is typeset by hand."""
+    if not report:
+        return _placeholder(f"no build report for {label}")
+    rows = []
+    for cap in report.get("capabilities", []):
+        at = cap.get("autotune") or {}
+        sc = at.get("scale") or {}
+        steps = []
+        if cap["kind"] == "knowledge":
+            ex = cap.get("execution") or {}
+            best = ((ex.get("autotune") or {}).get("best") or {}).get("metrics") or {}
+            if best:
+                steps.append(
+                    f"searched lr × steps; kept the winner: held-out loss "
+                    f"{best.get('heldout_loss_before')} → "
+                    f"{best.get('heldout_loss_after')} on text excluded from training")
+        elif at.get("skipped"):
+            steps.append(f"gap measured first: <b>{sc.get('gap')} nats</b>")
+            steps.append(f"steering <b>skipped on the ledger's evidence</b>: "
+                         f"{at['skipped']}")
+        elif sc:
+            steps.append(f"gap measured first: <b>{sc.get('gap')} nats</b>; the "
+                         f"program demands {sc.get('must_recover'):.0%} of it "
+                         f"({sc.get('target_nats')} nats)")
+            steps.append(
+                f"steering searched: {at.get('n_admissible', 0)}/"
+                f"{at.get('n_trials', 0)} configurations admissible; target "
+                + ("<b>met</b>" if at.get("target_met") else "<b>not met</b>"))
+        gate = (cap.get("behavioural_gate") or {}).get("result") or {}
+        if gate:
+            if gate.get("ran"):
+                b = gate.get("autotune") or {}
+                steps.append(
+                    f"behavioural gate on the composed model: margin "
+                    f"{gate.get('margin_before')} → <b>{gate.get('margin_after')}</b> "
+                    f"(target {gate.get('target_margin')}) after "
+                    f"{b.get('n_trials', '?')} training trials; adapter saved to the "
+                    f"artifact")
+            elif gate.get("target_met"):
+                steps.append("behavioural gate: the composed model already meets the "
+                             "declared margin; nothing trained")
+            else:
+                steps.append(f"behavioural gate ran and reports honestly: "
+                             f"{gate.get('reason', 'margin not reached')}")
+        li = "".join(f"<li>{s}</li>" for s in steps) or "<li>realized as planned</li>"
+        rows.append(f"<details><summary><b>{cap['capability']}</b> "
+                    f"<span class='mut'>({cap['kind']})</span></summary>"
+                    f"<ul>{li}</ul></details>")
+    exp = "".join(
+        f"<li><span class='chip {'pass' if e['passed'] else 'fail'}'>"
+        f"{'PASS' if e['passed'] else 'FAIL'}</span> {e['expectation']} — "
+        f"{e['detail']}</li>" for e in report.get("expectations", []))
+    verdict = ("passes whole" if report.get("passed") else "does not pass")
+    return (f"<div class='walk'><p><b>{label}</b> — {report.get('params', 0):,} "
+            f"parameters, wall clock {report.get('wall_clock_s')}s, "
+            f"{report.get('verified_against_recitation_of', 0)} training strings "
+            f"registered against recitation. The build <b>{verdict}</b>.</p>"
+            f"{''.join(rows)}<ul class='exp'>{exp}</ul></div>")
+
+
+def two_substrates(llama: dict, qwen: dict) -> str:
+    """The portability claim as one table: same program, two families, and where the
+    compiler's decisions diverged because the substrates measured differently."""
+    if not llama or not qwen:
+        return _placeholder("both build reports are needed for this comparison")
+
+    def know(r):
+        ex = (r["capabilities"][0].get("execution") or {})
+        b = ((ex.get("autotune") or {}).get("best") or {}).get("metrics") or {}
+        return f"{b.get('heldout_loss_before')} → {b.get('heldout_loss_after')}"
+
+    def guard(r):
+        cap = r["capabilities"][4]
+        at = cap.get("autotune") or {}
+        route = ("steering skipped (ledger)" if at.get("skipped")
+                 else "steering searched, target "
+                      + ("met" if at.get("target_met") else "not met"))
+        g = (cap.get("behavioural_gate") or {}).get("result") or {}
+        return (f"{route}; gate margin {g.get('margin_before')} → "
+                f"{g.get('margin_after')}")
+
+    def exp(r):
+        return (f"{sum(e['passed'] for e in r.get('expectations', []))}/"
+                f"{len(r.get('expectations', []))}")
+
+    rows = [
+        ("parameters", f"{llama.get('params', 0):,}", f"{qwen.get('params', 0):,}"),
+        ("held-out loss (excluded MedQuAD)", know(llama), know(qwen)),
+        ("guardrail route", guard(llama), guard(qwen)),
+        ("controls installed", llama.get("n_controls_installed"),
+         qwen.get("n_controls_installed")),
+        ("expectations passed", exp(llama), exp(qwen)),
+        ("wall clock", f"{llama.get('wall_clock_s')}s", f"{qwen.get('wall_clock_s')}s"),
+    ]
+    tr = "\n".join(f"<tr><td>{a}</td><td class='num'>{b}</td>"
+                   f"<td class='num'>{c}</td></tr>" for a, b, c in rows)
+    return ("<table class='cmp'><thead><tr><th></th>"
+            f"<th>{llama.get('base_model')}</th><th>{qwen.get('base_model')}</th>"
+            f"</tr></thead><tbody>{tr}</tbody></table>")
+
+
+def composed_table(r: dict) -> str:
+    if not r:
+        return _placeholder("results/loom_composed_demo.json not present")
+    arb = r.get("arbitration_when_skills_disagree", {})
+    ctl = r.get("random_model_control", {})
+    rows = [
+        ("succession accuracy (cycle traffic)", f"{r.get('succession_accuracy'):.3f}"),
+        ("induction accuracy, alone", f"{r.get('induction_acc_alone'):.3f}"),
+        ("induction accuracy, composed", f"{r.get('induction_acc_composed'):.3f}"),
+        ("max logit divergence on letter traffic",
+         f"{r.get('letter_traffic_max_logit_divergence'):.1e}"),
+        ("argmax identical on letter traffic",
+         "yes" if r.get("letter_traffic_argmax_identical") else "no"),
+        ("arbitration when the skills disagree",
+         "succession wins" if arb.get("succession_won") else "induction wins"),
+        ("random-model control (succession / induction)",
+         f"{ctl.get('succession_accuracy', 0):.3f} / "
+         f"{ctl.get('induction_accuracy', 0):.3f}"),
+        ("nonzero weights", f"{r.get('nonzero_weights'):,}"),
+    ]
+    tr = "\n".join(f"<tr><td>{a}</td><td class='num'>{b}</td></tr>" for a, b in rows)
+    return f"<table class='cmp'><tbody>{tr}</tbody></table>"
+
+
+def e6_table(r: dict) -> str:
+    if not r:
+        return _placeholder("results/e6_real_lm_sae/result.json not present")
+    sep = r.get("separation", {})
+    rows = []
+    for key, lbl in (("fvu", "reconstruction error (FVU)"),
+                     ("dead_frac", "dead-latent fraction"),
+                     ("l0", "L0 (pinned by TopK)")):
+        v = sep.get(key, {})
+        flag = " <span class='chip warn'>cannot vary</span>" if v.get(
+            "zero_variance_flag") else ""
+        rows.append((lbl,
+                     f"{v.get('trained_mean', 0):.4f} ± {v.get('trained_std', 0):.4f}",
+                     f"{v.get('control_mean', 0):.4f} ± {v.get('control_std', 0):.4f}"
+                     + flag))
+    tr = "\n".join(f"<tr><td>{a}</td><td class='num'>{b}</td>"
+                   f"<td class='num'>{c}</td></tr>" for a, b, c in rows)
+    return ("<table class='cmp'><thead><tr><th></th><th>trained "
+            f"{r.get('model', '')}</th><th>same architecture, random init</th></tr>"
+            f"</thead><tbody>{tr}</tbody></table>")
+
+
+def e7_table(r: dict) -> str:
+    if not r:
+        return _placeholder("results/e7_causal_size/result.json not present")
+    rows = []
+    for f, v in (r.get("per_floor") or {}).items():
+        rows.append((f"accuracy floor {f}",
+                     f"{v.get('dense')} (mean {v.get('dense_mean')})",
+                     f"{v.get('sparse')} (mean {v.get('sparse_mean')})",
+                     v.get("direction", "").replace("_", " ")))
+    tr = "\n".join(f"<tr><td>{a}</td><td class='num'>{b}</td>"
+                   f"<td class='num'>{c}</td><td>{d}</td></tr>"
+                   for a, b, c, d in rows)
+    return ("<table class='cmp'><thead><tr><th></th><th>dense-trained heads</th>"
+            "<th>sparse-trained heads</th><th>direction</th></tr></thead>"
+            f"<tbody>{tr}</tbody></table>")
