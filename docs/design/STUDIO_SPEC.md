@@ -34,7 +34,7 @@ build, public under qbz506.
 | G6 | Tunnel chain up | Vercel /api/gpu/health returns GB10 health through Worker+KV | CLOSED 2026-08-02 — loom-studio-gw.workers.dev over KV over quick tunnel, verified from the public URL |
 | G7 | Deployed on Vercel | public URL serves; replay mode works with worker offline | CLOSED 2026-08-02 — https://loom-studio-tan.vercel.app; /builds renders committed replays; /api/gpu/* returns clean 503 offline JSON when the chain is down |
 | G8 | Live build from the browser | a user-submitted program builds on GB10, streamed to the page, artifact on HF | CLOSED 2026-08-02 — build d4986daa via the public URL: passed, published to qbz506/loom-clinic-llama-3-2-1b-instruct |
-| G9 | 5090 in the loop | a training-heavy stage measurably dispatched to the RTX 5090 and results merged | open |
+| G9 | 5090 in the loop | a training-heavy stage measurably dispatched to the RTX 5090 and results merged | CLOSED 2026-08-02 — Stylist scratch build executed in the 5090 container, report names the device, merge enforces it (results/loom_stylist_scratch_5090.json) |
 | G10 | Science ledger current | site + VALIDATION.md reflect final-compiler rebuilds of all families/domains | open |
 
 ## Non-negotiables (inherited from the project)
