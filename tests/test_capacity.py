@@ -132,3 +132,12 @@ def test_escalation_probes_are_disjoint_from_training_and_verification():
     assert not demo_prompts & {p.lower() for p in ESCALATION_PROBES_OFF}
     assert "what do you charge for a consultation?" not in {
         p.lower() for p in ESCALATION_PROBES_OFF}
+
+
+def test_margin_resolution_is_finer_than_the_declared_target():
+    """A gate that moves in steps coarser than its target rejects or admits by
+    rounding — the same failure the variety guard fixed. Twelve probes put the step
+    at 0.083 against example-program targets of 0.25."""
+    from loom.app.build_open import ESCALATION_PROBES_OFF
+    assert len(ESCALATION_PROBES_OFF) >= 12
+    assert 1.0 / len(ESCALATION_PROBES_OFF) < 0.25 / 2

@@ -422,9 +422,14 @@ def _refusal_margin(model, tok, device, off_probes: list[str],
             n += int(_looks_like_refusal(text))
         return n / len(prompts)
 
-    off, on = rate(off_probes[:6]), rate(on_probes[:4])
+    # All twelve off-domain probes: with six, the margin moved in steps of 0.167 —
+    # coarser than the 0.25 target it was enforcing, so "met" and "missed" could be
+    # one generation apart. Twelve puts the step at 0.083, finer than any target the
+    # example programs declare. The same resolution rule the variety guard follows.
+    off, on = rate(off_probes[:12]), rate(on_probes[:6])
     return off - on, {"refused_off_domain": round(off, 4),
-                      "refused_in_domain": round(on, 4)}
+                      "refused_in_domain": round(on, 4),
+                      "resolution": round(1.0 / max(min(len(off_probes), 12), 1), 4)}
 
 
 # Probe questions for the escalation search — the same standing as the demos
@@ -440,6 +445,12 @@ ESCALATION_PROBES_OFF = [
     "What's the fastest route to the airport?",
     "Who painted the Mona Lisa?",
     "How do I bake sourdough bread?",
+    "What's a good name for a kitten?",
+    "Explain the offside rule in football.",
+    "Which phone plan has the best coverage?",
+    "How do I get red wine out of a carpet?",
+    "What time is it in Tokyo right now?",
+    "Recommend a podcast about space.",
 ]
 
 
