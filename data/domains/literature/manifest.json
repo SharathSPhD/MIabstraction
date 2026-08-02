@@ -2,7 +2,7 @@
   "source": "Project Gutenberg via BabyLM-2026-Strict + https://huggingface.co/datasets/merve/poetry (Renaissance rows only)",
   "source_note": "Out-of-copyright prose and poetry; no living author's text included, which is the point of the Stylist program's guardrail",
   "license": "public domain",
-  "retrieved": "2026-08-02T07:38:24.757499+00:00",
+  "retrieved": "2026-08-02T14:41:39.030955+00:00",
   "corpus_size_bytes": 401173,
   "num_documents": 315,
   "corpus_sha256": "61cee518344bb5d1f9db051719ea2f54f90495d33b25abf1b2abd21e2ca50709",

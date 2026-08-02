@@ -12,5 +12,13 @@
     "Stock prices rose 8% following the earnings announcement.",
     "The novel explores themes of identity and belonging.",
     "Renewable energy sources reduce carbon emissions effectively."
+  ],
+  "in_domain_questions": [
+    "What causes persistent headaches?",
+    "How is hypertension usually managed?",
+    "What are common side effects of antibiotics?",
+    "What does a high white blood cell count suggest?",
+    "How is type 2 diabetes diagnosed?",
+    "What should I know about statins?"
   ]
 }

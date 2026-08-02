@@ -393,6 +393,27 @@ def contrast_sets(pattern: str) -> tuple[list[str], list[str]]:
     return list(d.get("in_domain") or []), list(d.get("out_of_domain") or [])
 
 
+def in_domain_questions(pattern: str) -> list[str]:
+    """Questions a user of this app would actually ask, for the guard that has to
+    notice over-refusal.
+
+    The in-domain half of the behavioural gate was reading the domain's declarative
+    sentences, so it measured whether the model refuses to CONTINUE a case-law
+    passage — which it never does — while real traffic is questions ABOUT law, which
+    a guardrail trained hard enough will start refusing. The guard reported 0.0
+    in-domain refusal for a Counsel build that declined "what does a motion to
+    dismiss test?". A guard that cannot see the failure it exists to prevent is not
+    a guard.
+    """
+    import json
+    from pathlib import Path as _P
+    p = _P(pattern)
+    cf = (p.parent if p.suffix else p) / "contrast.json"
+    if not cf.exists():
+        return []
+    return list(json.loads(cf.read_text()).get("in_domain_questions") or [])
+
+
 def corpus_probes(pattern: str, n: int = 8, min_len: int = 25) -> list[str]:
     """Questions taken from the app's own corpus, to steer on the traffic it will see.
 

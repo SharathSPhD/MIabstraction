@@ -34,7 +34,7 @@ from .parse import parse_program
 from .search import Lever, search
 from .steering_ops import (CONTRASTS, NEUTRAL, _Hook, _as_chat, _loss, _mean_residual,
                            calibrate, contrast_sets, corpus_probes,
-                           derive_contrast, probes_for)
+                           derive_contrast, in_domain_questions, probes_for)
 from .substrate import profile_for
 from .verify_app import check
 
@@ -860,9 +860,11 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
     # off-distribution text is tuned for a distribution the app never meets.
     probes: list[str] = []
     out_of_domain: list[str] = []
+    on_domain_questions: list[str] = []
     for c in app.of(Kind.KNOWLEDGE):
         pattern = c.args.get("corpus", "")
         probes.extend(corpus_probes(pattern, n=8))
+        on_domain_questions.extend(in_domain_questions(pattern))
         # A guardrail is about what the app should decline, so it has to be measured on
         # material outside the subject. Without this it was searched entirely on traffic
         # it should never fire on, where the behaviour it names cannot appear.
@@ -989,7 +991,10 @@ def build(program_path: str, target: str, out_dir: str, device: str = "cuda",
         esc = autotune_escalation(
             model, tok, cap, device, REFUSAL_DEMOS,
             grids("adaptation", search_budget),
-            off_probes=ESCALATION_PROBES_OFF, on_probes=probes,
+            off_probes=ESCALATION_PROBES_OFF,
+            # Questions in the app's own subject, so the guard can see the model
+            # over-refusing its own users. Corpus sentences could not.
+            on_probes=(on_domain_questions or probes),
             target_margin=recover,
             save_adapter_to=str(Path(out_dir) / f"adapter_{cap.kind.value}.pt"),
             base_name=target, controls=controls)

@@ -12,5 +12,13 @@
     "The defendant moved to suppress the evidence.",
     "Tighten the drain plug to the specified torque.",
     "The patient presented with acute symptoms."
+  ],
+  "in_domain_questions": [
+    "What is a karaka?",
+    "How does the instrumental case work?",
+    "What does the optative mood express?",
+    "How is sandhi applied between words?",
+    "What is the difference between kartari and karmani?",
+    "How is a verb root inflected for person and number?"
   ]
 }

@@ -12,5 +12,13 @@
     "Constitutional amendments require congressional approval.",
     "Machine learning models require extensive data preprocessing.",
     "Historical civilizations rose and fell due to economic factors."
+  ],
+  "in_domain_questions": [
+    "How is EBITDA calculated?",
+    "What does a rising debt-to-equity ratio indicate?",
+    "How do analysts read an earnings call?",
+    "What is the difference between GAAP and IFRS?",
+    "How does a company recognise revenue?",
+    "What is a leveraged buyout?"
   ]
 }

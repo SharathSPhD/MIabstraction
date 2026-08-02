@@ -12,5 +12,13 @@
     "Antibiotics are used to treat bacterial infections.",
     "Constitutional law governs the structure of government.",
     "Solar panels convert sunlight into electrical energy."
+  ],
+  "in_domain_questions": [
+    "What causes hydraulic pressure loss?",
+    "How do you diagnose an intermittent electrical fault?",
+    "What is the purpose of a pressure relief valve?",
+    "How is torque specified for a fastener?",
+    "What does a vibration signature indicate?",
+    "How does thermal expansion affect tolerances?"
   ]
 }
