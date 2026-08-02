@@ -8,21 +8,41 @@ from loom.app.substrate import FROM_SCRATCH, OPEN_WEIGHT, profile_for
 
 SRC = "examples/tutor.loom"
 
+# A program that exercises every clause the language has. It lives here rather than
+# in examples/ because this test is about the COMPILER — that each clause becomes
+# exactly one capability of the right kind — and an example that evolves for its own
+# reasons should not be able to break that claim.
+EVERY_CLAUSE = """
+app Complete {
+    knows   from "data/domains/grammar/corpus.txt";
+    knows   how to explain step by step;
+    speaks  patient, plain;
+    always  names the rule it applied;
+    never   states a rule it cannot name;
+    refuses questions that are not about grammar;
+    effort  balanced;
+    tune    adaptation from 1 to 8;
+    expect  knows the material better than the base model;
+    expect  refuses("what is the capital of Peru?");
+}
+
+build Complete on "meta-llama/Llama-3.2-1B-Instruct";
+"""
+
 
 @pytest.fixture
 def app():
     return parse_program(SRC).apps["Tutor"]
 
 
-def test_every_clause_becomes_exactly_one_capability(app):
-    kinds = [c.kind for c in app.capabilities]
-    assert kinds.count(Kind.KNOWLEDGE) == 1
-    assert kinds.count(Kind.SKILL) == 1
-    assert kinds.count(Kind.STYLE) == 1
-    assert kinds.count(Kind.INVARIANT) == 1
-    assert kinds.count(Kind.PROHIBITION) == 1
-    assert kinds.count(Kind.GUARDRAIL) == 1
-    assert len(app.expectations) == 2
+def test_every_clause_becomes_exactly_one_capability():
+    from loom.app.parse import parse_program_text
+    a = parse_program_text(EVERY_CLAUSE).apps["Complete"]
+    kinds = [c.kind for c in a.capabilities]
+    for kind in (Kind.KNOWLEDGE, Kind.SKILL, Kind.STYLE, Kind.INVARIANT,
+                 Kind.PROHIBITION, Kind.GUARDRAIL):
+        assert kinds.count(kind) == 1, f"{kind} should appear exactly once"
+    assert len(a.expectations) == 2
 
 
 def test_the_program_mentions_no_machine_learning(app):
@@ -116,9 +136,13 @@ def test_tuning_clauses_direct_the_search_not_the_build(app):
     """`effort` and `tune` bound how the compiler searches; they are not capabilities
     to realize, and must not appear in the plan."""
     from loom.app.capability import Kind
-    assert len(app.to_realize()) == 6
-    assert all(c.kind is not Kind.TUNING for c in app.to_realize())
+    realized = app.to_realize()
+    assert realized, "the example declares capabilities to realize"
+    assert all(c.kind is not Kind.TUNING for c in realized)
     assert app.of(Kind.TUNING), "the example declares tuning directives"
+    # Every non-tuning clause reaches the plan: nothing is silently dropped.
+    assert len(realized) == len([c for c in app.capabilities
+                                 if c.kind is not Kind.TUNING])
 
 
 def test_search_budget_is_expressed_in_the_programmers_terms(app):
