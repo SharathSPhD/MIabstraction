@@ -1,0 +1,358 @@
+{
+  "question": "does orthogonal allocation preserve the first unit across pairs, or was that one pair?",
+  "n_pairs": 12,
+  "grid": "vocabulary 16/32/64 x later-unit gain 0.5/1.0/4.0, plus the compiled induction circuit as the protected unit at each gain",
+  "tolerance": 0.0001,
+  "summary": {
+    "shared": {
+      "n": 12,
+      "preserved_exactly": 0,
+      "fraction_preserved": 0.0,
+      "worst_error": 6.41280508,
+      "pairs_where_second_unit_was_silenced": 0
+    },
+    "orthogonal": {
+      "n": 12,
+      "preserved_exactly": 12,
+      "fraction_preserved": 1.0,
+      "worst_error": 3.052e-05,
+      "pairs_where_second_unit_was_silenced": 0
+    },
+    "exclusive": {
+      "n": 12,
+      "preserved_exactly": 12,
+      "fraction_preserved": 1.0,
+      "worst_error": 0.0,
+      "pairs_where_second_unit_was_silenced": 12
+    }
+  },
+  "rows": [
+    {
+      "kind": "random/random",
+      "vocab": 16,
+      "gain_b": 0.5,
+      "seed": 1,
+      "shared": {
+        "error": 0.5679283142089844,
+        "preserved": false,
+        "second_unit_writes_alone": 1.0091915130615234,
+        "second_unit_survives_allocation": 1.4000146389007568,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 2.384185791015625e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 1.0091915130615234,
+        "second_unit_survives_allocation": 1.4000147581100464,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 1.0091915130615234,
+        "second_unit_survives_allocation": 4.6315113877426484e-07,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 16,
+      "gain_b": 1.0,
+      "seed": 2,
+      "shared": {
+        "error": 0.8572743535041809,
+        "preserved": false,
+        "second_unit_writes_alone": 2.2816882133483887,
+        "second_unit_survives_allocation": 4.517782211303711,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 2.384185791015625e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 2.2816882133483887,
+        "second_unit_survives_allocation": 4.517782211303711,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 2.2816882133483887,
+        "second_unit_survives_allocation": 3.380021098564612e-07,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 16,
+      "gain_b": 4.0,
+      "seed": 3,
+      "shared": {
+        "error": 3.768063545227051,
+        "preserved": false,
+        "second_unit_writes_alone": 8.893145561218262,
+        "second_unit_survives_allocation": 12.983322143554688,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 4.76837158203125e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 8.893145561218262,
+        "second_unit_survives_allocation": 12.983321189880371,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 8.893145561218262,
+        "second_unit_survives_allocation": 2.769772891042521e-07,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 32,
+      "gain_b": 0.5,
+      "seed": 4,
+      "shared": {
+        "error": 0.43204450607299805,
+        "preserved": false,
+        "second_unit_writes_alone": 1.0796557664871216,
+        "second_unit_survives_allocation": 2.391444683074951,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 4.76837158203125e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 1.0796557664871216,
+        "second_unit_survives_allocation": 2.391444683074951,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 1.0796557664871216,
+        "second_unit_survives_allocation": 5.963025273558742e-07,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 32,
+      "gain_b": 1.0,
+      "seed": 5,
+      "shared": {
+        "error": 1.7543187141418457,
+        "preserved": false,
+        "second_unit_writes_alone": 2.544595718383789,
+        "second_unit_survives_allocation": 5.364660739898682,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 4.76837158203125e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 2.544595718383789,
+        "second_unit_survives_allocation": 5.364660739898682,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 2.544595718383789,
+        "second_unit_survives_allocation": 5.495695063473249e-07,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 32,
+      "gain_b": 4.0,
+      "seed": 6,
+      "shared": {
+        "error": 6.412805080413818,
+        "preserved": false,
+        "second_unit_writes_alone": 8.981643676757812,
+        "second_unit_survives_allocation": 21.299951553344727,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 9.5367431640625e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 8.981643676757812,
+        "second_unit_survives_allocation": 21.299951553344727,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 8.981643676757812,
+        "second_unit_survives_allocation": 9.57113684307842e-07,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 64,
+      "gain_b": 0.5,
+      "seed": 7,
+      "shared": {
+        "error": 0.9737253189086914,
+        "preserved": false,
+        "second_unit_writes_alone": 1.117797613143921,
+        "second_unit_survives_allocation": 3.083132266998291,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 9.5367431640625e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 1.117797613143921,
+        "second_unit_survives_allocation": 3.08313250541687,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 1.117797613143921,
+        "second_unit_survives_allocation": 1.0524142908252543e-06,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 64,
+      "gain_b": 1.0,
+      "seed": 8,
+      "shared": {
+        "error": 1.7724502086639404,
+        "preserved": false,
+        "second_unit_writes_alone": 3.1312785148620605,
+        "second_unit_survives_allocation": 7.906487464904785,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 9.5367431640625e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 3.1312785148620605,
+        "second_unit_survives_allocation": 7.906487941741943,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 3.1312785148620605,
+        "second_unit_survives_allocation": 1.4100113503445755e-06,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "random/random",
+      "vocab": 64,
+      "gain_b": 4.0,
+      "seed": 9,
+      "shared": {
+        "error": 5.977953910827637,
+        "preserved": false,
+        "second_unit_writes_alone": 12.289844512939453,
+        "second_unit_survives_allocation": 29.339679718017578,
+        "positions_scored": 96
+      },
+      "orthogonal": {
+        "error": 9.5367431640625e-07,
+        "preserved": true,
+        "second_unit_writes_alone": 12.289844512939453,
+        "second_unit_survives_allocation": 29.33968162536621,
+        "positions_scored": 96
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 12.289844512939453,
+        "second_unit_survives_allocation": 1.0068079063785262e-06,
+        "positions_scored": 96
+      }
+    },
+    {
+      "kind": "induction/random",
+      "vocab": 20,
+      "gain_b": 0.5,
+      "seed": 10,
+      "shared": {
+        "error": 0.9789657592773438,
+        "preserved": false,
+        "second_unit_writes_alone": 0.9342307448387146,
+        "second_unit_survives_allocation": 1.5481820106506348,
+        "positions_scored": 76
+      },
+      "orthogonal": {
+        "error": 2.288818359375e-05,
+        "preserved": true,
+        "second_unit_writes_alone": 0.9342307448387146,
+        "second_unit_survives_allocation": 1.5481826066970825,
+        "positions_scored": 76
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 0.9342307448387146,
+        "second_unit_survives_allocation": 2.3751086700940505e-05,
+        "positions_scored": 76
+      }
+    },
+    {
+      "kind": "induction/random",
+      "vocab": 20,
+      "gain_b": 1.0,
+      "seed": 11,
+      "shared": {
+        "error": 1.7243881225585938,
+        "preserved": false,
+        "second_unit_writes_alone": 2.3396213054656982,
+        "second_unit_survives_allocation": 3.8792998790740967,
+        "positions_scored": 78
+      },
+      "orthogonal": {
+        "error": 3.0517578125e-05,
+        "preserved": true,
+        "second_unit_writes_alone": 2.3396213054656982,
+        "second_unit_survives_allocation": 3.8792998790740967,
+        "positions_scored": 78
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 2.3396213054656982,
+        "second_unit_survives_allocation": 2.372354720137082e-05,
+        "positions_scored": 78
+      }
+    },
+    {
+      "kind": "induction/random",
+      "vocab": 20,
+      "gain_b": 4.0,
+      "seed": 12,
+      "shared": {
+        "error": 6.1513824462890625,
+        "preserved": false,
+        "second_unit_writes_alone": 5.617701530456543,
+        "second_unit_survives_allocation": 10.84576416015625,
+        "positions_scored": 82
+      },
+      "orthogonal": {
+        "error": 2.288818359375e-05,
+        "preserved": true,
+        "second_unit_writes_alone": 5.617701530456543,
+        "second_unit_survives_allocation": 10.845765113830566,
+        "positions_scored": 82
+      },
+      "exclusive": {
+        "error": 0.0,
+        "preserved": true,
+        "second_unit_writes_alone": 5.617701530456543,
+        "second_unit_survives_allocation": 2.372354720137082e-05,
+        "positions_scored": 82
+      }
+    }
+  ],
+  "verdict": "orthogonal allocation preserved the first unit exactly in 12 of 12 pairs (worst error 3.052e-05), against 0 of 12 under the shared convention, and silenced the second unit in 0 of them",
+  "what_exclusive_costs": "EXCLUSIVE preserves the first unit perfectly and silences the second in every pair here, because these units carry no firing condition: a first unit that fires everywhere takes every position and leaves none. That is the correct behaviour of the allocation and the reason the build path pairs it with a `when:` predicate \u2014 the linked induction unit fires on about 70% of traffic, so a second unit would still have the rest. Exclusive allocation between two unconditional units is a veto, and nothing in the preservation number alone would tell you that.",
+  "on_the_tolerance": "'exactly' means within 0.0001 in float32. The worst orthogonal error was 3.052e-05, which is arithmetic noise rather than a surviving component of the second unit; the shared convention misses by up to 6.41280508, five orders of magnitude larger."
+}
