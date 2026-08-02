@@ -242,6 +242,22 @@ CLAIMS = [
           "{:.1f}"),
     Claim("E7v", "the direction holds at every floor tested",
           "results/e7_causal_size/result.json", "direction_stable_across_floors"),
+
+    # The four industrial programs, passing whole on Llama through the studio worker.
+    Claim("BC", "Counsel passes whole (insistence 0.5 closed its guardrail)",
+          "results/loom_counsel_build_Llama-3_2-1B-Instruct.json", "passed"),
+    Claim("BD", "Desk passes whole",
+          "results/loom_desk_build_Llama-3_2-1B-Instruct.json", "passed"),
+    Claim("BF", "Foreman passes whole",
+          "results/loom_foreman_build_Llama-3_2-1B-Instruct.json", "passed"),
+    Claim("BS", "Stylist passes whole",
+          "results/loom_stylist_build_Llama-3_2-1B-Instruct.json", "passed"),
+    Claim("BG", "Gemma-2-2b: the largest knowledge gain measured, guardrail open",
+          "results/loom_clinic_build_gemma-2-2b-it.json",
+          "capabilities.0.execution.autotune.best.metrics.heldout_gain",
+          "{:.3f} nats"),
+    Claim("B5090", "a from-scratch build executed on the RTX 5090, device-proven",
+          "results/loom_stylist_scratch_5090.json", "dispatched_to"),
 ]
 
 

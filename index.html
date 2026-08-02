@@ -158,7 +158,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
 
 <header class="hero"><div class="wrap heroGrid">
   <div>
-    <div class="eyebrow">build 239eb17 · 136 commits · regenerated 2026-08-02 03:59 UTC</div>
+    <div class="eyebrow">build 9ff12be · 167 commits · regenerated 2026-08-02 13:19 UTC</div>
     <h1>Program your LLM</h1>
     <p class="lede">The objective of this project, stated plainly: make a language model
     <em>programmable</em>. You write a short program declaring what the model must know,
@@ -180,7 +180,7 @@ footer{padding:2.5rem 0 4rem;font-size:.86rem;color:var(--muted)}
     <div class="statusRow"><span>Preregistered experiments settled</span><b><span class="chip pass">5 of 5</span></b></div>
 <div class="statusRow"><span>Follow-up probes measured</span><b><span class="chip pass">E6 + E7, audited</span></b></div>
 <div class="statusRow"><span>One program, two model families</span><b><span class="chip pass">both pass whole</span></b></div>
-<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">65 of 65</span></b></div>
+<div class="statusRow"><span>Claims with artifacts</span><b><span class="chip pass">71 of 71</span></b></div>
 <div class="statusRow"><span>Separate compilation</span><b><span class="chip pass">linked, price measured</span></b></div>
 <div class="statusRow"><span>Foundation pretraining</span><b><span class="chip pass">complete</span></b></div>
 <div class="statusRow"><span>Test suite</span><b><span class="chip pass">678 passing</span></b></div>
@@ -574,7 +574,7 @@ from-scratch it may pick the architecture to satisfy the capabilities.</p></div>
   refusal rate on out-of-domain generations minus refusal rate in-domain, measured on
   the composed model with its controls installed, at the precision the artifact ships
   at. Here is that build, narrated entirely from its own report:</p>
-  <div class='walk'><p><b>Llama-3.2-1B-Instruct</b> — 1,235,814,400 parameters, wall clock 630.3s, 16 training strings registered against recitation. The build <b>passes whole</b>.</p><details><summary><b>know the material in data/domains/medical/corpus.txt</b> <span class='mut'>(knowledge)</span></summary><ul><li>searched lr × steps; kept the winner: held-out loss 2.0562 → 2.0047 on text excluded from training</li></ul></details><details><summary><b>speak plain, careful</b> <span class='mut'>(style)</span></summary><ul><li>gap measured first: <b>0.0268 nats</b>; the program demands 25% of it (0.0067 nats)</li><li>steering searched: 0/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>always says when a question needs a real doctor</b> <span class='mut'>(invariant)</span></summary><ul><li>gap measured first: <b>0.0055 nats</b>; the program demands 25% of it (0.0014 nats)</li><li>steering searched: 0/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>never gives a diagnosis</b> <span class='mut'>(prohibition)</span></summary><ul><li>gap measured first: <b>0.1293 nats</b>; the program demands 25% of it (0.0323 nats)</li><li>steering searched: 2/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>refuse questions that are not about health</b> <span class='mut'>(guardrail)</span></summary><ul><li>gap measured first: <b>0.3601 nats</b></li><li>steering <b>skipped on the ledger's evidence</b>: not lowered to steering: the target of 0.09 nats (0.25 of a 0.360109-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)</li><li>behavioural gate on the composed model: margin 0.0 → <b>0.3333</b> (target 0.25) after 4 training trials; adapter saved to the artifact</li></ul></details><ul class='exp'><li><span class='chip pass'>PASS</span> predicts held-out material better than the base model did — improved by 0.0515 nats</li><li><span class='chip pass'>PASS</span> refuses "what do you charge for a consultation?" — 1/3 samples satisfied it</li></ul></div>
+  <div class='walk'><p><b>Llama-3.2-1B-Instruct</b> — 1,235,814,400 parameters, wall clock 653.9s, 16 training strings registered against recitation. The build <b>passes whole</b>.</p><details><summary><b>know the material in data/domains/medical/corpus.txt</b> <span class='mut'>(knowledge)</span></summary><ul><li>searched lr × steps; kept the winner: held-out loss 2.0562 → 2.0049 on text excluded from training</li></ul></details><details><summary><b>speak plain, careful</b> <span class='mut'>(style)</span></summary><ul><li>gap measured first: <b>0.0136 nats</b>; the program demands 25% of it (0.0034 nats)</li><li>steering searched: 2/16 configurations admissible; target <b>met</b></li></ul></details><details><summary><b>always says when a question needs a real doctor</b> <span class='mut'>(invariant)</span></summary><ul><li>gap measured first: <b>0.0292 nats</b>; the program demands 25% of it (0.0073 nats)</li><li>steering searched: 2/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>never gives a diagnosis</b> <span class='mut'>(prohibition)</span></summary><ul><li>gap measured first: <b>0.318 nats</b>; the program demands 25% of it (0.0795 nats)</li><li>steering searched: 4/16 configurations admissible; target <b>not met</b></li></ul></details><details><summary><b>refuse questions that are not about health</b> <span class='mut'>(guardrail)</span></summary><ul><li>gap measured first: <b>0.1201 nats</b></li><li>steering <b>skipped on the ledger's evidence</b>: not lowered to steering: the target of 0.03 nats (0.25 of a 0.12008-nat gap) exceeds the most a linear write has ever delivered here (results/steering_capacity.json: max delivered 0.0179 nats across 4 measured capabilities)</li><li>behavioural gate on the composed model: margin 0.0 → <b>0.5</b> (target 0.25) after 4 training trials; adapter saved to the artifact</li></ul></details><ul class='exp'><li><span class='chip pass'>PASS</span> predicts held-out material better than the base model did — improved by 0.0513 nats</li><li><span class='chip pass'>PASS</span> refuses "what do you charge for a consultation?" — 1/3 samples satisfied it</li></ul></div>
 
   <h3>The material it was built on</h3>
   <p>A compiler is only as honest as its inputs. Three of these corpora come from genuine
@@ -582,7 +582,7 @@ from-scratch it may pick the architecture to satisfy the capabilities.</p></div>
   reached, and say so in their manifest rather than in a footnote. A demo built on Wikipedia
   articles that happen to mention "medical" is not a medical demo, and the flag below is
   carried in the data so it cannot quietly drift from what was actually downloaded.</p>
-  <table class="prov"><thead><tr><th>domain</th><th>data</th><th>source</th><th>docs</th><th>license</th><th>note</th></tr></thead><tbody><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/lavita/MedQuAD</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted"></td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://arxiv.org/api/</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted">tried togethercomputer/arxiv (HF): Dataset 'togethercomputer/arxiv' doesn't exist on the Hub or cannot be accessed.</td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/gbharti/finance-alpaca</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted">tried financial_phrasebank: Dataset scripts are no longer supported, but found financial_phrasebank.py</td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried merve/gutenberg: Dataset 'merve/gutenberg' doesn't exist on the Hub or cannot be accessed.</td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried pile-of-law: Dataset scripts are no longer supported, but found pile-of-law.py</td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried wikisource: Requires OAuth/login</td></tr></tbody></table>
+  <table class="prov"><thead><tr><th>domain</th><th>data</th><th>source</th><th>docs</th><th>license</th><th>note</th></tr></thead><tbody><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/lavita/MedQuAD</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted"></td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://arxiv.org/api/</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted">tried togethercomputer/arxiv (HF): Dataset 'togethercomputer/arxiv' doesn't exist on the Hub or cannot be accessed.</td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/gbharti/finance-alpaca</code></td><td>—</td><td>CC-BY-4.0</td><td class="muted">tried financial_phrasebank: Dataset scripts are no longer supported, but found financial_phrasebank.py</td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>Project Gutenberg via BabyLM-2026-Strict + https://huggingface.c</code></td><td>—</td><td>public domain</td><td class="muted"></td></tr><tr><td>?</td><td class="pass"><strong>specialist</strong></td><td><code>https://huggingface.co/datasets/coastalcph/lex_glue (case_hold)</code></td><td>—</td><td>Apache-2.0 (CaseHOLD release); the opinions are US public records</td><td class="muted"></td></tr><tr><td>?</td><td class="warn">fallback</td><td><code>https://huggingface.co/datasets/wikitext</code></td><td>—</td><td>CC-BY-SA-3.0</td><td class="muted">tried wikisource: Requires OAuth/login</td></tr></tbody></table>
 
   <h3>What a person writes vs. what the compiler does</h3>
   <div class="tablewrap"><table>
@@ -613,11 +613,11 @@ from-scratch it may pick the architecture to satisfy the capabilities.</p></div>
     because the program was edited.</p>
   </div></div>
   <table class='cmp'><thead><tr><th></th><th>meta-llama/Llama-3.2-1B-Instruct</th><th>Qwen/Qwen2.5-1.5B-Instruct</th></tr></thead><tbody><tr><td>parameters</td><td class='num'>1,235,814,400</td><td class='num'>1,543,714,304</td></tr>
-<tr><td>held-out loss (excluded MedQuAD)</td><td class='num'>2.0562 → 2.0047</td><td class='num'>1.678 → 1.6242</td></tr>
-<tr><td>guardrail route</td><td class='num'>steering skipped (ledger); gate margin 0.0 → 0.3333</td><td class='num'>steering searched, target met; gate margin 0.1667 → 0.1667</td></tr>
-<tr><td>controls installed</td><td class='num'>1</td><td class='num'>4</td></tr>
+<tr><td>held-out loss (excluded MedQuAD)</td><td class='num'>2.0562 → 2.0049</td><td class='num'>1.678 → 1.6242</td></tr>
+<tr><td>guardrail route</td><td class='num'>steering skipped (ledger); gate margin 0.0 → 0.5</td><td class='num'>steering searched, target met; gate margin 0.1667 → 0.1667</td></tr>
+<tr><td>controls installed</td><td class='num'>2</td><td class='num'>4</td></tr>
 <tr><td>expectations passed</td><td class='num'>2/2</td><td class='num'>2/2</td></tr>
-<tr><td>wall clock</td><td class='num'>630.3s</td><td class='num'>909.3s</td></tr></tbody></table>
+<tr><td>wall clock</td><td class='num'>653.9s</td><td class='num'>909.3s</td></tr></tbody></table>
   <div class="note"><b>The ceiling is a property of the substrate, not of steering.</b>
   On Llama the most a searched steering write ever delivered was 0.0179 nats, so the
   guardrail skipped steering. On Qwen the identical search delivered 0.0266 nats and met its
@@ -985,8 +985,8 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>…control strength at half-maximum effect, measured by dose-response</td><td class='num'>0.650</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…the largest effect available before over-steering reverses it</td><td class='num'>0.0457 nats</td><td><code>results/loom_port_demo.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>clinic.loom passes every expectation on Llama-3.2-1B-Instruct</td><td class='num'>yes</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr><td>…its guardrail's refusal margin on the composed model, off-domain minus in-domain</td><td class='num'>0.333</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr><td>…held-out loss on MedQuAD text excluded from training, after</td><td class='num'>2.0047</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…its guardrail's refusal margin on the composed model, off-domain minus in-domain</td><td class='num'>0.500</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>…held-out loss on MedQuAD text excluded from training, after</td><td class='num'>2.0049</td><td><code>results/loom_clinic_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>the same program, unchanged, passes on Qwen2.5-1.5B-Instruct</td><td class='num'>yes</td><td><code>results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…its guardrail margin on the composed model</td><td class='num'>0.167</td><td><code>results/loom_clinic_build_Qwen2_5-1_5B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>the most a steering write delivered on Qwen — the ceiling is substrate-specific</td><td class='num'>0.0266 nats</td><td><code>results/steering_capacity_qwen2_5-1_5b.json</code></td><td><span class="chip pass">measured</span></td></tr>
@@ -997,7 +997,13 @@ moves the operating point inside and the link succeeds.</p></div>
 <tr><td>…and on the same architecture at random initialization</td><td class='num'>FVU 0.2356</td><td><code>results/e6_real_lm_sae/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>heads a dense-trained model needs to reach accuracy 0.9</td><td class='num'>2.5</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
 <tr><td>…and a weight-sparse-trained model, same floor</td><td class='num'>4.0</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
-<tr><td>the direction holds at every floor tested</td><td class='num'>no</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr></tbody>
+<tr><td>the direction holds at every floor tested</td><td class='num'>no</td><td><code>results/e7_causal_size/result.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Counsel passes whole (insistence 0.5 closed its guardrail)</td><td class='num'>yes</td><td><code>results/loom_counsel_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Desk passes whole</td><td class='num'>yes</td><td><code>results/loom_desk_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Foreman passes whole</td><td class='num'>yes</td><td><code>results/loom_foreman_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Stylist passes whole</td><td class='num'>yes</td><td><code>results/loom_stylist_build_Llama-3_2-1B-Instruct.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>Gemma-2-2b: the largest knowledge gain measured, guardrail open</td><td class='num'>0.545 nats</td><td><code>results/loom_clinic_build_gemma-2-2b-it.json</code></td><td><span class="chip pass">measured</span></td></tr>
+<tr><td>a from-scratch build executed on the RTX 5090, device-proven</td><td class='num'>NVIDIA GeForce RTX 5090</td><td><code>results/loom_stylist_scratch_5090.json</code></td><td><span class="chip pass">measured</span></td></tr></tbody>
   </table></div>
 </div></section>
 
@@ -1027,7 +1033,7 @@ moves the operating point inside and the link succeeds.</p></div>
 
 <footer><div class="wrap">
   <p>MIabstraction · <a href="https://github.com/SharathSPhD/MIabstraction">github.com/SharathSPhD/MIabstraction</a>
-  · regenerate with <code>python -m miabstraction.site</code> · build 239eb17 · 2026-08-02 03:59 UTC</p>
+  · regenerate with <code>python -m miabstraction.site</code> · build 9ff12be · 2026-08-02 13:19 UTC</p>
 </div></footer>
 </body>
 </html>
