@@ -27,6 +27,40 @@ history of a wrong closure is more useful than a clean table.
 
 | **F** | The side-effect guard's verdict is about the lever, not the probe set | The quantity the budget is compared against is stable across probe subsets by a clear margin | **OPEN — measured, and the failure is not the one it looked like.** `scripts/guard_resolution.py`. The raw reading moved by 0.090 across leave-one-out subsets of four probes; sixteen probes in six registers cut that to 0.029. But the guard compares `base_variety − var` with both terms on the *same* probes, so the raw level was never the error bar that mattered. Measured properly — variety lost to a deliberate perturbation — the spread is **0.042 against a 0.05 budget**, and the cause is not noise: on Llama the loss reads 0.036–0.053 across fifteen subsets and **0.011 across the sixteenth**, because one probe carries most of the damage. The verdict flips across the budget depending on whether that probe was drawn. **A mean is the wrong statistic for a guard against concentrated harm.** Builds now record `variety_lost_worst_probe` beside the mean; the threshold is deliberately unchanged, because re-judging every build already measured on an unvalidated new statistic is the mistake this file exists to prevent. Also: the reading is not portable across generation lengths (0.667 at 48 tokens, 0.958 at 12 — a shorter generation has less room to repeat), so it must never be quoted as a property of a model |
 
+## Where this actually stands
+
+Written after two adversarial reviews by agents with no stake in the work, both of which
+found real defects that cost closures.
+
+**What is true.** A `.loom` program compiles to a model on two substrates from one source.
+On the from-scratch path the compiler chooses an architecture, learns a tokenizer from the
+corpus and trains the weights, and the result is a real model — 12 layers, 32k learned
+vocabulary, fluent English — that a person can talk to through the public app. That path
+contains no downloaded weights and no upstream model, so "the compiler made this model" is
+literally true and checkable: the app has nowhere to show a base model because there is
+none. Separate compilation works: a verified induction circuit grafts into a host with no
+gradient taken, its write allocated so it speaks only where its condition fires, and the
+skill it buys survives measurement on traffic its gain was never fitted to. Write
+allocation replicates 12/12. Every measured field is visible in the app, including the
+ones that make a number interpretable rather than impressive.
+
+**What is not.** The open-weight path is fine-tuning and inference-time steering, and
+`LOOM.md` says so in those words — the abstraction is real, but on that substrate it is an
+abstraction *over* familiar machinery, not a replacement for it. A searched linear write
+recovers 1.4%–33% of what simply stating an instruction achieves, which bounds how much of
+a program can honestly lower to steering. **Policy is the weakest layer**: the architecture
+is right and preserves in-subject behaviour exactly, but its scope estimator separates
+in-subject from off-subject requests on only 2 of 8 domains, so on the other six a declared
+clause ships as `NOT ENFORCED`. A better estimator was tried and measured worse. The
+from-scratch model is a real model that is not yet a good one — perplexity 35.2, missing
+the band gate E asks for, with the loss still falling. And no *real* build has linked a
+circuit, because the verified envelope sits below the vocabularies real programs use.
+
+**The honest one-line summary**: the compiler and the app work end to end and the claims
+that survived are measured rather than asserted, but a user who writes `never …` today
+should read their artifact before believing it, and a user who wants a from-scratch model
+worth deploying is waiting on more compute than has been spent.
+
 ## Standing rules
 
 1. **No number without a run.** A claim that cannot name the artifact it came from is
