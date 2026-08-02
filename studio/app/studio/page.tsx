@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader, AlertCircle } from "lucide-react";
+import { Loader, Zap } from "lucide-react";
+import { Card, Button, Callout, RefusalCallout, Tabs, Tab, EmptyState } from "@/components/ui";
 import { explainProgram, buildProgram } from "@/lib/gpu";
 import { createClient } from "@/lib/supabase/client";
 
@@ -82,7 +83,6 @@ function StudioContent() {
     setCompilerRefusal("");
     setBuilding(true);
 
-    // Try to get session token for authenticated builds
     let token: string | undefined;
     const supabase = createClient();
     if (supabase) {
@@ -109,115 +109,110 @@ function StudioContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      <h1 className="font-serif text-4xl font-bold mb-4">Loom Editor</h1>
-      <p className="text-body mb-8">
-        Write declarative specifications. The compiler searches, measures, and verifies.
-      </p>
-
-      {/* Program selector tabs */}
-      <div className="flex gap-1 mb-8 border-b border-hairline border-gray-300">
-        {Object.keys(examples).map((name) => (
-          <button
-            key={name}
-            onClick={() => handleSelectExample(name)}
-            className={`px-4 py-3 font-sans font-medium text-sm transition-colors duration-150 border-b-2 ${
-              selectedExample === name
-                ? "border-accent text-accent"
-                : "border-transparent text-body hover:text-ink"
-            }`}
-          >
-            {name.charAt(0).toUpperCase() + name.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-8">
-        {/* Left pane: editor */}
-        <div className="md:col-span-2 space-y-6">
-          <div>
-            <label className="block stat-label mb-3">Program Source</label>
-            <textarea
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              className="w-full h-96 px-4 py-3 border border-hairline border-gray-300 font-mono text-sm bg-white text-ink resize-none"
-              placeholder="Write your Loom program here..."
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label className="block stat-label">Target Model</label>
-            <select
-              value={targetModel}
-              onChange={(e) => setTargetModel(e.target.value)}
-              className="w-full px-4 py-2 border border-hairline border-gray-300 font-sans text-sm bg-white text-ink"
-            >
-              {MODELS.map((model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleExplain}
-              disabled={explaining || !source.trim()}
-              className="flex-1 button-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {explaining && <Loader className="w-4 h-4 animate-spin" />}
-              Explain
-            </button>
-            <button
-              onClick={handleBuild}
-              disabled={building || !source.trim()}
-              className="flex-1 button-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {building && <Loader className="w-4 h-4 animate-spin" />}
-              Build on GPU
-            </button>
-          </div>
+    <div className="bg-paper min-h-screen">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-12">
+          <h1 className="font-serif text-5xl font-bold mb-3">Loom Editor</h1>
+          <p className="text-lg text-body max-w-2xl">
+            Write declarative specifications. The compiler searches, measures, and verifies behavior across the parameter space.
+          </p>
         </div>
 
-        {/* Right pane: output */}
-        <div className="space-y-4">
-          {compilerRefusal && (
-            <div className="diagnostic-box space-y-2">
-              <div className="flex gap-2">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <h4 className="font-semibold">The compiler refused</h4>
+        {/* Program selector tabs */}
+        <Tabs
+          defaultValue={selectedExample}
+          className="mb-12"
+        >
+          {Object.keys(examples).map((name) => (
+            <Tab
+              key={name}
+              label={name.charAt(0).toUpperCase() + name.slice(1)}
+              value={name}
+            >
+              <div className="grid md:grid-cols-3 gap-8">
+                {/* Left pane: editor */}
+                <div className="md:col-span-2 space-y-6">
+                  <div>
+                    <label className="stat-label block mb-3">Program Source</label>
+                    <textarea
+                      value={source}
+                      onChange={(e) => setSource(e.target.value)}
+                      onClick={() => handleSelectExample(name)}
+                      className="w-full h-96 px-4 py-3 border border-hairline border-gray-300 rounded-lg font-mono text-sm bg-white text-ink resize-none focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
+                      placeholder="Write your Loom program here..."
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="stat-label">Target Model</label>
+                    <select
+                      value={targetModel}
+                      onChange={(e) => setTargetModel(e.target.value)}
+                      className="w-full px-4 py-2 border border-hairline border-gray-300 rounded-lg font-sans text-sm bg-white text-ink focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
+                    >
+                      {MODELS.map((model) => (
+                        <option key={model} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleExplain}
+                      disabled={explaining || !source.trim()}
+                      className="flex-1"
+                      size="lg"
+                    >
+                      {explaining && <Loader className="w-4 h-4 animate-spin" />}
+                      Explain
+                    </Button>
+                    <Button
+                      onClick={handleBuild}
+                      disabled={building || !source.trim()}
+                      className="flex-1"
+                      size="lg"
+                    >
+                      {building && <Loader className="w-4 h-4 animate-spin" />}
+                      Build on GPU
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right pane: output */}
+                <div className="space-y-4">
+                  {compilerRefusal && (
+                    <RefusalCallout message={compilerRefusal} />
+                  )}
+
+                  {error && (
+                    <Callout variant="error">
+                      {error}
+                    </Callout>
+                  )}
+
+                  {explainText && (
+                    <Card elevated>
+                      <h3 className="font-serif font-bold mb-4">Search Plan</h3>
+                      <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono text-body overflow-x-auto">
+                        {explainText}
+                      </pre>
+                    </Card>
+                  )}
+
+                  {!explainText && !error && !compilerRefusal && (
+                    <EmptyState
+                      icon={<Zap className="w-12 h-12 text-muted" />}
+                      title="Ready to compile"
+                      description="Click Explain to see the compiler's search plan"
+                    />
+                  )}
+                </div>
               </div>
-              <p className="font-mono text-xs break-words text-yellow-900">
-                {compilerRefusal}
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 border-l-2 border-red-400 p-4 space-y-2">
-              <p className="font-semibold text-red-900">Error</p>
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          {explainText && (
-            <div className="card space-y-3">
-              <h3 className="font-serif font-bold">Search Plan</h3>
-              <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono text-body">
-                {explainText}
-              </pre>
-            </div>
-          )}
-
-          {!explainText && !error && !compilerRefusal && (
-            <div className="card text-center py-12">
-              <p className="text-muted text-sm">
-                Click Explain to see the compiler's search plan
-              </p>
-            </div>
-          )}
-        </div>
+            </Tab>
+          ))}
+        </Tabs>
       </div>
     </div>
   );

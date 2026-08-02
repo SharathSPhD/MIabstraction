@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Zap } from "lucide-react";
+import { Card, Badge, Section, Divider, EmptyState, Stat } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { BuildReport } from "@/lib/types";
 
@@ -26,7 +28,6 @@ export default function BuildsPage() {
     if (!SB_URL || !SB_KEY) return;
 
     const pull = async () => {
-      // Try to get session token for RLS filtering
       let authToken = `Bearer ${SB_KEY}`;
       if (supabase) {
         const { data } = await supabase.auth.getSession();
@@ -72,116 +73,131 @@ export default function BuildsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      <h1 className="font-serif text-4xl font-bold mb-4">Builds</h1>
-      <p className="text-body mb-12">
-        Real builds that measure, search, and verify model behavior.
-      </p>
+    <div className="bg-paper">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <h1 className="font-serif text-5xl font-bold mb-4">Builds</h1>
+        <p className="text-lg text-body max-w-2xl">
+          Real builds that measure, search, and verify model behavior.
+        </p>
+      </div>
+
+      <Divider className="max-w-7xl mx-auto px-6" />
 
       {/* Live section */}
-      <div className="mb-16">
-        <h2 className="font-serif text-2xl font-bold mb-6 pb-4 border-b border-hairline border-gray-300">
-          Live
-        </h2>
+      <Section
+        className="max-w-7xl mx-auto px-6"
+        title="Live Builds"
+        eyebrow="Real-time"
+        description="Builds currently running or recently completed."
+      >
         {live.length === 0 ? (
-          <div className="card text-center py-12">
-            <p className="text-muted text-sm">
-              {SB_URL
-                ? "No builds recorded yet — submit one from the Studio."
-                : "Live build records need Supabase configured."}
-            </p>
-          </div>
+          <EmptyState
+            icon={<Zap className="w-12 h-12 text-muted" />}
+            title="No live builds"
+            description={
+              SB_URL
+                ? "No builds recorded yet. Submit one from the Studio to get started."
+                : "Live build records need Supabase configured."
+            }
+          />
         ) : (
           <div className="space-y-2">
             {live.map((b) => (
-              <Link key={b.id} href={`/builds/${b.id}`}>
-                <div className="card-hover cursor-pointer flex items-center justify-between gap-4 py-3">
-                  <div className="font-mono text-sm">{b.id.slice(0, 8)}</div>
-                  <div className="text-sm text-muted flex-1">
-                    {b.target_model.split("/").pop()}
+              <Link key={b.id} href={`/builds/${b.id}`} className="group">
+                <Card interactive className="flex items-center justify-between py-4 px-6">
+                  <div>
+                    <div className="font-mono text-sm font-semibold text-ink">
+                      {b.id.slice(0, 12)}...
+                    </div>
+                    <p className="text-xs text-muted mt-1">
+                      {b.target_model.split("/").pop()}
+                    </p>
                   </div>
                   <div className="text-xs text-muted font-mono">
                     {new Date(b.created_at).toLocaleString()}
                   </div>
-                  {b.hf_repo ? (
-                    <span className="text-xs font-mono text-verified">HF ↗</span>
-                  ) : null}
-                  <span
-                    className={
+                  {b.hf_repo && (
+                    <Badge variant="default" className="ml-4">
+                      HF Repo
+                    </Badge>
+                  )}
+                  <Badge
+                    variant={
                       b.status === "passed"
-                        ? "badge-replay text-verified"
+                        ? "pass"
                         : b.status === "running"
-                          ? "badge-live"
+                          ? "live"
                           : b.status === "failed" || b.status === "error"
-                            ? "badge-replay text-refusal"
-                            : "badge-replay"
+                            ? "fail"
+                            : "pending"
                     }
                   >
                     {b.status}
-                  </span>
-                </div>
+                  </Badge>
+                </Card>
               </Link>
             ))}
           </div>
         )}
-      </div>
+      </Section>
+
+      <Divider className="max-w-7xl mx-auto px-6" />
 
       {/* Verified showcase section */}
-      <div>
-        <h2 className="font-serif text-2xl font-bold mb-6 pb-4 border-b border-hairline border-gray-300">
-          Verified Showcase
-        </h2>
-
+      <Section
+        className="max-w-7xl mx-auto px-6"
+        title="Verified Showcase"
+        eyebrow="Benchmark Results"
+        description="Stable builds that have passed all verification criteria."
+      >
         {showcase.length === 0 ? (
-          <div className="card text-center py-12">
-            <p className="text-muted text-sm">
-              No verified builds available yet.
-            </p>
-          </div>
+          <EmptyState
+            title="No verified builds yet"
+            description="Builds will appear here once they complete verification."
+          />
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-6">
             {showcase.map((build, idx) => (
-              <Link key={idx} href={`/builds/replay-${idx}`}>
-                <div className="card-hover cursor-pointer">
-                  <div className="flex items-start justify-between gap-4">
+              <Link key={idx} href={`/builds/replay-${idx}`} className="group">
+                <Card elevated interactive>
+                  <div className="flex items-start justify-between gap-6">
                     <div className="flex-1">
-                      <h3 className="font-serif text-lg font-bold mb-2">
+                      <h3 className="font-serif text-xl font-bold mb-2 group-hover:text-accent transition-colors">
                         {build.app}
                       </h3>
-                      <p className="text-xs font-mono text-muted mb-3 uppercase">
+                      <p className="text-xs font-mono uppercase text-accent tracking-wider mb-4">
                         {build.base_model.split("/").pop()}
                       </p>
-                      <div className="flex flex-wrap gap-4 text-sm text-body">
-                        <div>
-                          <span className="stat-label block">Wall Clock</span>
-                          <span className="font-mono">
-                            {build.wall_clock_s.toFixed(1)}s
-                          </span>
-                        </div>
-                        <div>
-                          <span className="stat-label block">
-                            Expectations
-                          </span>
-                          <span className="font-mono">
-                            {build.expectations_passed || 0}/{build.expectations.length}
-                          </span>
-                        </div>
+                      <div className="grid grid-cols-3 gap-6">
+                        <Stat
+                          label="Wall Clock"
+                          value={build.wall_clock_s.toFixed(1)}
+                          unit="s"
+                        />
+                        <Stat
+                          label="Expectations Passed"
+                          value={build.expectations_passed || 0}
+                          unit={`/ ${build.expectations.length}`}
+                        />
+                        <Stat
+                          label="Status"
+                          value={build.passed ? "PASS" : "FAIL"}
+                          trend={build.passed ? "up" : "down"}
+                        />
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      {build.passed ? (
-                        <div className="badge-pass">PASS</div>
-                      ) : (
-                        <div className="badge-fail">FAIL</div>
-                      )}
+                    <div className="flex-shrink-0 mt-2">
+                      <Badge variant={build.passed ? "pass" : "fail"}>
+                        {build.passed ? "PASS" : "FAIL"}
+                      </Badge>
                     </div>
                   </div>
-                </div>
+                </Card>
               </Link>
             ))}
           </div>
         )}
-      </div>
+      </Section>
     </div>
   );
 }

@@ -23,7 +23,7 @@
   }
 
   h1 {
-    @apply font-serif text-4xl font-bold tracking-tight mb-4;
+    @apply font-serif text-5xl md:text-6xl font-bold tracking-tight mb-4;
   }
 
   h2 {
@@ -54,7 +54,7 @@
   }
 
   pre {
-    @apply bg-panel p-4 font-mono text-xs overflow-x-auto border border-hairline border-gray-300;
+    @apply bg-panel p-4 font-mono text-xs overflow-x-auto border border-hairline border-gray-300 rounded-lg shadow-sm;
   }
 
   code {
@@ -62,49 +62,93 @@
   }
 }
 
+@layer utilities {
+  /* Subtle entrance animation */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.25s ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up {
+      animation: none;
+    }
+  }
+
+  /* Pulse subtle for live status */
+  @keyframes pulse-subtle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Smooth page transitions */
+  .page-transition {
+    @apply animate-fade-up;
+  }
+}
+
 @layer components {
   .card {
-    @apply bg-white border border-hairline border-gray-300 p-6 transition-all duration-150;
+    @apply bg-white border border-hairline border-gray-300 p-6 rounded-lg transition-all duration-150 shadow-sm;
   }
 
   .card-hover {
-    @apply card hover:shadow-sm hover:border-accent;
+    @apply card hover:shadow-md hover:border-accent/30 hover:-translate-y-0.5;
   }
 
   .button-primary {
-    @apply inline-block px-4 py-2 bg-accent text-paper font-sans font-medium hover:bg-ink transition-colors duration-150 border border-hairline border-accent;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent text-paper font-sans font-medium hover:bg-ink transition-all duration-150 border border-hairline border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .button-secondary {
-    @apply inline-block px-4 py-2 bg-panel text-ink font-sans font-medium hover:bg-muted transition-colors duration-150 border border-hairline border-gray-300;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-panel text-ink font-sans font-medium hover:bg-gray-100 transition-all duration-150 border border-hairline border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .button-ghost {
-    @apply inline-block px-3 py-2 text-ink hover:bg-panel transition-colors duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 text-ink hover:bg-panel transition-all duration-150 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .diagnostic-box {
-    @apply bg-yellow-50 border-l-2 border-refusal p-4 text-sm text-yellow-900;
+    @apply bg-yellow-50 border-l-4 border-refusal p-4 rounded-r-lg text-sm text-yellow-900;
   }
 
   .badge-pass {
-    @apply inline-block px-2 py-1 bg-green-50 text-verified font-mono text-xs font-semibold border border-hairline border-verified;
+    @apply inline-flex items-center px-3 py-1 bg-green-50 text-verified font-mono text-xs font-semibold border border-hairline border-verified rounded-full;
   }
 
   .badge-fail {
-    @apply inline-block px-2 py-1 bg-red-50 text-red-700 font-mono text-xs font-semibold border border-hairline border-red-300;
+    @apply inline-flex items-center px-3 py-1 bg-red-50 text-red-700 font-mono text-xs font-semibold border border-hairline border-red-300 rounded-full;
   }
 
   .badge-pending {
-    @apply inline-block px-2 py-1 bg-blue-50 text-blue-700 font-mono text-xs font-semibold border border-hairline border-blue-300;
+    @apply inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 font-mono text-xs font-semibold border border-hairline border-blue-300 rounded-full;
   }
 
   .badge-live {
-    @apply inline-block px-2 py-1 bg-verified text-white font-mono text-xs font-semibold animate-pulse-subtle;
+    @apply inline-flex items-center px-3 py-1 bg-verified text-white font-mono text-xs font-semibold rounded-full animate-pulse-subtle;
   }
 
   .badge-replay {
-    @apply inline-block px-2 py-1 bg-gray-400 text-white font-mono text-xs font-semibold;
+    @apply inline-flex items-center px-3 py-1 bg-gray-400 text-white font-mono text-xs font-semibold rounded-full;
   }
 
   .divider {
@@ -116,14 +160,14 @@
   }
 
   .stat-card {
-    @apply bg-white border border-hairline border-gray-300 p-4;
+    @apply bg-white border border-hairline border-gray-300 p-4 rounded-lg shadow-sm;
   }
 
   .stat-label {
-    @apply text-xs text-muted mb-1 font-mono uppercase;
+    @apply text-xs text-muted mb-1 font-mono uppercase tracking-wider;
   }
 
   .stat-value {
-    @apply font-mono text-lg font-bold tabular-nums;
+    @apply font-mono text-lg font-bold tabular-nums text-ink;
   }
 }
