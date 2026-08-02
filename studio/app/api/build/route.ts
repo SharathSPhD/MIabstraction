@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({ source: body.source, target, build_id: buildId }),
     signal: AbortSignal.timeout(30_000),
+    cache: "no-store" as RequestCache,
   }).catch(() => null);
   if (!upstream) {
     return Response.json({ offline: true, detail: "GPU worker unreachable" },

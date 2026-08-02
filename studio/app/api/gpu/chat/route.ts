@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({ artifact: body.artifact, message: body.message }),
         signal: AbortSignal.timeout(90_000),
+        cache: "no-store" as RequestCache,
       }
     );
 

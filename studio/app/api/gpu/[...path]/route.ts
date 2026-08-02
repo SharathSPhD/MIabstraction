@@ -29,6 +29,7 @@ async function proxy(req: NextRequest, params: { path: string[] }) {
     method: req.method,
     headers,
     signal: AbortSignal.timeout(280_000),
+    cache: "no-store" as RequestCache,
   };
 
   if (req.method === "POST") {

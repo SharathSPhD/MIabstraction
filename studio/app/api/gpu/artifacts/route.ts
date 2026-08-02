@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
           "X-Loom-Key": process.env.LOOM_GPU_KEY ?? "",
         },
         signal: AbortSignal.timeout(10_000),
+        cache: "no-store" as RequestCache,
       }
     );
 
