@@ -57,6 +57,10 @@ class ExecReport:
     substrate_advantage: str = ""
     model_dir: str = ""
     controls: list[dict] = field(default_factory=list)
+    # What the program declared about scope. Compiled to no weight change — it travels
+    # with the artifact so the intermediary in front of the model can enforce it. A
+    # scratch build that drops this ships a model whose declared policy cannot fire.
+    policy: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -81,6 +85,7 @@ class ExecReport:
             "model_dir": self.model_dir,
             "controls": self.controls,
             "n_controls_installed": len(self.controls),
+            "policy": self.policy,
         }
 
 
@@ -254,32 +259,56 @@ def build_tokenizer(corpus: str | Path, vocab_size: int = 16000):
 # ============================================================================
 
 def _tokenize_corpus(tokenizer, paths: dict[str, float], seq_len: int,
-                     vocab: int, limit_chars: int = 2_000_000) -> torch.Tensor:
-    """Turn the app's real corpus files into sequences, honouring the mixture weights.
+                     vocab: int, limit_chars: int = 2_000_000
+                     ) -> list[torch.Tensor]:
+    """Turn the app's real corpus files into sequences, one tensor per source.
 
     The weights are a mixture over sources, so a corpus that is 0.7 medical and 0.3
     engineering yields roughly that proportion of sequences. Nothing is generated here;
     if a path holds no text this returns nothing and the caller says so.
+
+    Per source rather than concatenated, because the caller holds out the tail of each
+    one. Splitting a concatenation instead holds out whatever source happens to sit
+    last, and then reports the model's failure on an unseen distribution as its
+    held-out perplexity.
+
+    `limit_chars` is a budget, not a constant: a flagship run that reads a demo-sized
+    slice of its corpus spends its whole step count re-reading the same few thousand
+    sequences. That is how this project produced a 40,000-step model with a held-out
+    perplexity worse than uniform — 365 passes over 1,755 sequences, memorised.
     """
     chunks: list[torch.Tensor] = []
     total_w = sum(paths.values()) or 1.0
     for path, weight in paths.items():
         files = sorted(Path(path).glob("*.txt")) if Path(path).is_dir() else [Path(path)]
+        budget = int(limit_chars * (weight / total_w))
         text = ""
         for f in files:
-            if f.is_file():
-                text += f.read_text(errors="ignore")
+            if f.is_file() and len(text) < budget:
+                text += f.read_text(errors="ignore")[:budget - len(text)]
         if not text:
             continue
-        text = text[:int(limit_chars * (weight / total_w))]
-        ids = tokenizer.encode(text).ids if hasattr(tokenizer, "encode") else []
-        ids = [i for i in ids if 0 <= i < vocab]
+        # Encoded in blocks: a single tokenizer call on hundreds of megabytes holds the
+        # text, its offsets and its ids in memory at once. Blocks break at whitespace so
+        # no word is split across the boundary.
+        ids: list[int] = []
+        block = 4_000_000
+        i = 0
+        while i < len(text):
+            j = min(i + block, len(text))
+            if j < len(text):
+                k = text.rfind(" ", i, j)
+                if k > i:
+                    j = k
+            piece = text[i:j]
+            ids.extend(tokenizer.encode(piece).ids if hasattr(tokenizer, "encode")
+                       else [])
+            i = j
+        ids = [t for t in ids if 0 <= t < vocab]
         n = (len(ids) // seq_len) * seq_len
         if n >= seq_len:
             chunks.append(torch.tensor(ids[:n], dtype=torch.long).view(-1, seq_len))
-    if not chunks:
-        return torch.empty(0, seq_len, dtype=torch.long)
-    return torch.cat(chunks, dim=0)
+    return chunks
 
 
 def _contrast_batches(corpora: dict[str, float], tokenizer, vocab: int, device: str,
@@ -331,6 +360,7 @@ def pretraining_mixture(
     batch_size: int = 8,
     device: str = "cuda",
     lr: float = 1e-4,
+    corpus_chars: int = 2_000_000,
 ) -> tuple[float | None, float | None, int, float, dict]:
     """Pretrain the model we are building on the app's real corpus.
 
@@ -352,19 +382,29 @@ def pretraining_mixture(
             "ran": False,
             "reason": "no tokenizer was built, so the corpus could not be encoded"}
 
-    data = _tokenize_corpus(tokenizer, corpora, seq_len, model.vocab)
-    if len(data) < 16:
+    per_source = _tokenize_corpus(tokenizer, corpora, seq_len, model.vocab,
+                                  limit_chars=corpus_chars)
+    n_seq = sum(int(c.shape[0]) for c in per_source)
+    if n_seq < 16:
         return None, None, 0, time.time() - t0, {
             "ran": False,
-            "reason": f"the corpus {sorted(corpora)} yielded {len(data)} sequences of "
+            "reason": f"the corpus {sorted(corpora)} yielded {n_seq} sequences of "
                       f"{seq_len} tokens, which is not enough to train or evaluate on",
             "sources": sorted(corpora)}
 
-    # Held out by position rather than at random: neighbouring chunks of one document
-    # share sentences, and a random split would put those on both sides and report a
-    # validation loss that is partly memorisation.
-    cut = int(len(data) * 0.9)
-    train_data, val_data = data[:cut], data[cut:]
+    # Held out by position *within each source* rather than at random: neighbouring
+    # chunks of one document share sentences, and a random split would put those on both
+    # sides and report a validation loss that is partly memorisation. Splitting the
+    # concatenation instead would hold out whichever source sits last, which measures
+    # transfer to an unseen distribution and calls it held-out perplexity.
+    tr_parts, va_parts = [], []
+    for c in per_source:
+        cut = max(1, int(c.shape[0] * 0.9))
+        tr_parts.append(c[:cut])
+        if c.shape[0] > cut:
+            va_parts.append(c[cut:])
+    train_data = torch.cat(tr_parts, dim=0)
+    val_data = torch.cat(va_parts, dim=0) if va_parts else train_data[:1]
 
     model.module.train()
     opt = torch.optim.AdamW(model.module.parameters(), lr=lr)
@@ -373,6 +413,8 @@ def pretraining_mixture(
     val_loader = DataLoader(TensorDataset(val_data), batch_size=batch_size)
 
     total_train_loss, tokens_seen, done = 0.0, 0, 0
+    curve: list[dict] = []
+    window, recent = max(1, steps // 20), 0.0
     while done < steps:
         for (batch,) in train_loader:
             if done >= steps:
@@ -383,9 +425,19 @@ def pretraining_mixture(
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.module.parameters(), 1.0)
             opt.step()
-            total_train_loss += float(loss.detach())
+            l = float(loss.detach())
+            total_train_loss += l
+            recent += l
             tokens_seen += batch.shape[0] * batch.shape[1]
             done += 1
+            # A run whose only number arrives at the end cannot be diagnosed. Twenty
+            # points is enough to see a loss that stopped moving, or one that fell to
+            # nothing because the model ran out of material and started reciting.
+            if done % window == 0:
+                curve.append({"step": done, "train_loss": round(recent / window, 4)})
+                print(f"  step {done}/{steps} train_loss {recent / window:.4f}",
+                      flush=True)
+                recent = 0.0
 
     model.module.eval()
     val_loss, n_batches = 0.0, 0
@@ -397,18 +449,33 @@ def pretraining_mixture(
 
     val_loss = val_loss / n_batches if n_batches else None
     val_ppl = math.exp(val_loss) if val_loss is not None else None
+    # How many times the model saw its own training set. This is the number that makes
+    # a memorised run self-evident: a held-out perplexity is only a statement about
+    # generalisation while the model has not read every sequence dozens of times.
+    epochs = (done * batch_size) / max(int(len(train_data)), 1)
     prov = {
         "ran": True,
         "sources": sorted(corpora),
         "weights": corpora,
-        "sequences": int(len(data)),
+        "corpus_chars_budget": corpus_chars,
+        "sequences": int(n_seq),
         "seq_len": seq_len,
         "train_sequences": int(len(train_data)),
         "heldout_sequences": int(len(val_data)),
+        "heldout_split": "last 10% of each source, by position",
         "steps": done,
         "lr": lr,
-        "final_train_loss": round(total_train_loss / max(done, 1), 4),
+        "epochs_over_train_set": round(epochs, 2),
+        "final_train_loss": (curve[-1]["train_loss"] if curve
+                             else round(total_train_loss / max(done, 1), 4)),
+        "mean_train_loss": round(total_train_loss / max(done, 1), 4),
+        "curve": curve,
     }
+    if epochs > 8:
+        prov["warning"] = (
+            f"the model made {epochs:.0f} passes over {len(train_data)} training "
+            f"sequences; a held-out number from this run measures memorisation, not "
+            f"generalisation, and the corpus budget is the thing to raise")
     return val_loss, val_ppl, tokens_seen, time.time() - t0, prov
 
 
@@ -660,8 +727,14 @@ def execute_scratch(
         steps=int(tr.get("steps", 500)),
         batch_size=int(tr.get("batch_size", 8)),
         lr=float(tr.get("lr", 1e-4)),
+        corpus_chars=int(tr.get("corpus_chars", 2_000_000)),
         device=device,
     )
+    # Declared scope travels with the artifact. Nothing here changed a weight; the gate
+    # in front of the model reads this at request time.
+    rep.policy = [{"kind": c.kind.value, "clause": c.describe(), "name": c.name,
+                   "enforced_by": "intermediary at request time (not in weights)"}
+                  for c in app.policies()]
     rep.pretraining = pretrain_prov
     rep.tokens_seen = tokens_seen
     rep.val_loss = val_loss
@@ -735,6 +808,13 @@ def execute_scratch(
                 # fires. This is the one strategy in the catalogue that realizes a
                 # capability with no training at all.
                 from .linking import link_skill
+                if not isinstance(dummy_a, torch.Tensor) or dummy_a.numel() == 0:
+                    cap_record["install"] = {
+                        "op": "install", "ok": False,
+                        "reason": "no contrast material, so there is no host traffic to "
+                                  "solve a gain against or measure a firing rate on"}
+                    measured.append(cap_record["install"])
+                    continue
                 try:
                     cap_record["install"] = link_skill(
                         model.module, dummy_a[:16], vocab=vocab_size,

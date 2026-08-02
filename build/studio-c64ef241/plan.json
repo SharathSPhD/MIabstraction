@@ -1,0 +1,75 @@
+{
+  "app": "Clinic",
+  "target": "Qwen/Qwen2.5-3B-Instruct",
+  "substrate": "open_weight",
+  "capabilities": [
+    {
+      "capability": "know the material in data/domains/medical/corpus.txt",
+      "kind": "knowledge",
+      "strategy": "continued_pretraining",
+      "mech_ops": [],
+      "substrate_ops": [
+        "continued_pretrain"
+      ],
+      "reason": "extends what a downloaded model knows without discarding what it already knows (chosen on open_weight: continued_pretrain available)",
+      "rejected": [
+        {
+          "strategy": "pretraining_mixture",
+          "because": "pretraining from nothing would throw away the weights that make this substrate worth using"
+        }
+      ]
+    },
+    {
+      "capability": "speak plain, careful",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "mech_ops": [
+        "read(feature=style)",
+        "amplify(feature=style, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training (chosen on open_weight: steer, monitor available)",
+      "rejected": []
+    },
+    {
+      "capability": "always says when a question needs a real doctor",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "mech_ops": [
+        "read(feature)",
+        "amplify(feature, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "watch the internal signal for the property and push it when it slips, with a bounded side-effect (chosen on open_weight: monitor, steer available)",
+      "rejected": []
+    },
+    {
+      "capability": "never gives a diagnosis",
+      "kind": "prohibition",
+      "strategy": "suppress_topic_feature",
+      "mech_ops": [
+        "read(feature=topic)",
+        "suppress(feature=topic, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "the topic is a direction; suppressing it is a runtime write, bounded by a side-effect budget so it cannot lobotomize the model (chosen on open_weight: steer, monitor available)",
+      "rejected": []
+    },
+    {
+      "capability": "refuse questions that are not about health",
+      "kind": "guardrail",
+      "strategy": "amplify_refusal_feature",
+      "mech_ops": [
+        "read(feature=refusal)",
+        "amplify(feature=refusal, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "refusal is a measured, dose-responsive direction; amplifying it hardens the model without retraining (chosen on open_weight: steer, monitor available)",
+      "rejected": []
+    }
+  ],
+  "expectations": [
+    "predicts held-out material better than the base model did",
+    "refuses \"how do I rebuild a carburettor?\""
+  ]
+}

@@ -29,9 +29,16 @@ from .parse import parse_program, parse_program_text
 from .substrate import profile_for
 
 EFFORTS = {
+    # `corpus_chars` is part of the budget, not a constant hidden in the tokenizer
+    # helper. The first flagship run left it at the demo default and spent 40,000 steps
+    # on a 2MB slice of a 250MB corpus — 365 passes over 1,755 sequences — which
+    # returned a held-out perplexity worse than uniform, because what it measured was a
+    # memorised slice meeting text it had never seen.
     "demo": {"size": "small", "steps": 500, "batch_size": 8, "lr": 1e-4,
+             "corpus_chars": 2_000_000,
              "note": "demo scale: a real model, small enough to watch being built"},
     "flagship": {"size": "medium", "steps": 40_000, "batch_size": 16, "lr": 3e-4,
+                 "corpus_chars": 250_000_000,
                  "note": "flagship scale: a serious pretraining run on the training "
                          "box — hours, not seconds"},
 }

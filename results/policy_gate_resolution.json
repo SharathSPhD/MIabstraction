@@ -1,0 +1,589 @@
+{
+  "question": "is the policy gate's 0.34 coverage floor measured or tuned?",
+  "domains": [
+    "engineering",
+    "english",
+    "fintech",
+    "grammar",
+    "history",
+    "legal",
+    "literature",
+    "medical"
+  ],
+  "per_domain": [
+    {
+      "domain": "engineering",
+      "vocab_words": 7180,
+      "in_scores": [
+        0.75,
+        1.0,
+        0.5,
+        0.333,
+        0.333,
+        0.75
+      ],
+      "out_scores": [
+        0.4,
+        0.6,
+        0.25,
+        0.4,
+        0.667
+      ],
+      "used_declarative_in_domain": false
+    },
+    {
+      "domain": "english",
+      "vocab_words": 43659,
+      "in_scores": [
+        1.0,
+        1.0
+      ],
+      "out_scores": [
+        0.8,
+        0.167,
+        1.0,
+        1.0
+      ],
+      "used_declarative_in_domain": false
+    },
+    {
+      "domain": "fintech",
+      "vocab_words": 5425,
+      "in_scores": [
+        1.0,
+        1.0,
+        0.5,
+        0.667
+      ],
+      "out_scores": [
+        0.167,
+        0.667,
+        0.4,
+        0.571,
+        0.857
+      ],
+      "used_declarative_in_domain": false
+    },
+    {
+      "domain": "grammar",
+      "vocab_words": 1422,
+      "in_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.6
+      ],
+      "out_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "used_declarative_in_domain": false
+    },
+    {
+      "domain": "history",
+      "vocab_words": 4618,
+      "in_scores": [
+        0.714,
+        0.286,
+        0.375,
+        0.714,
+        0.167
+      ],
+      "out_scores": [
+        0.286,
+        0.5,
+        0.571,
+        0.714,
+        0.4
+      ],
+      "used_declarative_in_domain": true
+    },
+    {
+      "domain": "legal",
+      "vocab_words": 8734,
+      "in_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "out_scores": [
+        0.286,
+        0.167,
+        0.4,
+        0.4,
+        0.667
+      ],
+      "used_declarative_in_domain": false
+    },
+    {
+      "domain": "literature",
+      "vocab_words": 9803,
+      "in_scores": [
+        0.8,
+        0.667,
+        0.667,
+        0.75,
+        0.5,
+        1.0
+      ],
+      "out_scores": [
+        0.625,
+        0.0,
+        0.5,
+        0.5,
+        0.0
+      ],
+      "used_declarative_in_domain": false
+    },
+    {
+      "domain": "medical",
+      "vocab_words": 2924,
+      "in_scores": [
+        1.0,
+        1.0,
+        0.75,
+        0.833,
+        1.0
+      ],
+      "out_scores": [
+        0.4,
+        0.333,
+        0.167,
+        0.0,
+        0.429
+      ],
+      "used_declarative_in_domain": false
+    }
+  ],
+  "sweep": [
+    {
+      "floor": 0.0,
+      "in_subject_wrongly_gated": 0,
+      "off_subject_wrongly_allowed": 39,
+      "errors": 39,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.02,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.04,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.06,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.08,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.1,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.12,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.14,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.16,
+      "in_subject_wrongly_gated": 3,
+      "off_subject_wrongly_allowed": 31,
+      "errors": 34,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.18,
+      "in_subject_wrongly_gated": 4,
+      "off_subject_wrongly_allowed": 27,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.2,
+      "in_subject_wrongly_gated": 4,
+      "off_subject_wrongly_allowed": 27,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.22,
+      "in_subject_wrongly_gated": 4,
+      "off_subject_wrongly_allowed": 27,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.24,
+      "in_subject_wrongly_gated": 4,
+      "off_subject_wrongly_allowed": 27,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.26,
+      "in_subject_wrongly_gated": 5,
+      "off_subject_wrongly_allowed": 26,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.28,
+      "in_subject_wrongly_gated": 5,
+      "off_subject_wrongly_allowed": 26,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.3,
+      "in_subject_wrongly_gated": 6,
+      "off_subject_wrongly_allowed": 24,
+      "errors": 30,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.32,
+      "in_subject_wrongly_gated": 6,
+      "off_subject_wrongly_allowed": 24,
+      "errors": 30,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.34,
+      "in_subject_wrongly_gated": 8,
+      "off_subject_wrongly_allowed": 23,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.36,
+      "in_subject_wrongly_gated": 8,
+      "off_subject_wrongly_allowed": 23,
+      "errors": 31,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.38,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 23,
+      "errors": 32,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.4,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 23,
+      "errors": 32,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.42,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 16,
+      "errors": 25,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.44,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 15,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.46,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 15,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.48,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 15,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.5,
+      "in_subject_wrongly_gated": 9,
+      "off_subject_wrongly_allowed": 15,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.52,
+      "in_subject_wrongly_gated": 12,
+      "off_subject_wrongly_allowed": 12,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.54,
+      "in_subject_wrongly_gated": 12,
+      "off_subject_wrongly_allowed": 12,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.56,
+      "in_subject_wrongly_gated": 12,
+      "off_subject_wrongly_allowed": 12,
+      "errors": 24,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.58,
+      "in_subject_wrongly_gated": 12,
+      "off_subject_wrongly_allowed": 10,
+      "errors": 22,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.6,
+      "in_subject_wrongly_gated": 12,
+      "off_subject_wrongly_allowed": 10,
+      "errors": 22,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.62,
+      "in_subject_wrongly_gated": 13,
+      "off_subject_wrongly_allowed": 9,
+      "errors": 22,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.64,
+      "in_subject_wrongly_gated": 13,
+      "off_subject_wrongly_allowed": 8,
+      "errors": 21,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.66,
+      "in_subject_wrongly_gated": 13,
+      "off_subject_wrongly_allowed": 8,
+      "errors": 21,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.68,
+      "in_subject_wrongly_gated": 16,
+      "off_subject_wrongly_allowed": 5,
+      "errors": 21,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.7,
+      "in_subject_wrongly_gated": 16,
+      "off_subject_wrongly_allowed": 5,
+      "errors": 21,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.72,
+      "in_subject_wrongly_gated": 18,
+      "off_subject_wrongly_allowed": 4,
+      "errors": 22,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.74,
+      "in_subject_wrongly_gated": 18,
+      "off_subject_wrongly_allowed": 4,
+      "errors": 22,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.76,
+      "in_subject_wrongly_gated": 22,
+      "off_subject_wrongly_allowed": 4,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.78,
+      "in_subject_wrongly_gated": 22,
+      "off_subject_wrongly_allowed": 4,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.8,
+      "in_subject_wrongly_gated": 22,
+      "off_subject_wrongly_allowed": 4,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.82,
+      "in_subject_wrongly_gated": 23,
+      "off_subject_wrongly_allowed": 3,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.84,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 3,
+      "errors": 27,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.86,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.88,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.9,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.92,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.94,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.96,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 0.98,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    },
+    {
+      "floor": 1.0,
+      "in_subject_wrongly_gated": 24,
+      "off_subject_wrongly_allowed": 2,
+      "errors": 26,
+      "n_in": 37,
+      "n_out": 39
+    }
+  ],
+  "floors_with_no_error": [],
+  "widest_error_free_plateau": null,
+  "plateau_width": 0.0,
+  "lowest_in_subject_score": 0.0,
+  "highest_off_subject_score": 1.0,
+  "separation_margin": -1.0,
+  "at_the_shipped_floor_0_34": {
+    "floor": 0.34,
+    "in_subject_wrongly_gated": 8,
+    "off_subject_wrongly_allowed": 23,
+    "errors": 31,
+    "n_in": 37,
+    "n_out": 39
+  },
+  "verdict": "no floor separates these classes cleanly (best is {'floor': 0.64, 'in_subject_wrongly_gated': 13, 'off_subject_wrongly_allowed': 8, 'errors': 21, 'n_in': 37, 'n_out': 39}); the word-overlap estimator is not good enough for these domains and the gate needs the activation-level recogniser, not a better constant",
+  "note": "Errors are not symmetric: an off-subject request allowed through costs an answer, an in-subject request gated rebuilds the over-refusal this design exists to remove."
+}

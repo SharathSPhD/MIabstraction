@@ -1,0 +1,8 @@
+{
+  "kind": "decoder",
+  "width": 281,
+  "layers": 6,
+  "heads": 1,
+  "vocab": 2229,
+  "ctx": 512
+}

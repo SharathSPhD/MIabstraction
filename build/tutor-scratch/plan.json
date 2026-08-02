@@ -1,0 +1,57 @@
+{
+  "app": "Tutor",
+  "target": "scratch(small)",
+  "substrate": "scratch",
+  "capabilities": [
+    {
+      "capability": "know the material in data/domains/grammar/corpus.txt",
+      "kind": "knowledge",
+      "strategy": "pretraining_mixture",
+      "mech_ops": [],
+      "substrate_ops": [
+        "mix_corpus",
+        "pretrain"
+      ],
+      "reason": "the material is in the weights from the start, which is only possible when we are the ones training the model (chosen on scratch: pretrain available)",
+      "rejected": []
+    },
+    {
+      "capability": "be able to explain step by step",
+      "kind": "skill",
+      "strategy": "install_compiled_circuit",
+      "mech_ops": [
+        "install(circuit)"
+      ],
+      "substrate_ops": [],
+      "reason": "the skill exists as a verified circuit and can be written into the weights directly, with no training at all (chosen on scratch: install_circuit available)",
+      "rejected": []
+    },
+    {
+      "capability": "speak patient, plain",
+      "kind": "style",
+      "strategy": "steer_style_feature",
+      "mech_ops": [
+        "read(feature=style)",
+        "amplify(feature=style, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "style is a direction in activation space; steering it is a runtime write with a measured dose, and costs no training (chosen on scratch: steer, monitor available)",
+      "rejected": []
+    },
+    {
+      "capability": "always names the rule it applied",
+      "kind": "invariant",
+      "strategy": "monitor_and_correct",
+      "mech_ops": [
+        "read(feature)",
+        "amplify(feature, dose=ec50)"
+      ],
+      "substrate_ops": [],
+      "reason": "watch the internal signal for the property and push it when it slips, with a bounded side-effect (chosen on scratch: monitor, steer available)",
+      "rejected": []
+    }
+  ],
+  "expectations": [
+    "predicts held-out material better than the base model did"
+  ]
+}

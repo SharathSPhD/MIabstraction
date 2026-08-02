@@ -19,3 +19,4 @@ private/
 # Domain corpora: large files, regenerable from scripts
 data/domains/*/corpus.txt
 studio.env.local
+.claude/worktrees/

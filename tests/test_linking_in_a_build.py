@@ -78,6 +78,27 @@ def test_the_condition_is_about_the_input_not_the_units_confidence():
     assert mask[0, :3].sum() == 0 and mask[0, 3:].sum() == 3
 
 
+def test_the_reported_skill_is_not_the_one_the_gain_was_fitted_to():
+    """The linker searches for a gain that makes the gate pass and stops at the first
+    one that does. Reporting that gate on that traffic reports the search succeeding —
+    it passes by construction and no result could contradict it. So the traffic is
+    split, and everything reported is measured on the half the linker never saw.
+    """
+    n = 16
+    r = link_skill(_host(), _tokens(n), vocab=VOCAB, max_len=CTX, device="cpu")
+    assert r["heldout_sequences"] > 0, r
+    assert r["fit_sequences"] + r["heldout_sequences"] == n
+    assert "held-out" in r["measured_on"]
+
+
+def test_one_sequence_cannot_be_split_and_the_record_says_so():
+    """The honest outcome when there is nothing to hold out is a number labelled
+    in-sample, not a number that looks like the held-out one."""
+    r = link_skill(_host(), _tokens(1), vocab=VOCAB, max_len=CTX, device="cpu")
+    assert r["heldout_sequences"] == 0
+    assert "in-sample" in r["measured_on"]
+
+
 def test_the_host_is_not_damaged():
     """Linking is only worth having if the host survives it. The budget is declared
     and the report states what was actually paid."""

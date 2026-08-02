@@ -1,0 +1,11016 @@
+{
+  "version": "1.0",
+  "truncation": null,
+  "padding": null,
+  "added_tokens": [
+    {
+      "id": 0,
+      "content": "<PAD>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1,
+      "content": "<UNK>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 2,
+      "content": "<BOS>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 3,
+      "content": "<EOS>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    }
+  ],
+  "normalizer": null,
+  "pre_tokenizer": {
+    "type": "Whitespace"
+  },
+  "post_processor": null,
+  "decoder": null,
+  "model": {
+    "type": "BPE",
+    "dropout": null,
+    "unk_token": null,
+    "continuing_subword_prefix": null,
+    "end_of_word_suffix": null,
+    "fuse_unk": false,
+    "byte_fallback": false,
+    "ignore_merges": false,
+    "vocab": {
+      "<PAD>": 0,
+      "<UNK>": 1,
+      "<BOS>": 2,
+      "<EOS>": 3,
+      "(": 4,
+      ")": 5,
+      ",": 6,
+      ".": 7,
+      "A": 8,
+      "B": 9,
+      "D": 10,
+      "E": 11,
+      "H": 12,
+      "I": 13,
+      "N": 14,
+      "O": 15,
+      "Q": 16,
+      "R": 17,
+      "S": 18,
+      "T": 19,
+      "U": 20,
+      "W": 21,
+      "\\": 22,
+      "a": 23,
+      "b": 24,
+      "c": 25,
+      "d": 26,
+      "e": 27,
+      "f": 28,
+      "g": 29,
+      "h": 30,
+      "i": 31,
+      "j": 32,
+      "k": 33,
+      "l": 34,
+      "m": 35,
+      "n": 36,
+      "o": 37,
+      "p": 38,
+      "r": 39,
+      "s": 40,
+      "t": 41,
+      "u": 42,
+      "v": 43,
+      "w": 44,
+      "y": 45,
+      "z": 46,
+      "~": 47,
+      "he": 48,
+      "er": 49,
+      "the": 50,
+      "ma": 51,
+      "di": 52,
+      "ve": 53,
+      "ar": 54,
+      "te": 55,
+      "in": 56,
+      "se": 57,
+      "mb": 58,
+      "vA": 59,
+      "BvA": 60,
+      "The": 61,
+      "ama": 62,
+      "ce": 63,
+      "fo": 64,
+      "gi": 65,
+      "ice": 66,
+      "nu": 67,
+      "nse": 68,
+      "on": 69,
+      "oo": 70,
+      "oice": 71,
+      "per": 72,
+      "rm": 73,
+      "roo": 74,
+      "son": 75,
+      "voice": 76,
+      "ves": 77,
+      "tense": 78,
+      "mber": 79,
+      "BvAdi": 80,
+      "form": 81,
+      "gives": 82,
+      "number": 83,
+      "person": 84,
+      "root": 85,
+      "~\\": 86,
+      "kar": 87,
+      "vi": 88,
+      "AD": 89,
+      "Dy": 90,
+      "ah": 91,
+      "BA": 92,
+      "aT": 93,
+      "Ri": 94,
+      "tar": 95,
+      "maRi": 96,
+      "kartar": 97,
+      "karmaRi": 98,
+      "kartari": 99,
+      "pr": 100,
+      "aTama": 101,
+      "praTama": 102,
+      "dvi": 103,
+      "ek": 104,
+      "eka": 105,
+      "bah": 106,
+      "tt": 107,
+      "utt": 108,
+      "maDy": 109,
+      "bahu": 110,
+      "uttama": 111,
+      "maDyama": 112,
+      "BAve": 113,
+      "va": 114,
+      "li": 115,
+      "Da": 116,
+      "ADf": 117,
+      "Di": 118,
+      "an": 119,
+      "AT": 120,
+      "la": 121,
+      "lf": 122,
+      "lu": 123,
+      "zy": 124,
+      "da": 125,
+      "ku": 126,
+      "par": 127,
+      "sku": 128,
+      "spar": 129,
+      "tA": 130,
+      "nAT": 131,
+      "BU": 132,
+      "ADi": 133,
+      "dy": 134,
+      "Ba": 135,
+      "Ir": 136,
+      "AS": 137,
+      "le": 138,
+      "lo": 139,
+      "viDi": 140,
+      "Irli": 141,
+      "ASIrli": 142,
+      "viDili": 143,
+      "ndi": 144,
+      "daDa": 145,
+      "sparDa": 146,
+      "eDa": 147,
+      "Ban": 148,
+      "Sv": 149,
+      "Svi": 150,
+      "bADf": 151,
+      "gADf": 152,
+      "nADf": 153,
+      "vadi": 154,
+      "skudi": 155,
+      "nATf": 156,
+      "Badi": 157,
+      "Svin": 158,
+      "Svidi": 159,
+      "tAm": 160,
+      "zI": 161,
+      "ADy": 162,
+      "ta": 163,
+      "Ama": 164,
+      "Am": 165,
+      "eT": 166,
+      "vam": 167,
+      "vah": 168,
+      "Dvam": 169,
+      "ndy": 170,
+      "zya": 171,
+      "vahe": 172,
+      "AH": 173,
+      "hi": 174,
+      "vahi": 175,
+      "bADi": 176,
+      "gADi": 177,
+      "vandi": 178,
+      "skundi": 179,
+      "sparDi": 180,
+      "Bandi": 181,
+      "Svindi": 182,
+      "yA": 183,
+      "zye": 184,
+      "daDi": 185,
+      "nd": 186,
+      "tAs": 187,
+      "anAT": 188,
+      "Amahe": 189,
+      "Dve": 190,
+      "ya": 191,
+      "mahi": 192,
+      "eTAm": 193,
+      "Avahe": 194,
+      "eDi": 195,
+      "Ate": 196,
+      "bADy": 197,
+      "gADy": 198,
+      "BAvi": 199,
+      "vandy": 200,
+      "daDy": 201,
+      "skundy": 202,
+      "sparDy": 203,
+      "Bandy": 204,
+      "Svindy": 205,
+      "yAs": 206,
+      "aBU": 207,
+      "nADi": 208,
+      "eDy": 209,
+      "nADy": 210,
+      "zyan": 211,
+      "tAr": 212,
+      "nATi": 213,
+      "eTe": 214,
+      "abADi": 215,
+      "agADi": 216,
+      "asparDi": 217,
+      "aBandi": 218,
+      "etAm": 219,
+      "mahe": 220,
+      "anADi": 221,
+      "WAH": 222,
+      "zWAH": 223,
+      "ADve": 224,
+      "aTAH": 225,
+      "ATAm": 226,
+      "zIyAs": 227,
+      "Amahi": 228,
+      "eD": 229,
+      "ATe": 230,
+      "anATi": 231,
+      "Avahi": 232,
+      "ata": 233,
+      "zw": 234,
+      "zwa": 235,
+      "bAD": 236,
+      "gAD": 237,
+      "EDi": 238,
+      "avandi": 239,
+      "askundi": 240,
+      "aSvindi": 241,
+      "adaDi": 242,
+      "vand": 243,
+      "skund": 244,
+      "nATy": 245,
+      "BUy": 246,
+      "Band": 247,
+      "Svind": 248,
+      "madi": 249,
+      "aDvam": 250,
+      "sparD": 251,
+      "aH": 252,
+      "zyata": 253,
+      "Te": 254,
+      "ete": 255,
+      "aBAvi": 256,
+      "eta": 257,
+      "nAD": 258,
+      "tArO": 259,
+      "tAraH": 260,
+      "ey": 261,
+      "eya": 262,
+      "re": 263,
+      "ze": 264,
+      "AtAm": 265,
+      "Ete": 266,
+      "ETe": 267,
+      "TAm": 268,
+      "eDvam": 269,
+      "evahi": 270,
+      "eyA": 271,
+      "emahi": 272,
+      "hE": 273,
+      "sva": 274,
+      "tADve": 275,
+      "zi": 276,
+      "zIr": 277,
+      "zvahi": 278,
+      "zmahi": 279,
+      "zATAm": 280,
+      "zata": 281,
+      "zAtAm": 282,
+      "eran": 283,
+      "ante": 284,
+      "zyAmahe": 285,
+      "zyeTAm": 286,
+      "zyAvahe": 287,
+      "zyeTe": 288,
+      "zyaTAH": 289,
+      "zyAmahi": 290,
+      "zyAvahi": 291,
+      "daD": 292,
+      "tAhe": 293,
+      "tAse": 294,
+      "zIvahi": 295,
+      "zIya": 296,
+      "zImahi": 297,
+      "zIzWAH": 298,
+      "zIzwa": 299,
+      "AmahE": 300,
+      "eTAH": 301,
+      "vahE": 302,
+      "zyate": 303,
+      "zyase": 304,
+      "zyaDvam": 305,
+      "zyaDve": 306,
+      "zyete": 307,
+      "zyetAm": 308,
+      "tAsvahe": 309,
+      "tAsmahe": 310,
+      "tAsATe": 311,
+      "zyante": 312,
+      "zyanta": 313,
+      "zIyAstAm": 314,
+      "zIyAsTAm": 315,
+      "eyATAm": 316,
+      "eyAtAm": 317,
+      "zIran": 318,
+      "zIDvam": 319,
+      "antAm": 320,
+      "anta": 321,
+      "Ase": 322,
+      "AvahE": 323,
+      "Amb": 324,
+      "Si": 325,
+      "baBU": 326,
+      "cu": 327,
+      "Bavi": 328,
+      "eDAmb": 329,
+      "eDAmbaBU": 330,
+      "ate": 331,
+      "ase": 332,
+      "atAm": 333,
+      "aDve": 334,
+      "ba": 335,
+      "asva": 336,
+      "agAD": 337,
+      "anAD": 338,
+      "mama": 339,
+      "nda": 340,
+      "EDy": 341,
+      "abADy": 342,
+      "agADy": 343,
+      "avandy": 344,
+      "adaDy": 345,
+      "askundy": 346,
+      "asparDy": 347,
+      "aBandy": 348,
+      "aSvindy": 349,
+      "asparD": 350,
+      "mandy": 351,
+      "anADy": 352,
+      "BavA": 353,
+      "Bava": 354,
+      "babADi": 355,
+      "baBandi": 356,
+      "deDi": 357,
+      "jagADi": 358,
+      "nanADi": 359,
+      "pasparDi": 360,
+      "vavandi": 361,
+      "SiSvindi": 362,
+      "cuskundi": 363,
+      "nanAT": 364,
+      "uH": 365,
+      "nanATi": 366,
+      "nATyA": 367,
+      "BUyA": 368,
+      "baBUvi": 369,
+      "eDAmbaBUvi": 370,
+      "deD": 371,
+      "jagAD": 372,
+      "nanAD": 373,
+      "pasparD": 374,
+      "ti": 375,
+      "vavand": 376,
+      "nATya": 377,
+      "BUya": 378,
+      "anATy": 379,
+      "aBUy": 380,
+      "SiSvind": 381,
+      "cuskund": 382,
+      "babAD": 383,
+      "baBand": 384,
+      "mamandi": 385,
+      "mamand": 386,
+      "abAD": 387,
+      "aBavi": 388,
+      "Bave": 389,
+      "Ava": 390,
+      "vanda": 391,
+      "skunda": 392,
+      "Banda": 393,
+      "Svinda": 394,
+      "avand": 395,
+      "askund": 396,
+      "aBand": 397,
+      "aSvind": 398,
+      "nATyAs": 399,
+      "BUyAs": 400,
+      "ED": 401,
+      "Ta": 402,
+      "adaD": 403,
+      "aBava": 404,
+      "si": 405,
+      "mand": 406,
+      "tam": 407,
+      "nATitAs": 408,
+      "BavitAs": 409,
+      "deDe": 410,
+      "jagADe": 411,
+      "nanADe": 412,
+      "pasparDe": 413,
+      "vavande": 414,
+      "SiSvinde": 415,
+      "cuskunde": 416,
+      "babADe": 417,
+      "baBande": 418,
+      "nATA": 419,
+      "nATizy": 420,
+      "Bavizy": 421,
+      "mamande": 422,
+      "Qve": 423,
+      "Qvam": 424,
+      "am": 425,
+      "mi": 426,
+      "vaT": 427,
+      "vAte": 428,
+      "vATe": 429,
+      "tAt": 430,
+      "nATa": 431,
+      "nATe": 432,
+      "Ami": 433,
+      "yAvahi": 434,
+      "anATya": 435,
+      "bADyE": 436,
+      "bADyAmahe": 437,
+      "bADyAvahe": 438,
+      "bADyAte": 439,
+      "gADyE": 440,
+      "gADyAmahe": 441,
+      "gADyAvahe": 442,
+      "gADyAte": 443,
+      "vandyE": 444,
+      "vandyAmahe": 445,
+      "vandyAvahe": 446,
+      "vandyAte": 447,
+      "daDyE": 448,
+      "daDyAmahe": 449,
+      "daDyAvahe": 450,
+      "daDyAte": 451,
+      "skundyE": 452,
+      "skundyAmahe": 453,
+      "skundyAvahe": 454,
+      "skundyAte": 455,
+      "sparDyE": 456,
+      "sparDyAmahe": 457,
+      "sparDyAvahe": 458,
+      "sparDyAte": 459,
+      "BandyE": 460,
+      "BandyAmahe": 461,
+      "BandyAvahe": 462,
+      "BandyAte": 463,
+      "SvindyE": 464,
+      "SvindyAmahe": 465,
+      "SvindyAvahe": 466,
+      "SvindyAte": 467,
+      "aBUya": 468,
+      "eDyE": 469,
+      "eDyAmahe": 470,
+      "eDyAvahe": 471,
+      "eDyAte": 472,
+      "nADyE": 473,
+      "nADyAmahe": 474,
+      "nADyAvahe": 475,
+      "nADyAte": 476,
+      "anATiz": 477,
+      "anATizya": 478,
+      "anATizyata": 479,
+      "nATyE": 480,
+      "nATyAmahe": 481,
+      "BUyE": 482,
+      "BUyAmahe": 483,
+      "baBUve": 484,
+      "baBUva": 485,
+      "eDAmbaBUve": 486,
+      "eDAmbaBUva": 487,
+      "BavAma": 488,
+      "BavAva": 489,
+      "nanATa": 490,
+      "nanATe": 491,
+      "nATyAte": 492,
+      "nATyAvahe": 493,
+      "BUyAte": 494,
+      "BUyAvahe": 495,
+      "aBavizya": 496,
+      "EDa": 497,
+      "TaH": 498,
+      "adaDa": 499,
+      "asparDa": 500,
+      "nte": 501,
+      "ntAm": 502,
+      "nta": 503,
+      "nti": 504,
+      "tuH": 505,
+      "manda": 506,
+      "aTa": 507,
+      "aTaH": 508,
+      "nATAma": 509,
+      "nATata": 510,
+      "nATAva": 511,
+      "taH": 512,
+      "bADitA": 513,
+      "bADizye": 514,
+      "bADitArO": 515,
+      "bADitAraH": 516,
+      "bADitADve": 517,
+      "bADizyAmahe": 518,
+      "bADizyAvahe": 519,
+      "bADizyeTe": 520,
+      "bADitAhe": 521,
+      "bADitAse": 522,
+      "bADizIvahi": 523,
+      "bADizIya": 524,
+      "bADizImahi": 525,
+      "bADizIzWAH": 526,
+      "bADizIzwa": 527,
+      "bADizyate": 528,
+      "bADizyase": 529,
+      "bADizyaDve": 530,
+      "bADizyete": 531,
+      "bADitAsvahe": 532,
+      "bADitAsmahe": 533,
+      "bADitAsATe": 534,
+      "bADizyante": 535,
+      "bADizIyAstAm": 536,
+      "bADizIyAsTAm": 537,
+      "bADizIran": 538,
+      "bADizIDvam": 539,
+      "gADitA": 540,
+      "gADizye": 541,
+      "gADitArO": 542,
+      "gADitAraH": 543,
+      "gADitADve": 544,
+      "gADizyAmahe": 545,
+      "gADizyAvahe": 546,
+      "gADizyeTe": 547,
+      "gADitAhe": 548,
+      "gADitAse": 549,
+      "gADizIvahi": 550,
+      "gADizIya": 551,
+      "gADizImahi": 552,
+      "gADizIzWAH": 553,
+      "gADizIzwa": 554,
+      "gADizyate": 555,
+      "gADizyase": 556,
+      "gADizyaDve": 557,
+      "gADizyete": 558,
+      "gADitAsvahe": 559,
+      "gADitAsmahe": 560,
+      "gADitAsATe": 561,
+      "gADizyante": 562,
+      "gADizIyAstAm": 563,
+      "gADizIyAsTAm": 564,
+      "gADizIran": 565,
+      "gADizIDvam": 566,
+      "vanditA": 567,
+      "vandizye": 568,
+      "vanditArO": 569,
+      "vanditAraH": 570,
+      "vanditADve": 571,
+      "vandizyAmahe": 572,
+      "vandizyAvahe": 573,
+      "vandizyeTe": 574,
+      "vanditAhe": 575,
+      "vanditAse": 576,
+      "vandizIvahi": 577,
+      "vandizIya": 578,
+      "vandizImahi": 579,
+      "vandizIzWAH": 580,
+      "vandizIzwa": 581,
+      "vandizyate": 582,
+      "vandizyase": 583,
+      "vandizyaDve": 584,
+      "vandizyete": 585,
+      "vanditAsvahe": 586,
+      "vanditAsmahe": 587,
+      "vanditAsATe": 588,
+      "vandizyante": 589,
+      "vandizIyAstAm": 590,
+      "vandizIyAsTAm": 591,
+      "vandizIran": 592,
+      "vandizIDvam": 593,
+      "skunditA": 594,
+      "skundizye": 595,
+      "skunditArO": 596,
+      "skunditAraH": 597,
+      "skunditADve": 598,
+      "skundizyAmahe": 599,
+      "skundizyAvahe": 600,
+      "skundizyeTe": 601,
+      "skunditAhe": 602,
+      "skunditAse": 603,
+      "skundizIvahi": 604,
+      "skundizIya": 605,
+      "skundizImahi": 606,
+      "skundizIzWAH": 607,
+      "skundizIzwa": 608,
+      "skundizyate": 609,
+      "skundizyase": 610,
+      "skundizyaDve": 611,
+      "skundizyete": 612,
+      "skunditAsvahe": 613,
+      "skunditAsmahe": 614,
+      "skunditAsATe": 615,
+      "skundizyante": 616,
+      "skundizIyAstAm": 617,
+      "skundizIyAsTAm": 618,
+      "skundizIran": 619,
+      "skundizIDvam": 620,
+      "sparDitA": 621,
+      "sparDizye": 622,
+      "sparDitArO": 623,
+      "sparDitAraH": 624,
+      "sparDitADve": 625,
+      "sparDizyAmahe": 626,
+      "sparDizyAvahe": 627,
+      "sparDizyeTe": 628,
+      "sparDitAhe": 629,
+      "sparDitAse": 630,
+      "sparDizIvahi": 631,
+      "sparDizIya": 632,
+      "sparDizImahi": 633,
+      "sparDizIzWAH": 634,
+      "sparDizIzwa": 635,
+      "sparDizyate": 636,
+      "sparDizyase": 637,
+      "sparDizyaDve": 638,
+      "sparDizyete": 639,
+      "sparDitAsvahe": 640,
+      "sparDitAsmahe": 641,
+      "sparDitAsATe": 642,
+      "sparDizyante": 643,
+      "sparDizIyAstAm": 644,
+      "sparDizIyAsTAm": 645,
+      "sparDizIran": 646,
+      "sparDizIDvam": 647,
+      "BanditA": 648,
+      "Bandizye": 649,
+      "BanditArO": 650,
+      "BanditAraH": 651,
+      "BanditADve": 652,
+      "BandizyAmahe": 653,
+      "BandizyAvahe": 654,
+      "BandizyeTe": 655,
+      "BanditAhe": 656,
+      "BanditAse": 657,
+      "BandizIvahi": 658,
+      "BandizIya": 659,
+      "BandizImahi": 660,
+      "BandizIzWAH": 661,
+      "BandizIzwa": 662,
+      "Bandizyate": 663,
+      "Bandizyase": 664,
+      "BandizyaDve": 665,
+      "Bandizyete": 666,
+      "BanditAsvahe": 667,
+      "BanditAsmahe": 668,
+      "BanditAsATe": 669,
+      "Bandizyante": 670,
+      "BandizIyAstAm": 671,
+      "BandizIyAsTAm": 672,
+      "BandizIran": 673,
+      "BandizIDvam": 674,
+      "SvinditA": 675,
+      "Svindizye": 676,
+      "SvinditArO": 677,
+      "SvinditAraH": 678,
+      "SvinditADve": 679,
+      "SvindizyAmahe": 680,
+      "SvindizyAvahe": 681,
+      "SvindizyeTe": 682,
+      "SvinditAhe": 683,
+      "SvinditAse": 684,
+      "SvindizIvahi": 685,
+      "SvindizIya": 686,
+      "SvindizImahi": 687,
+      "SvindizIzWAH": 688,
+      "SvindizIzwa": 689,
+      "Svindizyate": 690,
+      "Svindizyase": 691,
+      "SvindizyaDve": 692,
+      "Svindizyete": 693,
+      "SvinditAsvahe": 694,
+      "SvinditAsmahe": 695,
+      "SvinditAsATe": 696,
+      "Svindizyante": 697,
+      "SvindizIyAstAm": 698,
+      "SvindizIyAsTAm": 699,
+      "SvindizIran": 700,
+      "SvindizIDvam": 701,
+      "daDitA": 702,
+      "daDizye": 703,
+      "daDitArO": 704,
+      "daDitAraH": 705,
+      "daDitADve": 706,
+      "daDizyAmahe": 707,
+      "daDizyAvahe": 708,
+      "daDizyeTe": 709,
+      "daDitAhe": 710,
+      "daDitAse": 711,
+      "daDizIvahi": 712,
+      "daDizIya": 713,
+      "daDizImahi": 714,
+      "daDizIzWAH": 715,
+      "daDizIzwa": 716,
+      "daDizyate": 717,
+      "daDizyase": 718,
+      "daDizyaDve": 719,
+      "daDizyete": 720,
+      "daDitAsvahe": 721,
+      "daDitAsmahe": 722,
+      "daDitAsATe": 723,
+      "daDizyante": 724,
+      "daDizIyAstAm": 725,
+      "daDizIyAsTAm": 726,
+      "daDizIran": 727,
+      "daDizIDvam": 728,
+      "eDitA": 729,
+      "eDizye": 730,
+      "eDitArO": 731,
+      "eDitAraH": 732,
+      "eDitADve": 733,
+      "eDizyAmahe": 734,
+      "eDizyAvahe": 735,
+      "eDizyeTe": 736,
+      "eDitAhe": 737,
+      "eDitAse": 738,
+      "eDizIvahi": 739,
+      "eDizIya": 740,
+      "eDizImahi": 741,
+      "eDizIzWAH": 742,
+      "eDizIzwa": 743,
+      "eDizyate": 744,
+      "eDizyase": 745,
+      "eDizyaDve": 746,
+      "eDizyete": 747,
+      "eDitAsvahe": 748,
+      "eDitAsmahe": 749,
+      "eDitAsATe": 750,
+      "eDizyante": 751,
+      "eDizIyAstAm": 752,
+      "eDizIyAsTAm": 753,
+      "eDizIran": 754,
+      "eDizIDvam": 755,
+      "nADitA": 756,
+      "nADizye": 757,
+      "nADitArO": 758,
+      "nADitAraH": 759,
+      "nADitADve": 760,
+      "nADizyAmahe": 761,
+      "nADizyAvahe": 762,
+      "nADizyeTe": 763,
+      "nADitAhe": 764,
+      "nADitAse": 765,
+      "nADizIvahi": 766,
+      "nADizIya": 767,
+      "nADizImahi": 768,
+      "nADizIzWAH": 769,
+      "nADizIzwa": 770,
+      "nADizyate": 771,
+      "nADizyase": 772,
+      "nADizyaDve": 773,
+      "nADizyete": 774,
+      "nADitAsvahe": 775,
+      "nADitAsmahe": 776,
+      "nADitAsATe": 777,
+      "nADizyante": 778,
+      "nADizIyAstAm": 779,
+      "nADizIyAsTAm": 780,
+      "nADizIran": 781,
+      "nADizIDvam": 782,
+      "nATitA": 783,
+      "nATitArO": 784,
+      "nATitAraH": 785,
+      "abADiDvam": 786,
+      "abADizye": 787,
+      "abADizWAH": 788,
+      "abADizyata": 789,
+      "abADizi": 790,
+      "abADizvahi": 791,
+      "abADizmahi": 792,
+      "abADizATAm": 793,
+      "abADizata": 794,
+      "abADizAtAm": 795,
+      "abADizyeTAm": 796,
+      "abADizyaTAH": 797,
+      "abADizyAmahi": 798,
+      "abADizyAvahi": 799,
+      "abADizyaDvam": 800,
+      "abADizyetAm": 801,
+      "abADizyanta": 802,
+      "agADiDvam": 803,
+      "agADizye": 804,
+      "agADizWAH": 805,
+      "agADizyata": 806,
+      "agADizi": 807,
+      "agADizvahi": 808,
+      "agADizmahi": 809,
+      "agADizATAm": 810,
+      "agADizata": 811,
+      "agADizAtAm": 812,
+      "agADizyeTAm": 813,
+      "agADizyaTAH": 814,
+      "agADizyAmahi": 815,
+      "agADizyAvahi": 816,
+      "agADizyaDvam": 817,
+      "agADizyetAm": 818,
+      "agADizyanta": 819,
+      "asparDiDvam": 820,
+      "asparDizye": 821,
+      "asparDizWAH": 822,
+      "asparDizyata": 823,
+      "asparDizi": 824,
+      "asparDizvahi": 825,
+      "asparDizmahi": 826,
+      "asparDizATAm": 827,
+      "asparDizata": 828,
+      "asparDizAtAm": 829,
+      "asparDizyeTAm": 830,
+      "asparDizyaTAH": 831,
+      "asparDizyAmahi": 832,
+      "asparDizyAvahi": 833,
+      "asparDizyaDvam": 834,
+      "asparDizyetAm": 835,
+      "asparDizyanta": 836,
+      "aBandiDvam": 837,
+      "aBandizye": 838,
+      "aBandizWAH": 839,
+      "aBandizyata": 840,
+      "aBandizi": 841,
+      "aBandizvahi": 842,
+      "aBandizmahi": 843,
+      "aBandizATAm": 844,
+      "aBandizata": 845,
+      "aBandizAtAm": 846,
+      "aBandizyeTAm": 847,
+      "aBandizyaTAH": 848,
+      "aBandizyAmahi": 849,
+      "aBandizyAvahi": 850,
+      "aBandizyaDvam": 851,
+      "aBandizyetAm": 852,
+      "aBandizyanta": 853,
+      "anADiDvam": 854,
+      "anADizye": 855,
+      "anADizWAH": 856,
+      "anADizyata": 857,
+      "anADizi": 858,
+      "anADizvahi": 859,
+      "anADizmahi": 860,
+      "anADizATAm": 861,
+      "anADizata": 862,
+      "anADizAtAm": 863,
+      "anADizyeTAm": 864,
+      "anADizyaTAH": 865,
+      "anADizyAmahi": 866,
+      "anADizyAvahi": 867,
+      "anADizyaDvam": 868,
+      "anADizyetAm": 869,
+      "anADizyanta": 870,
+      "anATizwa": 871,
+      "EDiDvam": 872,
+      "EDizye": 873,
+      "EDizWAH": 874,
+      "EDizyata": 875,
+      "EDizi": 876,
+      "EDizvahi": 877,
+      "EDizmahi": 878,
+      "EDizATAm": 879,
+      "EDizata": 880,
+      "EDizAtAm": 881,
+      "EDizyeTAm": 882,
+      "EDizyaTAH": 883,
+      "EDizyAmahi": 884,
+      "EDizyAvahi": 885,
+      "EDizyaDvam": 886,
+      "EDizyetAm": 887,
+      "EDizyanta": 888,
+      "avandiDvam": 889,
+      "avandizye": 890,
+      "avandizWAH": 891,
+      "avandizyata": 892,
+      "avandizi": 893,
+      "avandizvahi": 894,
+      "avandizmahi": 895,
+      "avandizATAm": 896,
+      "avandizata": 897,
+      "avandizAtAm": 898,
+      "avandizyeTAm": 899,
+      "avandizyaTAH": 900,
+      "avandizyAmahi": 901,
+      "avandizyAvahi": 902,
+      "avandizyaDvam": 903,
+      "avandizyetAm": 904,
+      "avandizyanta": 905,
+      "askundiDvam": 906,
+      "askundizye": 907,
+      "askundizWAH": 908,
+      "askundizyata": 909,
+      "askundizi": 910,
+      "askundizvahi": 911,
+      "askundizmahi": 912,
+      "askundizATAm": 913,
+      "askundizata": 914,
+      "askundizAtAm": 915,
+      "askundizyeTAm": 916,
+      "askundizyaTAH": 917,
+      "askundizyAmahi": 918,
+      "askundizyAvahi": 919,
+      "askundizyaDvam": 920,
+      "askundizyetAm": 921,
+      "askundizyanta": 922,
+      "aSvindiDvam": 923,
+      "aSvindizye": 924,
+      "aSvindizWAH": 925,
+      "aSvindizyata": 926,
+      "aSvindizi": 927,
+      "aSvindizvahi": 928,
+      "aSvindizmahi": 929,
+      "aSvindizATAm": 930,
+      "aSvindizata": 931,
+      "aSvindizAtAm": 932,
+      "aSvindizyeTAm": 933,
+      "aSvindizyaTAH": 934,
+      "aSvindizyAmahi": 935,
+      "aSvindizyAvahi": 936,
+      "aSvindizyaDvam": 937,
+      "aSvindizyetAm": 938,
+      "aSvindizyanta": 939,
+      "adaDiDvam": 940,
+      "adaDizye": 941,
+      "adaDizWAH": 942,
+      "adaDizyata": 943,
+      "adaDizi": 944,
+      "adaDizvahi": 945,
+      "adaDizmahi": 946,
+      "adaDizATAm": 947,
+      "adaDizata": 948,
+      "adaDizAtAm": 949,
+      "adaDizyeTAm": 950,
+      "adaDizyaTAH": 951,
+      "adaDizyAmahi": 952,
+      "adaDizyAvahi": 953,
+      "adaDizyaDvam": 954,
+      "adaDizyetAm": 955,
+      "adaDizyanta": 956,
+      "babADivahe": 957,
+      "babADiDve": 958,
+      "babADimahe": 959,
+      "babADire": 960,
+      "babADize": 961,
+      "baBandivahe": 962,
+      "baBandiDve": 963,
+      "baBandimahe": 964,
+      "baBandire": 965,
+      "baBandize": 966,
+      "deDivahe": 967,
+      "deDiDve": 968,
+      "deDimahe": 969,
+      "deDire": 970,
+      "deDize": 971,
+      "jagADivahe": 972,
+      "jagADiDve": 973,
+      "jagADimahe": 974,
+      "jagADire": 975,
+      "jagADize": 976,
+      "nanADivahe": 977,
+      "nanADiDve": 978,
+      "nanADimahe": 979,
+      "nanADire": 980,
+      "nanADize": 981,
+      "pasparDivahe": 982,
+      "pasparDiDve": 983,
+      "pasparDimahe": 984,
+      "pasparDire": 985,
+      "pasparDize": 986,
+      "vavandivahe": 987,
+      "vavandiDve": 988,
+      "vavandimahe": 989,
+      "vavandire": 990,
+      "vavandize": 991,
+      "SiSvindivahe": 992,
+      "SiSvindiDve": 993,
+      "SiSvindimahe": 994,
+      "SiSvindire": 995,
+      "SiSvindize": 996,
+      "cuskundivahe": 997,
+      "cuskundiDve": 998,
+      "cuskundimahe": 999,
+      "cuskundire": 1000,
+      "cuskundize": 1001,
+      "deDAte": 1002,
+      "deDATe": 1003,
+      "jagADAte": 1004,
+      "jagADATe": 1005,
+      "nanADAte": 1006,
+      "nanADATe": 1007,
+      "pasparDAte": 1008,
+      "pasparDATe": 1009,
+      "vavandAte": 1010,
+      "vavandATe": 1011,
+      "SiSvindAte": 1012,
+      "SiSvindATe": 1013,
+      "cuskundAte": 1014,
+      "cuskundATe": 1015,
+      "babADAte": 1016,
+      "babADATe": 1017,
+      "baBandAte": 1018,
+      "baBandATe": 1019,
+      "mamandAte": 1020,
+      "avanda": 1021,
+      "askunda": 1022,
+      "aBanda": 1023,
+      "aSvinda": 1024,
+      "ni": 1025,
+      "tu": 1026,
+      "vuH": 1027,
+      "maH": 1028,
+      "vaH": 1029,
+      "zyAma": 1030,
+      "zyAva": 1031,
+      "nATan": 1032,
+      "nATAT": 1033,
+      "nATeta": 1034,
+      "nATAmi": 1035,
+      "BavaT": 1036,
+      "zIQvam": 1037,
+      "AmaH": 1038,
+      "zyati": 1039,
+      "zyasi": 1040,
+      "anATI": 1041,
+      "anATata": 1042,
+      "anATyAvahi": 1043,
+      "bADye": 1044,
+      "bADyeTAm": 1045,
+      "bADyeTe": 1046,
+      "bADyetAm": 1047,
+      "bADyADve": 1048,
+      "bADyaDvam": 1049,
+      "bADyete": 1050,
+      "bADyeta": 1051,
+      "bADyeya": 1052,
+      "bADyEte": 1053,
+      "bADyETe": 1054,
+      "bADyeDvam": 1055,
+      "bADyevahi": 1056,
+      "bADyemahi": 1057,
+      "bADyeran": 1058,
+      "bADyante": 1059,
+      "bADyAmahE": 1060,
+      "bADyeTAH": 1061,
+      "bADyeyATAm": 1062,
+      "bADyeyAtAm": 1063,
+      "bADyantAm": 1064,
+      "bADyAse": 1065,
+      "bADyAvahE": 1066,
+      "bADyate": 1067,
+      "bADyase": 1068,
+      "bADyatAm": 1069,
+      "bADyaDve": 1070,
+      "bADyasva": 1071,
+      "gADye": 1072,
+      "gADyeTAm": 1073,
+      "gADyeTe": 1074,
+      "gADyetAm": 1075,
+      "gADyADve": 1076,
+      "gADyaDvam": 1077,
+      "gADyete": 1078,
+      "gADyeta": 1079,
+      "gADyeya": 1080,
+      "gADyEte": 1081,
+      "gADyETe": 1082,
+      "gADyeDvam": 1083,
+      "gADyevahi": 1084,
+      "gADyemahi": 1085,
+      "gADyeran": 1086,
+      "gADyante": 1087,
+      "gADyAmahE": 1088,
+      "gADyeTAH": 1089,
+      "gADyeyATAm": 1090,
+      "gADyeyAtAm": 1091,
+      "gADyantAm": 1092,
+      "gADyAse": 1093,
+      "gADyAvahE": 1094,
+      "gADyate": 1095,
+      "gADyase": 1096,
+      "gADyatAm": 1097,
+      "gADyaDve": 1098,
+      "gADyasva": 1099,
+      "BAvitA": 1100,
+      "BAvizye": 1101,
+      "BAvitArO": 1102,
+      "BAvitAraH": 1103,
+      "BAvitADve": 1104,
+      "BAvizyAmahe": 1105,
+      "BAvizyAvahe": 1106,
+      "BAvizyeTe": 1107,
+      "BAvitAhe": 1108,
+      "BAvitAse": 1109,
+      "BAvizIvahi": 1110,
+      "BAvizIya": 1111,
+      "BAvizImahi": 1112,
+      "BAvizIzWAH": 1113,
+      "BAvizIzwa": 1114,
+      "BAvizyate": 1115,
+      "BAvizyase": 1116,
+      "BAvizyaDve": 1117,
+      "BAvizyete": 1118,
+      "BAvitAsvahe": 1119,
+      "BAvitAsmahe": 1120,
+      "BAvitAsATe": 1121,
+      "BAvizyante": 1122,
+      "BAvizIyAstAm": 1123,
+      "BAvizIyAsTAm": 1124,
+      "BAvizIran": 1125,
+      "BAvizIQvam": 1126,
+      "vandye": 1127,
+      "vandyeTAm": 1128,
+      "vandyeTe": 1129,
+      "vandyetAm": 1130,
+      "vandyADve": 1131,
+      "vandyaDvam": 1132,
+      "vandyete": 1133,
+      "vandyeta": 1134,
+      "vandyeya": 1135,
+      "vandyEte": 1136,
+      "vandyETe": 1137,
+      "vandyeDvam": 1138,
+      "vandyevahi": 1139,
+      "vandyemahi": 1140,
+      "vandyeran": 1141,
+      "vandyante": 1142,
+      "vandyAmahE": 1143,
+      "vandyeTAH": 1144,
+      "vandyeyATAm": 1145,
+      "vandyeyAtAm": 1146,
+      "vandyantAm": 1147,
+      "vandyAse": 1148,
+      "vandyAvahE": 1149,
+      "vandyate": 1150,
+      "vandyase": 1151,
+      "vandyatAm": 1152,
+      "vandyaDve": 1153,
+      "vandyasva": 1154,
+      "daDye": 1155,
+      "daDyeTAm": 1156,
+      "daDyeTe": 1157,
+      "daDyetAm": 1158,
+      "daDyADve": 1159,
+      "daDyaDvam": 1160,
+      "daDyete": 1161,
+      "daDyeta": 1162,
+      "daDyeya": 1163,
+      "daDyEte": 1164,
+      "daDyETe": 1165,
+      "daDyeDvam": 1166,
+      "daDyevahi": 1167,
+      "daDyemahi": 1168,
+      "daDyeran": 1169,
+      "daDyante": 1170,
+      "daDyAmahE": 1171,
+      "daDyeTAH": 1172,
+      "daDyeyATAm": 1173,
+      "daDyeyAtAm": 1174,
+      "daDyantAm": 1175,
+      "daDyAse": 1176,
+      "daDyAvahE": 1177,
+      "daDyate": 1178,
+      "daDyase": 1179,
+      "daDyatAm": 1180,
+      "daDyaDve": 1181,
+      "daDyasva": 1182,
+      "skundye": 1183,
+      "skundyeTAm": 1184,
+      "skundyeTe": 1185,
+      "skundyetAm": 1186,
+      "skundyADve": 1187,
+      "skundyaDvam": 1188,
+      "skundyete": 1189,
+      "skundyeta": 1190,
+      "skundyeya": 1191,
+      "skundyEte": 1192,
+      "skundyETe": 1193,
+      "skundyeDvam": 1194,
+      "skundyevahi": 1195,
+      "skundyemahi": 1196,
+      "skundyeran": 1197,
+      "skundyante": 1198,
+      "skundyAmahE": 1199,
+      "skundyeTAH": 1200,
+      "skundyeyATAm": 1201,
+      "skundyeyAtAm": 1202,
+      "skundyantAm": 1203,
+      "skundyAse": 1204,
+      "skundyAvahE": 1205,
+      "skundyate": 1206,
+      "skundyase": 1207,
+      "skundyatAm": 1208,
+      "skundyaDve": 1209,
+      "skundyasva": 1210,
+      "sparDye": 1211,
+      "sparDyeTAm": 1212,
+      "sparDyeTe": 1213,
+      "sparDyetAm": 1214,
+      "sparDyADve": 1215,
+      "sparDyaDvam": 1216,
+      "sparDyete": 1217,
+      "sparDyeta": 1218,
+      "sparDyeya": 1219,
+      "sparDyEte": 1220,
+      "sparDyETe": 1221,
+      "sparDyeDvam": 1222,
+      "sparDyevahi": 1223,
+      "sparDyemahi": 1224,
+      "sparDyeran": 1225,
+      "sparDyante": 1226,
+      "sparDyAmahE": 1227,
+      "sparDyeTAH": 1228,
+      "sparDyeyATAm": 1229,
+      "sparDyeyAtAm": 1230,
+      "sparDyantAm": 1231,
+      "sparDyAse": 1232,
+      "sparDyAvahE": 1233,
+      "sparDyate": 1234,
+      "sparDyase": 1235,
+      "sparDyatAm": 1236,
+      "sparDyaDve": 1237,
+      "sparDyasva": 1238,
+      "Bandye": 1239,
+      "BandyeTAm": 1240,
+      "BandyeTe": 1241,
+      "BandyetAm": 1242,
+      "BandyADve": 1243,
+      "BandyaDvam": 1244,
+      "Bandyete": 1245,
+      "Bandyeta": 1246,
+      "Bandyeya": 1247,
+      "BandyEte": 1248,
+      "BandyETe": 1249,
+      "BandyeDvam": 1250,
+      "Bandyevahi": 1251,
+      "Bandyemahi": 1252,
+      "Bandyeran": 1253,
+      "Bandyante": 1254,
+      "BandyAmahE": 1255,
+      "BandyeTAH": 1256,
+      "BandyeyATAm": 1257,
+      "BandyeyAtAm": 1258,
+      "BandyantAm": 1259,
+      "BandyAse": 1260,
+      "BandyAvahE": 1261,
+      "Bandyate": 1262,
+      "Bandyase": 1263,
+      "BandyatAm": 1264,
+      "BandyaDve": 1265,
+      "Bandyasva": 1266,
+      "Svindye": 1267,
+      "SvindyeTAm": 1268,
+      "SvindyeTe": 1269,
+      "SvindyetAm": 1270,
+      "SvindyADve": 1271,
+      "SvindyaDvam": 1272,
+      "Svindyete": 1273,
+      "Svindyeta": 1274,
+      "Svindyeya": 1275,
+      "SvindyEte": 1276,
+      "SvindyETe": 1277,
+      "SvindyeDvam": 1278,
+      "Svindyevahi": 1279,
+      "Svindyemahi": 1280,
+      "Svindyeran": 1281,
+      "Svindyante": 1282,
+      "SvindyAmahE": 1283,
+      "SvindyeTAH": 1284,
+      "SvindyeyATAm": 1285,
+      "SvindyeyAtAm": 1286,
+      "SvindyantAm": 1287,
+      "SvindyAse": 1288,
+      "SvindyAvahE": 1289,
+      "Svindyate": 1290,
+      "Svindyase": 1291,
+      "SvindyatAm": 1292,
+      "SvindyaDve": 1293,
+      "Svindyasva": 1294,
+      "aBUva": 1295,
+      "aBUyAvahi": 1296,
+      "eDye": 1297,
+      "eDyeTAm": 1298,
+      "eDyeTe": 1299,
+      "eDyetAm": 1300,
+      "eDyADve": 1301,
+      "eDyaDvam": 1302,
+      "eDyete": 1303,
+      "eDyeta": 1304,
+      "eDyeya": 1305,
+      "eDyEte": 1306,
+      "eDyETe": 1307,
+      "eDyeDvam": 1308,
+      "eDyevahi": 1309,
+      "eDyemahi": 1310,
+      "eDyeran": 1311,
+      "eDyante": 1312,
+      "eDyAmahE": 1313,
+      "eDyeTAH": 1314,
+      "eDyeyATAm": 1315,
+      "eDyeyAtAm": 1316,
+      "eDyantAm": 1317,
+      "eDyAse": 1318,
+      "eDyAvahE": 1319,
+      "eDyate": 1320,
+      "eDyase": 1321,
+      "eDyatAm": 1322,
+      "eDyaDve": 1323,
+      "eDyasva": 1324,
+      "nADye": 1325,
+      "nADyeTAm": 1326,
+      "nADyeTe": 1327,
+      "nADyetAm": 1328,
+      "nADyADve": 1329,
+      "nADyaDvam": 1330,
+      "nADyete": 1331,
+      "nADyeta": 1332,
+      "nADyeya": 1333,
+      "nADyEte": 1334,
+      "nADyETe": 1335,
+      "nADyeDvam": 1336,
+      "nADyevahi": 1337,
+      "nADyemahi": 1338,
+      "nADyeran": 1339,
+      "nADyante": 1340,
+      "nADyAmahE": 1341,
+      "nADyeTAH": 1342,
+      "nADyeyATAm": 1343,
+      "nADyeyAtAm": 1344,
+      "nADyantAm": 1345,
+      "nADyAse": 1346,
+      "nADyAvahE": 1347,
+      "nADyate": 1348,
+      "nADyase": 1349,
+      "nADyatAm": 1350,
+      "nADyaDve": 1351,
+      "nADyasva": 1352,
+      "zyanti": 1353,
+      "nATizye": 1354,
+      "nATitADve": 1355,
+      "nATizyAmahe": 1356,
+      "nATizyAvahe": 1357,
+      "nATizyeTe": 1358,
+      "nATitAhe": 1359,
+      "nATitAse": 1360,
+      "nATizIvahi": 1361,
+      "nATizIya": 1362,
+      "nATizImahi": 1363,
+      "nATizIzWAH": 1364,
+      "nATizIzwa": 1365,
+      "nATizyate": 1366,
+      "nATizyase": 1367,
+      "nATizyaDve": 1368,
+      "nATizyete": 1369,
+      "nATitAsvahe": 1370,
+      "nATitAsmahe": 1371,
+      "nATitAsATe": 1372,
+      "nATizyante": 1373,
+      "nATizIyAstAm": 1374,
+      "nATizIyAsTAm": 1375,
+      "nATizIran": 1376,
+      "nATizIDvam": 1377,
+      "abADizwa": 1378,
+      "agADizwa": 1379,
+      "asparDizwa": 1380,
+      "aBandizwa": 1381,
+      "anADizwa": 1382,
+      "eDE": 1383,
+      "eDAmahe": 1384,
+      "eDAvahe": 1385,
+      "eDAte": 1386,
+      "anATiDvam": 1387,
+      "anATizye": 1388,
+      "anATizWAH": 1389,
+      "anATizi": 1390,
+      "anATizvahi": 1391,
+      "anATizmahi": 1392,
+      "anATizATAm": 1393,
+      "anATizata": 1394,
+      "anATizAtAm": 1395,
+      "anATizyeTAm": 1396,
+      "anATizyaTAH": 1397,
+      "anATizyAmahi": 1398,
+      "anATizyAvahi": 1399,
+      "anATizyaDvam": 1400,
+      "anATizyetAm": 1401,
+      "anATizyanta": 1402,
+      "bADE": 1403,
+      "bADAmahe": 1404,
+      "bADAvahe": 1405,
+      "bADAte": 1406,
+      "gADE": 1407,
+      "gADAmahe": 1408,
+      "gADAvahe": 1409,
+      "gADAte": 1410,
+      "EDizwa": 1411,
+      "avandizwa": 1412,
+      "askundizwa": 1413,
+      "aSvindizwa": 1414,
+      "adaDizwa": 1415,
+      "vandE": 1416,
+      "vandAmahe": 1417,
+      "vandAvahe": 1418,
+      "vandAte": 1419,
+      "skundE": 1420,
+      "skundAmahe": 1421,
+      "skundAvahe": 1422,
+      "skundAte": 1423,
+      "nATye": 1424,
+      "nATyeTAm": 1425,
+      "nATyeTe": 1426,
+      "nATyetAm": 1427,
+      "nATyADve": 1428,
+      "nATyete": 1429,
+      "nATyeta": 1430,
+      "nATyeya": 1431,
+      "nATyEte": 1432,
+      "nATyETe": 1433,
+      "nATyeDvam": 1434,
+      "nATyevahi": 1435,
+      "nATyemahi": 1436,
+      "nATyeran": 1437,
+      "nATyante": 1438,
+      "nATyAmahE": 1439,
+      "nATyeTAH": 1440,
+      "nATyeyATAm": 1441,
+      "nATyeyAtAm": 1442,
+      "nATyantAm": 1443,
+      "BUye": 1444,
+      "BUyeTAm": 1445,
+      "BUyeTe": 1446,
+      "BUyetAm": 1447,
+      "BUyADve": 1448,
+      "BUyete": 1449,
+      "BUyeta": 1450,
+      "BUyeya": 1451,
+      "BUyEte": 1452,
+      "BUyETe": 1453,
+      "BUyeDvam": 1454,
+      "BUyevahi": 1455,
+      "BUyemahi": 1456,
+      "BUyeran": 1457,
+      "BUyante": 1458,
+      "BUyAmahE": 1459,
+      "BUyeTAH": 1460,
+      "BUyeyATAm": 1461,
+      "BUyeyAtAm": 1462,
+      "BUyantAm": 1463,
+      "BandE": 1464,
+      "BandAmahe": 1465,
+      "BandAvahe": 1466,
+      "BandAte": 1467,
+      "SvindE": 1468,
+      "SvindAmahe": 1469,
+      "SvindAvahe": 1470,
+      "SvindAte": 1471,
+      "sparDE": 1472,
+      "sparDAmahe": 1473,
+      "sparDAvahe": 1474,
+      "sparDAte": 1475,
+      "zyataH": 1476,
+      "aBAvizye": 1477,
+      "aBAvizWAH": 1478,
+      "aBAvizyata": 1479,
+      "aBAvizi": 1480,
+      "aBAvizvahi": 1481,
+      "aBAvizmahi": 1482,
+      "aBAvizATAm": 1483,
+      "aBAvizata": 1484,
+      "aBAvizAtAm": 1485,
+      "aBAvizyeTAm": 1486,
+      "aBAvizyaTAH": 1487,
+      "aBAvizyAmahi": 1488,
+      "aBAvizyAvahi": 1489,
+      "aBAvizyaDvam": 1490,
+      "aBAvizyetAm": 1491,
+      "aBAvizyanta": 1492,
+      "aBAviQvam": 1493,
+      "nADE": 1494,
+      "nADAmahe": 1495,
+      "nADAvahe": 1496,
+      "nADAte": 1497,
+      "daDE": 1498,
+      "daDAmahe": 1499,
+      "daDAvahe": 1500,
+      "daDAte": 1501,
+      "baBUvAte": 1502,
+      "baBUvATe": 1503,
+      "eDAmbaBUvAte": 1504,
+      "eDAmbaBUvATe": 1505,
+      "EDye": 1506,
+      "EDyeTAm": 1507,
+      "EDyetAm": 1508,
+      "EDyaTAH": 1509,
+      "EDyAmahi": 1510,
+      "EDyAvahi": 1511,
+      "EDyata": 1512,
+      "EDyaDvam": 1513,
+      "EDyanta": 1514,
+      "abADye": 1515,
+      "abADyeTAm": 1516,
+      "abADyetAm": 1517,
+      "abADyaTAH": 1518,
+      "abADyAmahi": 1519,
+      "abADyAvahi": 1520,
+      "abADyata": 1521,
+      "abADyaDvam": 1522,
+      "abADyanta": 1523,
+      "agADye": 1524,
+      "agADyeTAm": 1525,
+      "agADyetAm": 1526,
+      "agADyaTAH": 1527,
+      "agADyAmahi": 1528,
+      "agADyAvahi": 1529,
+      "agADyata": 1530,
+      "agADyaDvam": 1531,
+      "agADyanta": 1532,
+      "avandye": 1533,
+      "avandyeTAm": 1534,
+      "avandyetAm": 1535,
+      "avandyaTAH": 1536,
+      "avandyAmahi": 1537,
+      "avandyAvahi": 1538,
+      "avandyata": 1539,
+      "avandyaDvam": 1540,
+      "avandyanta": 1541,
+      "adaDye": 1542,
+      "adaDyeTAm": 1543,
+      "adaDyetAm": 1544,
+      "adaDyaTAH": 1545,
+      "adaDyAmahi": 1546,
+      "adaDyAvahi": 1547,
+      "adaDyata": 1548,
+      "adaDyaDvam": 1549,
+      "adaDyanta": 1550,
+      "askundye": 1551,
+      "askundyeTAm": 1552,
+      "askundyetAm": 1553,
+      "askundyaTAH": 1554,
+      "askundyAmahi": 1555,
+      "askundyAvahi": 1556,
+      "askundyata": 1557,
+      "askundyaDvam": 1558,
+      "askundyanta": 1559,
+      "asparDye": 1560,
+      "asparDyeTAm": 1561,
+      "asparDyetAm": 1562,
+      "asparDyaTAH": 1563,
+      "asparDyAmahi": 1564,
+      "asparDyAvahi": 1565,
+      "asparDyata": 1566,
+      "asparDyaDvam": 1567,
+      "asparDyanta": 1568,
+      "aBandye": 1569,
+      "aBandyeTAm": 1570,
+      "aBandyetAm": 1571,
+      "aBandyaTAH": 1572,
+      "aBandyAmahi": 1573,
+      "aBandyAvahi": 1574,
+      "aBandyata": 1575,
+      "aBandyaDvam": 1576,
+      "aBandyanta": 1577,
+      "aSvindye": 1578,
+      "aSvindyeTAm": 1579,
+      "aSvindyetAm": 1580,
+      "aSvindyaTAH": 1581,
+      "aSvindyAmahi": 1582,
+      "aSvindyAvahi": 1583,
+      "aSvindyata": 1584,
+      "aSvindyaDvam": 1585,
+      "aSvindyanta": 1586,
+      "mandye": 1587,
+      "mandyAmahe": 1588,
+      "mandyAvahe": 1589,
+      "mandyeTe": 1590,
+      "mandyete": 1591,
+      "mandyante": 1592,
+      "mandyate": 1593,
+      "mandyase": 1594,
+      "mandyaDve": 1595,
+      "anADye": 1596,
+      "anADyeTAm": 1597,
+      "anADyetAm": 1598,
+      "anADyaTAH": 1599,
+      "anADyAmahi": 1600,
+      "anADyAvahi": 1601,
+      "anADyata": 1602,
+      "anADyaDvam": 1603,
+      "anADyanta": 1604,
+      "BavAmi": 1605,
+      "BavatAt": 1606,
+      "nanATAte": 1607,
+      "nanATATe": 1608,
+      "nanATivahe": 1609,
+      "nanATiDve": 1610,
+      "nanATimahe": 1611,
+      "nanATire": 1612,
+      "nanATize": 1613,
+      "nATyAse": 1614,
+      "nATyAvahE": 1615,
+      "BUyAse": 1616,
+      "BUyAvahE": 1617,
+      "baBUvivahe": 1618,
+      "baBUvimahe": 1619,
+      "baBUvire": 1620,
+      "baBUvize": 1621,
+      "baBUviQve": 1622,
+      "eDAmbaBUvivahe": 1623,
+      "eDAmbaBUvimahe": 1624,
+      "eDAmbaBUvire": 1625,
+      "eDAmbaBUvize": 1626,
+      "eDAmbaBUviQve": 1627,
+      "nATyate": 1628,
+      "nATyase": 1629,
+      "nATyatAm": 1630,
+      "nATyaDvam": 1631,
+      "nATyaDve": 1632,
+      "nATyasva": 1633,
+      "BUyate": 1634,
+      "BUyase": 1635,
+      "BUyatAm": 1636,
+      "BUyaDvam": 1637,
+      "BUyaDve": 1638,
+      "BUyasva": 1639,
+      "anATye": 1640,
+      "anATyeTAm": 1641,
+      "anATyetAm": 1642,
+      "anATyaTAH": 1643,
+      "anATyAmahi": 1644,
+      "anATyanta": 1645,
+      "aBUye": 1646,
+      "aBUyeTAm": 1647,
+      "aBUyetAm": 1648,
+      "aBUyaTAH": 1649,
+      "aBUyAmahi": 1650,
+      "aBUyanta": 1651,
+      "mamandivahe": 1652,
+      "mamandiDve": 1653,
+      "mamandimahe": 1654,
+      "mamandire": 1655,
+      "mamandize": 1656,
+      "mamandATe": 1657,
+      "aBavizyata": 1658,
+      "AvaH": 1659,
+      "vaTuH": 1660,
+      "nATatAt": 1661,
+      "anATyata": 1662,
+      "anATyaDvam": 1663,
+      "aBUyata": 1664,
+      "aBUyaDvam": 1665,
+      "ad": 1666,
+      "at": 1667,
+      "aBa": 1668,
+      "aBavAma": 1669,
+      "aBavAva": 1670,
+      "ntu": 1671,
+      "yuH": 1672,
+      "aTuH": 1673,
+      "nATetAm": 1674,
+      "nATey": 1675,
+      "nATeya": 1676,
+      "nATatAm": 1677,
+      "nATaTa": 1678,
+      "nATaTaH": 1679,
+      "daDate": 1680,
+      "daDase": 1681,
+      "daDatAm": 1682,
+      "daDaDvam": 1683,
+      "daDaDve": 1684,
+      "daDasva": 1685,
+      "daDante": 1686,
+      "daDantAm": 1687,
+      "sparDate": 1688,
+      "sparDase": 1689,
+      "sparDatAm": 1690,
+      "sparDaDvam": 1691,
+      "sparDaDve": 1692,
+      "sparDasva": 1693,
+      "sparDante": 1694,
+      "sparDantAm": 1695,
+      "eDate": 1696,
+      "eDase": 1697,
+      "eDatAm": 1698,
+      "eDaDvam": 1699,
+      "eDaDve": 1700,
+      "eDasva": 1701,
+      "eDante": 1702,
+      "eDantAm": 1703,
+      "anATan": 1704,
+      "anATAma": 1705,
+      "anATaH": 1706,
+      "anATatAm": 1707,
+      "anATAva": 1708,
+      "anATam": 1709,
+      "anATat": 1710,
+      "yam": 1711,
+      "aBUH": 1712,
+      "aBUt": 1713,
+      "aBUma": 1714,
+      "aBUtAm": 1715,
+      "aBUta": 1716,
+      "aBUvam": 1717,
+      "aBUtam": 1718,
+      "nATizyati": 1719,
+      "nATizyasi": 1720,
+      "nATizyanti": 1721,
+      "nATizyataH": 1722,
+      "eDe": 1723,
+      "eDeTAm": 1724,
+      "eDeTe": 1725,
+      "eDetAm": 1726,
+      "eDADve": 1727,
+      "eDete": 1728,
+      "eDeta": 1729,
+      "eDeya": 1730,
+      "eDEte": 1731,
+      "eDETe": 1732,
+      "eDeDvam": 1733,
+      "eDevahi": 1734,
+      "eDemahi": 1735,
+      "eDeran": 1736,
+      "eDAmahE": 1737,
+      "eDeTAH": 1738,
+      "eDeyATAm": 1739,
+      "eDeyAtAm": 1740,
+      "eDAse": 1741,
+      "eDAvahE": 1742,
+      "anATizyan": 1743,
+      "anATizw": 1744,
+      "anATizyAma": 1745,
+      "anATizyAva": 1746,
+      "bADe": 1747,
+      "bADeTAm": 1748,
+      "bADeTe": 1749,
+      "bADetAm": 1750,
+      "bADADve": 1751,
+      "bADaDvam": 1752,
+      "bADete": 1753,
+      "bADeta": 1754,
+      "bADeya": 1755,
+      "bADEte": 1756,
+      "bADETe": 1757,
+      "bADeDvam": 1758,
+      "bADevahi": 1759,
+      "bADemahi": 1760,
+      "bADeran": 1761,
+      "bADante": 1762,
+      "bADAmahE": 1763,
+      "bADeTAH": 1764,
+      "bADeyATAm": 1765,
+      "bADeyAtAm": 1766,
+      "bADantAm": 1767,
+      "bADAse": 1768,
+      "bADAvahE": 1769,
+      "bADate": 1770,
+      "bADase": 1771,
+      "bADatAm": 1772,
+      "bADaDve": 1773,
+      "bADasva": 1774,
+      "gADe": 1775,
+      "gADeTAm": 1776,
+      "gADeTe": 1777,
+      "gADetAm": 1778,
+      "gADADve": 1779,
+      "gADaDvam": 1780,
+      "gADete": 1781,
+      "gADeta": 1782,
+      "gADeya": 1783,
+      "gADEte": 1784,
+      "gADETe": 1785,
+      "gADeDvam": 1786,
+      "gADevahi": 1787,
+      "gADemahi": 1788,
+      "gADeran": 1789,
+      "gADante": 1790,
+      "gADAmahE": 1791,
+      "gADeTAH": 1792,
+      "gADeyATAm": 1793,
+      "gADeyAtAm": 1794,
+      "gADantAm": 1795,
+      "gADAse": 1796,
+      "gADAvahE": 1797,
+      "gADate": 1798,
+      "gADase": 1799,
+      "gADatAm": 1800,
+      "gADaDve": 1801,
+      "gADasva": 1802,
+      "vande": 1803,
+      "vandeTAm": 1804,
+      "vandeTe": 1805,
+      "vandetAm": 1806,
+      "vandADve": 1807,
+      "vandete": 1808,
+      "vandeta": 1809,
+      "vandeya": 1810,
+      "vandEte": 1811,
+      "vandETe": 1812,
+      "vandeDvam": 1813,
+      "vandevahi": 1814,
+      "vandemahi": 1815,
+      "vanderan": 1816,
+      "vandante": 1817,
+      "vandAmahE": 1818,
+      "vandeTAH": 1819,
+      "vandeyATAm": 1820,
+      "vandeyAtAm": 1821,
+      "vandantAm": 1822,
+      "vandAse": 1823,
+      "vandAvahE": 1824,
+      "skunde": 1825,
+      "skundeTAm": 1826,
+      "skundeTe": 1827,
+      "skundetAm": 1828,
+      "skundADve": 1829,
+      "skundete": 1830,
+      "skundeta": 1831,
+      "skundeya": 1832,
+      "skundEte": 1833,
+      "skundETe": 1834,
+      "skundeDvam": 1835,
+      "skundevahi": 1836,
+      "skundemahi": 1837,
+      "skunderan": 1838,
+      "skundante": 1839,
+      "skundAmahE": 1840,
+      "skundeTAH": 1841,
+      "skundeyATAm": 1842,
+      "skundeyAtAm": 1843,
+      "skundantAm": 1844,
+      "skundAse": 1845,
+      "skundAvahE": 1846,
+      "nATyAH": 1847,
+      "BUyAH": 1848,
+      "Bande": 1849,
+      "BandeTAm": 1850,
+      "BandeTe": 1851,
+      "BandetAm": 1852,
+      "BandADve": 1853,
+      "Bandete": 1854,
+      "Bandeta": 1855,
+      "Bandeya": 1856,
+      "BandEte": 1857,
+      "BandETe": 1858,
+      "BandeDvam": 1859,
+      "Bandevahi": 1860,
+      "Bandemahi": 1861,
+      "Banderan": 1862,
+      "Bandante": 1863,
+      "BandAmahE": 1864,
+      "BandeTAH": 1865,
+      "BandeyATAm": 1866,
+      "BandeyAtAm": 1867,
+      "BandantAm": 1868,
+      "BandAse": 1869,
+      "BandAvahE": 1870,
+      "Svinde": 1871,
+      "SvindeTAm": 1872,
+      "SvindeTe": 1873,
+      "SvindetAm": 1874,
+      "SvindADve": 1875,
+      "Svindete": 1876,
+      "Svindeta": 1877,
+      "Svindeya": 1878,
+      "SvindEte": 1879,
+      "SvindETe": 1880,
+      "SvindeDvam": 1881,
+      "Svindevahi": 1882,
+      "Svindemahi": 1883,
+      "Svinderan": 1884,
+      "Svindante": 1885,
+      "SvindAmahE": 1886,
+      "SvindeTAH": 1887,
+      "SvindeyATAm": 1888,
+      "SvindeyAtAm": 1889,
+      "SvindantAm": 1890,
+      "SvindAse": 1891,
+      "SvindAvahE": 1892,
+      "sparDe": 1893,
+      "sparDeTAm": 1894,
+      "sparDeTe": 1895,
+      "sparDetAm": 1896,
+      "sparDADve": 1897,
+      "sparDete": 1898,
+      "sparDeta": 1899,
+      "sparDeya": 1900,
+      "sparDEte": 1901,
+      "sparDETe": 1902,
+      "sparDeDvam": 1903,
+      "sparDevahi": 1904,
+      "sparDemahi": 1905,
+      "sparDeran": 1906,
+      "sparDAmahE": 1907,
+      "sparDeTAH": 1908,
+      "sparDeyATAm": 1909,
+      "sparDeyAtAm": 1910,
+      "sparDAse": 1911,
+      "sparDAvahE": 1912,
+      "aBAvizwa": 1913,
+      "nADe": 1914,
+      "nADeTAm": 1915,
+      "nADeTe": 1916,
+      "nADetAm": 1917,
+      "nADADve": 1918,
+      "nADaDvam": 1919,
+      "nADete": 1920,
+      "nADeta": 1921,
+      "nADeya": 1922,
+      "nADEte": 1923,
+      "nADETe": 1924,
+      "nADeDvam": 1925,
+      "nADevahi": 1926,
+      "nADemahi": 1927,
+      "nADeran": 1928,
+      "nADante": 1929,
+      "nADAmahE": 1930,
+      "nADeTAH": 1931,
+      "nADeyATAm": 1932,
+      "nADeyAtAm": 1933,
+      "nADantAm": 1934,
+      "nADAse": 1935,
+      "nADAvahE": 1936,
+      "nADate": 1937,
+      "nADase": 1938,
+      "nADatAm": 1939,
+      "nADaDve": 1940,
+      "nADasva": 1941,
+      "daDe": 1942,
+      "daDeTAm": 1943,
+      "daDeTe": 1944,
+      "daDetAm": 1945,
+      "daDADve": 1946,
+      "daDete": 1947,
+      "daDeta": 1948,
+      "daDeya": 1949,
+      "daDEte": 1950,
+      "daDETe": 1951,
+      "daDeDvam": 1952,
+      "daDevahi": 1953,
+      "daDemahi": 1954,
+      "daDeran": 1955,
+      "daDAmahE": 1956,
+      "daDeTAH": 1957,
+      "daDeyATAm": 1958,
+      "daDeyAtAm": 1959,
+      "daDAse": 1960,
+      "daDAvahE": 1961,
+      "baBUvuH": 1962,
+      "baBUvaTuH": 1963,
+      "BavitA": 1964,
+      "BavitArO": 1965,
+      "BavitAraH": 1966,
+      "Bavizyati": 1967,
+      "Bavizyasi": 1968,
+      "Bavizyanti": 1969,
+      "BavizyataH": 1970,
+      "eDAmbaBUvuH": 1971,
+      "eDAmbaBUvaTuH": 1972,
+      "agADe": 1973,
+      "agADeTAm": 1974,
+      "agADetAm": 1975,
+      "agADaTAH": 1976,
+      "agADAmahi": 1977,
+      "agADAvahi": 1978,
+      "agAData": 1979,
+      "agADaDvam": 1980,
+      "agADanta": 1981,
+      "anADe": 1982,
+      "anADeTAm": 1983,
+      "anADetAm": 1984,
+      "anADaTAH": 1985,
+      "anADAmahi": 1986,
+      "anADAvahi": 1987,
+      "anAData": 1988,
+      "anADaDvam": 1989,
+      "anADanta": 1990,
+      "asparDe": 1991,
+      "asparDeTAm": 1992,
+      "asparDetAm": 1993,
+      "asparDaTAH": 1994,
+      "asparDAmahi": 1995,
+      "asparDAvahi": 1996,
+      "BavAti": 1997,
+      "BavATa": 1998,
+      "BavAsi": 1999,
+      "BavATaH": 2000,
+      "BavAnti": 2001,
+      "BavAtaH": 2002,
+      "BavAni": 2003,
+      "BavatAm": 2004,
+      "Bavata": 2005,
+      "Bavati": 2006,
+      "Bavasi": 2007,
+      "Bavatam": 2008,
+      "Bavanti": 2009,
+      "BavataH": 2010,
+      "Bavantu": 2011,
+      "nanATuH": 2012,
+      "nanATaTuH": 2013,
+      "nanATima": 2014,
+      "nanATiva": 2015,
+      "nanATiTa": 2016,
+      "nATyAt": 2017,
+      "BUyAt": 2018,
+      "baBUvima": 2019,
+      "baBUviva": 2020,
+      "baBUviTa": 2021,
+      "eDAmbaBUvima": 2022,
+      "eDAmbaBUviva": 2023,
+      "eDAmbaBUviTa": 2024,
+      "abADe": 2025,
+      "abADeTAm": 2026,
+      "abADetAm": 2027,
+      "abADaTAH": 2028,
+      "abADAmahi": 2029,
+      "abADAvahi": 2030,
+      "abAData": 2031,
+      "abADaDvam": 2032,
+      "abADanta": 2033,
+      "aBavizyan": 2034,
+      "aBavizyAma": 2035,
+      "aBavizyAva": 2036,
+      "BaveH": 2037,
+      "Bavet": 2038,
+      "Bavema": 2039,
+      "Baveva": 2040,
+      "BavetAm": 2041,
+      "Baveta": 2042,
+      "Bavetam": 2043,
+      "BaveyuH": 2044,
+      "Baveyam": 2045,
+      "vandate": 2046,
+      "vandase": 2047,
+      "vandatAm": 2048,
+      "vandaDvam": 2049,
+      "vandaDve": 2050,
+      "vandasva": 2051,
+      "skundate": 2052,
+      "skundase": 2053,
+      "skundatAm": 2054,
+      "skundaDvam": 2055,
+      "skundaDve": 2056,
+      "skundasva": 2057,
+      "Bandate": 2058,
+      "Bandase": 2059,
+      "BandatAm": 2060,
+      "BandaDvam": 2061,
+      "BandaDve": 2062,
+      "Bandasva": 2063,
+      "Svindate": 2064,
+      "Svindase": 2065,
+      "SvindatAm": 2066,
+      "SvindaDvam": 2067,
+      "SvindaDve": 2068,
+      "Svindasva": 2069,
+      "avande": 2070,
+      "avandeTAm": 2071,
+      "avandetAm": 2072,
+      "avandaTAH": 2073,
+      "avandAmahi": 2074,
+      "avandAvahi": 2075,
+      "avandanta": 2076,
+      "askunde": 2077,
+      "askundeTAm": 2078,
+      "askundetAm": 2079,
+      "askundaTAH": 2080,
+      "askundAmahi": 2081,
+      "askundAvahi": 2082,
+      "askundanta": 2083,
+      "aBande": 2084,
+      "aBandeTAm": 2085,
+      "aBandetAm": 2086,
+      "aBandaTAH": 2087,
+      "aBandAmahi": 2088,
+      "aBandAvahi": 2089,
+      "aBandanta": 2090,
+      "aSvinde": 2091,
+      "aSvindeTAm": 2092,
+      "aSvindetAm": 2093,
+      "aSvindaTAH": 2094,
+      "aSvindAmahi": 2095,
+      "aSvindAvahi": 2096,
+      "aSvindanta": 2097,
+      "nATyAsma": 2098,
+      "nATyAsva": 2099,
+      "nATyAstAm": 2100,
+      "nATyAsta": 2101,
+      "nATyAsuH": 2102,
+      "nATyAstam": 2103,
+      "nATyAsam": 2104,
+      "BUyAsma": 2105,
+      "BUyAsva": 2106,
+      "BUyAstAm": 2107,
+      "BUyAsta": 2108,
+      "BUyAsuH": 2109,
+      "BUyAstam": 2110,
+      "BUyAsam": 2111,
+      "EDe": 2112,
+      "EDeTAm": 2113,
+      "EDetAm": 2114,
+      "EDaTAH": 2115,
+      "EDAmahi": 2116,
+      "EDAvahi": 2117,
+      "adaDe": 2118,
+      "adaDeTAm": 2119,
+      "adaDetAm": 2120,
+      "adaDaTAH": 2121,
+      "adaDAmahi": 2122,
+      "adaDAvahi": 2123,
+      "aBavaH": 2124,
+      "aBavan": 2125,
+      "aBavat": 2126,
+      "aBavatAm": 2127,
+      "aBavata": 2128,
+      "aBavatam": 2129,
+      "mande": 2130,
+      "mandAmahe": 2131,
+      "mandAvahe": 2132,
+      "mandeTe": 2133,
+      "mandete": 2134,
+      "mandante": 2135,
+      "nATitAsi": 2136,
+      "nATitAsTa": 2137,
+      "nATitAsmi": 2138,
+      "nATitAsTaH": 2139,
+      "nATitAsmaH": 2140,
+      "nATitAsvaH": 2141,
+      "BavitAsi": 2142,
+      "BavitAsTa": 2143,
+      "BavitAsmi": 2144,
+      "BavitAsTaH": 2145,
+      "BavitAsmaH": 2146,
+      "BavitAsvaH": 2147,
+      "nATAti": 2148,
+      "nATAsi": 2149,
+      "nATAnti": 2150,
+      "nATAtaH": 2151,
+      "nATAni": 2152,
+      "nATizyAmi": 2153,
+      "nATizyaTa": 2154,
+      "nATizyaTaH": 2155,
+      "nATizyAmaH": 2156,
+      "nATizyAvaH": 2157,
+      "BavizyAmi": 2158,
+      "BavizyaTa": 2159,
+      "BavizyaTaH": 2160,
+      "BavizyAmaH": 2161,
+      "BavizyAvaH": 2162,
+      "nATati": 2163,
+      "nATasi": 2164,
+      "nATeH": 2165,
+      "nATet": 2166,
+      "nATema": 2167,
+      "nATeva": 2168,
+      "anATizma": 2169,
+      "anATizva": 2170,
+      "anATizuH": 2171,
+      "anATizam": 2172,
+      "anATizyaH": 2173,
+      "anATizyam": 2174,
+      "anATizyat": 2175,
+      "anATizyatAm": 2176,
+      "anATizyatam": 2177,
+      "baBUvatuH": 2178,
+      "eDAmbaBUvatuH": 2179,
+      "BavAmaH": 2180,
+      "BavAvaH": 2181,
+      "nanATatuH": 2182,
+      "aBavizyaH": 2183,
+      "aBavizyam": 2184,
+      "aBavizyat": 2185,
+      "aBavizyatAm": 2186,
+      "EData": 2187,
+      "EDaDvam": 2188,
+      "EDanta": 2189,
+      "adaData": 2190,
+      "adaDaDvam": 2191,
+      "adaDanta": 2192,
+      "asparData": 2193,
+      "asparDaDvam": 2194,
+      "asparDanta": 2195,
+      "mandate": 2196,
+      "mandase": 2197,
+      "mandaDve": 2198,
+      "nATAmaH": 2199,
+      "nATataH": 2200,
+      "nATatam": 2201,
+      "nATAvaH": 2202,
+      "anATizwam": 2203,
+      "avandata": 2204,
+      "avandaDvam": 2205,
+      "askundata": 2206,
+      "askundaDvam": 2207,
+      "aBandata": 2208,
+      "aBandaDvam": 2209,
+      "aSvindata": 2210,
+      "aSvindaDvam": 2211,
+      "nATanti": 2212,
+      "nATantu": 2213,
+      "nATATa": 2214,
+      "nATATaH": 2215,
+      "nATetam": 2216,
+      "BavaTa": 2217,
+      "BavaTaH": 2218,
+      "anATIH": 2219,
+      "anATIt": 2220,
+      "anATatam": 2221,
+      "aBUvan": 2222,
+      "aBavizyatam": 2223,
+      "adADi": 2224,
+      "aBavam": 2225,
+      "nATeyuH": 2226,
+      "nATeyam": 2227,
+      "anATizwAm": 2228
+    },
+    "merges": [
+      [
+        "h",
+        "e"
+      ],
+      [
+        "e",
+        "r"
+      ],
+      [
+        "t",
+        "he"
+      ],
+      [
+        "m",
+        "a"
+      ],
+      [
+        "d",
+        "i"
+      ],
+      [
+        "v",
+        "e"
+      ],
+      [
+        "a",
+        "r"
+      ],
+      [
+        "t",
+        "e"
+      ],
+      [
+        "i",
+        "n"
+      ],
+      [
+        "s",
+        "e"
+      ],
+      [
+        "m",
+        "b"
+      ],
+      [
+        "v",
+        "A"
+      ],
+      [
+        "B",
+        "vA"
+      ],
+      [
+        "T",
+        "he"
+      ],
+      [
+        "a",
+        "ma"
+      ],
+      [
+        "c",
+        "e"
+      ],
+      [
+        "f",
+        "o"
+      ],
+      [
+        "g",
+        "i"
+      ],
+      [
+        "i",
+        "ce"
+      ],
+      [
+        "n",
+        "u"
+      ],
+      [
+        "n",
+        "se"
+      ],
+      [
+        "o",
+        "n"
+      ],
+      [
+        "o",
+        "o"
+      ],
+      [
+        "o",
+        "ice"
+      ],
+      [
+        "p",
+        "er"
+      ],
+      [
+        "r",
+        "m"
+      ],
+      [
+        "r",
+        "oo"
+      ],
+      [
+        "s",
+        "on"
+      ],
+      [
+        "v",
+        "oice"
+      ],
+      [
+        "ve",
+        "s"
+      ],
+      [
+        "te",
+        "nse"
+      ],
+      [
+        "mb",
+        "er"
+      ],
+      [
+        "BvA",
+        "di"
+      ],
+      [
+        "fo",
+        "rm"
+      ],
+      [
+        "gi",
+        "ves"
+      ],
+      [
+        "nu",
+        "mber"
+      ],
+      [
+        "per",
+        "son"
+      ],
+      [
+        "roo",
+        "t"
+      ],
+      [
+        "~",
+        "\\"
+      ],
+      [
+        "k",
+        "ar"
+      ],
+      [
+        "v",
+        "i"
+      ],
+      [
+        "A",
+        "D"
+      ],
+      [
+        "D",
+        "y"
+      ],
+      [
+        "a",
+        "h"
+      ],
+      [
+        "B",
+        "A"
+      ],
+      [
+        "a",
+        "T"
+      ],
+      [
+        "R",
+        "i"
+      ],
+      [
+        "t",
+        "ar"
+      ],
+      [
+        "ma",
+        "Ri"
+      ],
+      [
+        "kar",
+        "tar"
+      ],
+      [
+        "kar",
+        "maRi"
+      ],
+      [
+        "kartar",
+        "i"
+      ],
+      [
+        "p",
+        "r"
+      ],
+      [
+        "aT",
+        "ama"
+      ],
+      [
+        "pr",
+        "aTama"
+      ],
+      [
+        "d",
+        "vi"
+      ],
+      [
+        "e",
+        "k"
+      ],
+      [
+        "ek",
+        "a"
+      ],
+      [
+        "b",
+        "ah"
+      ],
+      [
+        "t",
+        "t"
+      ],
+      [
+        "u",
+        "tt"
+      ],
+      [
+        "ma",
+        "Dy"
+      ],
+      [
+        "bah",
+        "u"
+      ],
+      [
+        "utt",
+        "ama"
+      ],
+      [
+        "maDy",
+        "ama"
+      ],
+      [
+        "BA",
+        "ve"
+      ],
+      [
+        "v",
+        "a"
+      ],
+      [
+        "l",
+        "i"
+      ],
+      [
+        "D",
+        "a"
+      ],
+      [
+        "AD",
+        "f"
+      ],
+      [
+        "D",
+        "i"
+      ],
+      [
+        "a",
+        "n"
+      ],
+      [
+        "A",
+        "T"
+      ],
+      [
+        "l",
+        "a"
+      ],
+      [
+        "l",
+        "f"
+      ],
+      [
+        "l",
+        "u"
+      ],
+      [
+        "z",
+        "y"
+      ],
+      [
+        "d",
+        "a"
+      ],
+      [
+        "k",
+        "u"
+      ],
+      [
+        "p",
+        "ar"
+      ],
+      [
+        "s",
+        "ku"
+      ],
+      [
+        "s",
+        "par"
+      ],
+      [
+        "t",
+        "A"
+      ],
+      [
+        "n",
+        "AT"
+      ],
+      [
+        "B",
+        "U"
+      ],
+      [
+        "AD",
+        "i"
+      ],
+      [
+        "d",
+        "y"
+      ],
+      [
+        "B",
+        "a"
+      ],
+      [
+        "I",
+        "r"
+      ],
+      [
+        "A",
+        "S"
+      ],
+      [
+        "l",
+        "e"
+      ],
+      [
+        "l",
+        "o"
+      ],
+      [
+        "vi",
+        "Di"
+      ],
+      [
+        "Ir",
+        "li"
+      ],
+      [
+        "AS",
+        "Irli"
+      ],
+      [
+        "viDi",
+        "li"
+      ],
+      [
+        "n",
+        "di"
+      ],
+      [
+        "da",
+        "Da"
+      ],
+      [
+        "spar",
+        "Da"
+      ],
+      [
+        "e",
+        "Da"
+      ],
+      [
+        "B",
+        "an"
+      ],
+      [
+        "S",
+        "v"
+      ],
+      [
+        "S",
+        "vi"
+      ],
+      [
+        "b",
+        "ADf"
+      ],
+      [
+        "g",
+        "ADf"
+      ],
+      [
+        "n",
+        "ADf"
+      ],
+      [
+        "va",
+        "di"
+      ],
+      [
+        "sku",
+        "di"
+      ],
+      [
+        "nAT",
+        "f"
+      ],
+      [
+        "Ba",
+        "di"
+      ],
+      [
+        "Sv",
+        "in"
+      ],
+      [
+        "Svi",
+        "di"
+      ],
+      [
+        "tA",
+        "m"
+      ],
+      [
+        "z",
+        "I"
+      ],
+      [
+        "AD",
+        "y"
+      ],
+      [
+        "t",
+        "a"
+      ],
+      [
+        "A",
+        "ma"
+      ],
+      [
+        "A",
+        "m"
+      ],
+      [
+        "e",
+        "T"
+      ],
+      [
+        "va",
+        "m"
+      ],
+      [
+        "v",
+        "ah"
+      ],
+      [
+        "D",
+        "vam"
+      ],
+      [
+        "n",
+        "dy"
+      ],
+      [
+        "zy",
+        "a"
+      ],
+      [
+        "va",
+        "he"
+      ],
+      [
+        "A",
+        "H"
+      ],
+      [
+        "h",
+        "i"
+      ],
+      [
+        "vah",
+        "i"
+      ],
+      [
+        "b",
+        "ADi"
+      ],
+      [
+        "g",
+        "ADi"
+      ],
+      [
+        "va",
+        "ndi"
+      ],
+      [
+        "sku",
+        "ndi"
+      ],
+      [
+        "spar",
+        "Di"
+      ],
+      [
+        "Ban",
+        "di"
+      ],
+      [
+        "Svin",
+        "di"
+      ],
+      [
+        "y",
+        "A"
+      ],
+      [
+        "zy",
+        "e"
+      ],
+      [
+        "da",
+        "Di"
+      ],
+      [
+        "n",
+        "d"
+      ],
+      [
+        "tA",
+        "s"
+      ],
+      [
+        "an",
+        "AT"
+      ],
+      [
+        "Ama",
+        "he"
+      ],
+      [
+        "D",
+        "ve"
+      ],
+      [
+        "y",
+        "a"
+      ],
+      [
+        "ma",
+        "hi"
+      ],
+      [
+        "eT",
+        "Am"
+      ],
+      [
+        "A",
+        "vahe"
+      ],
+      [
+        "e",
+        "Di"
+      ],
+      [
+        "A",
+        "te"
+      ],
+      [
+        "b",
+        "ADy"
+      ],
+      [
+        "g",
+        "ADy"
+      ],
+      [
+        "BA",
+        "vi"
+      ],
+      [
+        "va",
+        "ndy"
+      ],
+      [
+        "da",
+        "Dy"
+      ],
+      [
+        "sku",
+        "ndy"
+      ],
+      [
+        "spar",
+        "Dy"
+      ],
+      [
+        "Ban",
+        "dy"
+      ],
+      [
+        "Svin",
+        "dy"
+      ],
+      [
+        "yA",
+        "s"
+      ],
+      [
+        "a",
+        "BU"
+      ],
+      [
+        "n",
+        "ADi"
+      ],
+      [
+        "e",
+        "Dy"
+      ],
+      [
+        "n",
+        "ADy"
+      ],
+      [
+        "zy",
+        "an"
+      ],
+      [
+        "tA",
+        "r"
+      ],
+      [
+        "nAT",
+        "i"
+      ],
+      [
+        "eT",
+        "e"
+      ],
+      [
+        "a",
+        "bADi"
+      ],
+      [
+        "a",
+        "gADi"
+      ],
+      [
+        "a",
+        "sparDi"
+      ],
+      [
+        "a",
+        "Bandi"
+      ],
+      [
+        "e",
+        "tAm"
+      ],
+      [
+        "ma",
+        "he"
+      ],
+      [
+        "an",
+        "ADi"
+      ],
+      [
+        "W",
+        "AH"
+      ],
+      [
+        "z",
+        "WAH"
+      ],
+      [
+        "AD",
+        "ve"
+      ],
+      [
+        "aT",
+        "AH"
+      ],
+      [
+        "AT",
+        "Am"
+      ],
+      [
+        "zI",
+        "yAs"
+      ],
+      [
+        "Ama",
+        "hi"
+      ],
+      [
+        "e",
+        "D"
+      ],
+      [
+        "AT",
+        "e"
+      ],
+      [
+        "anAT",
+        "i"
+      ],
+      [
+        "A",
+        "vahi"
+      ],
+      [
+        "a",
+        "ta"
+      ],
+      [
+        "z",
+        "w"
+      ],
+      [
+        "zw",
+        "a"
+      ],
+      [
+        "b",
+        "AD"
+      ],
+      [
+        "g",
+        "AD"
+      ],
+      [
+        "E",
+        "Di"
+      ],
+      [
+        "a",
+        "vandi"
+      ],
+      [
+        "a",
+        "skundi"
+      ],
+      [
+        "a",
+        "Svindi"
+      ],
+      [
+        "a",
+        "daDi"
+      ],
+      [
+        "va",
+        "nd"
+      ],
+      [
+        "sku",
+        "nd"
+      ],
+      [
+        "nAT",
+        "y"
+      ],
+      [
+        "BU",
+        "y"
+      ],
+      [
+        "Ban",
+        "d"
+      ],
+      [
+        "Svin",
+        "d"
+      ],
+      [
+        "ma",
+        "di"
+      ],
+      [
+        "a",
+        "Dvam"
+      ],
+      [
+        "spar",
+        "D"
+      ],
+      [
+        "a",
+        "H"
+      ],
+      [
+        "zya",
+        "ta"
+      ],
+      [
+        "T",
+        "e"
+      ],
+      [
+        "e",
+        "te"
+      ],
+      [
+        "a",
+        "BAvi"
+      ],
+      [
+        "e",
+        "ta"
+      ],
+      [
+        "n",
+        "AD"
+      ],
+      [
+        "tAr",
+        "O"
+      ],
+      [
+        "tAr",
+        "aH"
+      ],
+      [
+        "e",
+        "y"
+      ],
+      [
+        "e",
+        "ya"
+      ],
+      [
+        "r",
+        "e"
+      ],
+      [
+        "z",
+        "e"
+      ],
+      [
+        "A",
+        "tAm"
+      ],
+      [
+        "E",
+        "te"
+      ],
+      [
+        "E",
+        "Te"
+      ],
+      [
+        "T",
+        "Am"
+      ],
+      [
+        "e",
+        "Dvam"
+      ],
+      [
+        "e",
+        "vahi"
+      ],
+      [
+        "e",
+        "yA"
+      ],
+      [
+        "e",
+        "mahi"
+      ],
+      [
+        "h",
+        "E"
+      ],
+      [
+        "s",
+        "va"
+      ],
+      [
+        "t",
+        "ADve"
+      ],
+      [
+        "z",
+        "i"
+      ],
+      [
+        "z",
+        "Ir"
+      ],
+      [
+        "z",
+        "vahi"
+      ],
+      [
+        "z",
+        "mahi"
+      ],
+      [
+        "z",
+        "ATAm"
+      ],
+      [
+        "z",
+        "ata"
+      ],
+      [
+        "z",
+        "AtAm"
+      ],
+      [
+        "er",
+        "an"
+      ],
+      [
+        "an",
+        "te"
+      ],
+      [
+        "zy",
+        "Amahe"
+      ],
+      [
+        "zy",
+        "eTAm"
+      ],
+      [
+        "zy",
+        "Avahe"
+      ],
+      [
+        "zy",
+        "eTe"
+      ],
+      [
+        "zy",
+        "aTAH"
+      ],
+      [
+        "zy",
+        "Amahi"
+      ],
+      [
+        "zy",
+        "Avahi"
+      ],
+      [
+        "da",
+        "D"
+      ],
+      [
+        "tA",
+        "he"
+      ],
+      [
+        "tA",
+        "se"
+      ],
+      [
+        "zI",
+        "vahi"
+      ],
+      [
+        "zI",
+        "ya"
+      ],
+      [
+        "zI",
+        "mahi"
+      ],
+      [
+        "zI",
+        "zWAH"
+      ],
+      [
+        "zI",
+        "zwa"
+      ],
+      [
+        "Ama",
+        "hE"
+      ],
+      [
+        "eT",
+        "AH"
+      ],
+      [
+        "vah",
+        "E"
+      ],
+      [
+        "zya",
+        "te"
+      ],
+      [
+        "zya",
+        "se"
+      ],
+      [
+        "zya",
+        "Dvam"
+      ],
+      [
+        "zya",
+        "Dve"
+      ],
+      [
+        "zye",
+        "te"
+      ],
+      [
+        "zye",
+        "tAm"
+      ],
+      [
+        "tAs",
+        "vahe"
+      ],
+      [
+        "tAs",
+        "mahe"
+      ],
+      [
+        "tAs",
+        "ATe"
+      ],
+      [
+        "zyan",
+        "te"
+      ],
+      [
+        "zyan",
+        "ta"
+      ],
+      [
+        "zIyAs",
+        "tAm"
+      ],
+      [
+        "zIyAs",
+        "TAm"
+      ],
+      [
+        "ey",
+        "ATAm"
+      ],
+      [
+        "eyA",
+        "tAm"
+      ],
+      [
+        "zIr",
+        "an"
+      ],
+      [
+        "zI",
+        "Dvam"
+      ],
+      [
+        "an",
+        "tAm"
+      ],
+      [
+        "an",
+        "ta"
+      ],
+      [
+        "A",
+        "se"
+      ],
+      [
+        "A",
+        "vahE"
+      ],
+      [
+        "A",
+        "mb"
+      ],
+      [
+        "S",
+        "i"
+      ],
+      [
+        "b",
+        "aBU"
+      ],
+      [
+        "c",
+        "u"
+      ],
+      [
+        "Ba",
+        "vi"
+      ],
+      [
+        "eD",
+        "Amb"
+      ],
+      [
+        "eDAmb",
+        "aBU"
+      ],
+      [
+        "a",
+        "te"
+      ],
+      [
+        "a",
+        "se"
+      ],
+      [
+        "a",
+        "tAm"
+      ],
+      [
+        "a",
+        "Dve"
+      ],
+      [
+        "b",
+        "a"
+      ],
+      [
+        "a",
+        "sva"
+      ],
+      [
+        "a",
+        "gAD"
+      ],
+      [
+        "an",
+        "AD"
+      ],
+      [
+        "ma",
+        "ma"
+      ],
+      [
+        "n",
+        "da"
+      ],
+      [
+        "E",
+        "Dy"
+      ],
+      [
+        "a",
+        "bADy"
+      ],
+      [
+        "a",
+        "gADy"
+      ],
+      [
+        "a",
+        "vandy"
+      ],
+      [
+        "a",
+        "daDy"
+      ],
+      [
+        "a",
+        "skundy"
+      ],
+      [
+        "a",
+        "sparDy"
+      ],
+      [
+        "a",
+        "Bandy"
+      ],
+      [
+        "a",
+        "Svindy"
+      ],
+      [
+        "a",
+        "sparD"
+      ],
+      [
+        "ma",
+        "ndy"
+      ],
+      [
+        "an",
+        "ADy"
+      ],
+      [
+        "Ba",
+        "vA"
+      ],
+      [
+        "Ba",
+        "va"
+      ],
+      [
+        "b",
+        "abADi"
+      ],
+      [
+        "b",
+        "aBandi"
+      ],
+      [
+        "d",
+        "eDi"
+      ],
+      [
+        "j",
+        "agADi"
+      ],
+      [
+        "n",
+        "anADi"
+      ],
+      [
+        "p",
+        "asparDi"
+      ],
+      [
+        "va",
+        "vandi"
+      ],
+      [
+        "Si",
+        "Svindi"
+      ],
+      [
+        "cu",
+        "skundi"
+      ],
+      [
+        "n",
+        "anAT"
+      ],
+      [
+        "u",
+        "H"
+      ],
+      [
+        "n",
+        "anATi"
+      ],
+      [
+        "nAT",
+        "yA"
+      ],
+      [
+        "BU",
+        "yA"
+      ],
+      [
+        "baBU",
+        "vi"
+      ],
+      [
+        "eDAmbaBU",
+        "vi"
+      ],
+      [
+        "d",
+        "eD"
+      ],
+      [
+        "j",
+        "agAD"
+      ],
+      [
+        "n",
+        "anAD"
+      ],
+      [
+        "p",
+        "asparD"
+      ],
+      [
+        "t",
+        "i"
+      ],
+      [
+        "va",
+        "vand"
+      ],
+      [
+        "nAT",
+        "ya"
+      ],
+      [
+        "BU",
+        "ya"
+      ],
+      [
+        "anAT",
+        "y"
+      ],
+      [
+        "aBU",
+        "y"
+      ],
+      [
+        "Si",
+        "Svind"
+      ],
+      [
+        "cu",
+        "skund"
+      ],
+      [
+        "ba",
+        "bAD"
+      ],
+      [
+        "ba",
+        "Band"
+      ],
+      [
+        "mama",
+        "ndi"
+      ],
+      [
+        "mama",
+        "nd"
+      ],
+      [
+        "a",
+        "bAD"
+      ],
+      [
+        "a",
+        "Bavi"
+      ],
+      [
+        "Ba",
+        "ve"
+      ],
+      [
+        "A",
+        "va"
+      ],
+      [
+        "va",
+        "nda"
+      ],
+      [
+        "sku",
+        "nda"
+      ],
+      [
+        "Ban",
+        "da"
+      ],
+      [
+        "Svin",
+        "da"
+      ],
+      [
+        "a",
+        "vand"
+      ],
+      [
+        "a",
+        "skund"
+      ],
+      [
+        "a",
+        "Band"
+      ],
+      [
+        "a",
+        "Svind"
+      ],
+      [
+        "nAT",
+        "yAs"
+      ],
+      [
+        "BU",
+        "yAs"
+      ],
+      [
+        "E",
+        "D"
+      ],
+      [
+        "T",
+        "a"
+      ],
+      [
+        "a",
+        "daD"
+      ],
+      [
+        "a",
+        "Bava"
+      ],
+      [
+        "s",
+        "i"
+      ],
+      [
+        "ma",
+        "nd"
+      ],
+      [
+        "ta",
+        "m"
+      ],
+      [
+        "nATi",
+        "tAs"
+      ],
+      [
+        "Bavi",
+        "tAs"
+      ],
+      [
+        "deD",
+        "e"
+      ],
+      [
+        "jagAD",
+        "e"
+      ],
+      [
+        "nanAD",
+        "e"
+      ],
+      [
+        "pasparD",
+        "e"
+      ],
+      [
+        "vavand",
+        "e"
+      ],
+      [
+        "SiSvind",
+        "e"
+      ],
+      [
+        "cuskund",
+        "e"
+      ],
+      [
+        "babAD",
+        "e"
+      ],
+      [
+        "baBand",
+        "e"
+      ],
+      [
+        "nAT",
+        "A"
+      ],
+      [
+        "nATi",
+        "zy"
+      ],
+      [
+        "Bavi",
+        "zy"
+      ],
+      [
+        "mamand",
+        "e"
+      ],
+      [
+        "Q",
+        "ve"
+      ],
+      [
+        "Q",
+        "vam"
+      ],
+      [
+        "a",
+        "m"
+      ],
+      [
+        "m",
+        "i"
+      ],
+      [
+        "v",
+        "aT"
+      ],
+      [
+        "vA",
+        "te"
+      ],
+      [
+        "vA",
+        "Te"
+      ],
+      [
+        "tA",
+        "t"
+      ],
+      [
+        "nAT",
+        "a"
+      ],
+      [
+        "nAT",
+        "e"
+      ],
+      [
+        "Am",
+        "i"
+      ],
+      [
+        "yA",
+        "vahi"
+      ],
+      [
+        "anAT",
+        "ya"
+      ],
+      [
+        "bADy",
+        "E"
+      ],
+      [
+        "bADy",
+        "Amahe"
+      ],
+      [
+        "bADy",
+        "Avahe"
+      ],
+      [
+        "bADy",
+        "Ate"
+      ],
+      [
+        "gADy",
+        "E"
+      ],
+      [
+        "gADy",
+        "Amahe"
+      ],
+      [
+        "gADy",
+        "Avahe"
+      ],
+      [
+        "gADy",
+        "Ate"
+      ],
+      [
+        "vandy",
+        "E"
+      ],
+      [
+        "vandy",
+        "Amahe"
+      ],
+      [
+        "vandy",
+        "Avahe"
+      ],
+      [
+        "vandy",
+        "Ate"
+      ],
+      [
+        "daDy",
+        "E"
+      ],
+      [
+        "daDy",
+        "Amahe"
+      ],
+      [
+        "daDy",
+        "Avahe"
+      ],
+      [
+        "daDy",
+        "Ate"
+      ],
+      [
+        "skundy",
+        "E"
+      ],
+      [
+        "skundy",
+        "Amahe"
+      ],
+      [
+        "skundy",
+        "Avahe"
+      ],
+      [
+        "skundy",
+        "Ate"
+      ],
+      [
+        "sparDy",
+        "E"
+      ],
+      [
+        "sparDy",
+        "Amahe"
+      ],
+      [
+        "sparDy",
+        "Avahe"
+      ],
+      [
+        "sparDy",
+        "Ate"
+      ],
+      [
+        "Bandy",
+        "E"
+      ],
+      [
+        "Bandy",
+        "Amahe"
+      ],
+      [
+        "Bandy",
+        "Avahe"
+      ],
+      [
+        "Bandy",
+        "Ate"
+      ],
+      [
+        "Svindy",
+        "E"
+      ],
+      [
+        "Svindy",
+        "Amahe"
+      ],
+      [
+        "Svindy",
+        "Avahe"
+      ],
+      [
+        "Svindy",
+        "Ate"
+      ],
+      [
+        "aBU",
+        "ya"
+      ],
+      [
+        "eDy",
+        "E"
+      ],
+      [
+        "eDy",
+        "Amahe"
+      ],
+      [
+        "eDy",
+        "Avahe"
+      ],
+      [
+        "eDy",
+        "Ate"
+      ],
+      [
+        "nADy",
+        "E"
+      ],
+      [
+        "nADy",
+        "Amahe"
+      ],
+      [
+        "nADy",
+        "Avahe"
+      ],
+      [
+        "nADy",
+        "Ate"
+      ],
+      [
+        "anATi",
+        "z"
+      ],
+      [
+        "anATi",
+        "zya"
+      ],
+      [
+        "anATi",
+        "zyata"
+      ],
+      [
+        "nATy",
+        "E"
+      ],
+      [
+        "nATy",
+        "Amahe"
+      ],
+      [
+        "BUy",
+        "E"
+      ],
+      [
+        "BUy",
+        "Amahe"
+      ],
+      [
+        "baBU",
+        "ve"
+      ],
+      [
+        "baBU",
+        "va"
+      ],
+      [
+        "eDAmbaBU",
+        "ve"
+      ],
+      [
+        "eDAmbaBU",
+        "va"
+      ],
+      [
+        "BavA",
+        "ma"
+      ],
+      [
+        "BavA",
+        "va"
+      ],
+      [
+        "nanAT",
+        "a"
+      ],
+      [
+        "nanAT",
+        "e"
+      ],
+      [
+        "nATyA",
+        "te"
+      ],
+      [
+        "nATyA",
+        "vahe"
+      ],
+      [
+        "BUyA",
+        "te"
+      ],
+      [
+        "BUyA",
+        "vahe"
+      ],
+      [
+        "aBavi",
+        "zya"
+      ],
+      [
+        "E",
+        "Da"
+      ],
+      [
+        "T",
+        "aH"
+      ],
+      [
+        "a",
+        "daDa"
+      ],
+      [
+        "a",
+        "sparDa"
+      ],
+      [
+        "n",
+        "te"
+      ],
+      [
+        "n",
+        "tAm"
+      ],
+      [
+        "n",
+        "ta"
+      ],
+      [
+        "n",
+        "ti"
+      ],
+      [
+        "t",
+        "uH"
+      ],
+      [
+        "ma",
+        "nda"
+      ],
+      [
+        "aT",
+        "a"
+      ],
+      [
+        "aT",
+        "aH"
+      ],
+      [
+        "nAT",
+        "Ama"
+      ],
+      [
+        "nAT",
+        "ata"
+      ],
+      [
+        "nAT",
+        "Ava"
+      ],
+      [
+        "ta",
+        "H"
+      ],
+      [
+        "bADi",
+        "tA"
+      ],
+      [
+        "bADi",
+        "zye"
+      ],
+      [
+        "bADi",
+        "tArO"
+      ],
+      [
+        "bADi",
+        "tAraH"
+      ],
+      [
+        "bADi",
+        "tADve"
+      ],
+      [
+        "bADi",
+        "zyAmahe"
+      ],
+      [
+        "bADi",
+        "zyAvahe"
+      ],
+      [
+        "bADi",
+        "zyeTe"
+      ],
+      [
+        "bADi",
+        "tAhe"
+      ],
+      [
+        "bADi",
+        "tAse"
+      ],
+      [
+        "bADi",
+        "zIvahi"
+      ],
+      [
+        "bADi",
+        "zIya"
+      ],
+      [
+        "bADi",
+        "zImahi"
+      ],
+      [
+        "bADi",
+        "zIzWAH"
+      ],
+      [
+        "bADi",
+        "zIzwa"
+      ],
+      [
+        "bADi",
+        "zyate"
+      ],
+      [
+        "bADi",
+        "zyase"
+      ],
+      [
+        "bADi",
+        "zyaDve"
+      ],
+      [
+        "bADi",
+        "zyete"
+      ],
+      [
+        "bADi",
+        "tAsvahe"
+      ],
+      [
+        "bADi",
+        "tAsmahe"
+      ],
+      [
+        "bADi",
+        "tAsATe"
+      ],
+      [
+        "bADi",
+        "zyante"
+      ],
+      [
+        "bADi",
+        "zIyAstAm"
+      ],
+      [
+        "bADi",
+        "zIyAsTAm"
+      ],
+      [
+        "bADi",
+        "zIran"
+      ],
+      [
+        "bADi",
+        "zIDvam"
+      ],
+      [
+        "gADi",
+        "tA"
+      ],
+      [
+        "gADi",
+        "zye"
+      ],
+      [
+        "gADi",
+        "tArO"
+      ],
+      [
+        "gADi",
+        "tAraH"
+      ],
+      [
+        "gADi",
+        "tADve"
+      ],
+      [
+        "gADi",
+        "zyAmahe"
+      ],
+      [
+        "gADi",
+        "zyAvahe"
+      ],
+      [
+        "gADi",
+        "zyeTe"
+      ],
+      [
+        "gADi",
+        "tAhe"
+      ],
+      [
+        "gADi",
+        "tAse"
+      ],
+      [
+        "gADi",
+        "zIvahi"
+      ],
+      [
+        "gADi",
+        "zIya"
+      ],
+      [
+        "gADi",
+        "zImahi"
+      ],
+      [
+        "gADi",
+        "zIzWAH"
+      ],
+      [
+        "gADi",
+        "zIzwa"
+      ],
+      [
+        "gADi",
+        "zyate"
+      ],
+      [
+        "gADi",
+        "zyase"
+      ],
+      [
+        "gADi",
+        "zyaDve"
+      ],
+      [
+        "gADi",
+        "zyete"
+      ],
+      [
+        "gADi",
+        "tAsvahe"
+      ],
+      [
+        "gADi",
+        "tAsmahe"
+      ],
+      [
+        "gADi",
+        "tAsATe"
+      ],
+      [
+        "gADi",
+        "zyante"
+      ],
+      [
+        "gADi",
+        "zIyAstAm"
+      ],
+      [
+        "gADi",
+        "zIyAsTAm"
+      ],
+      [
+        "gADi",
+        "zIran"
+      ],
+      [
+        "gADi",
+        "zIDvam"
+      ],
+      [
+        "vandi",
+        "tA"
+      ],
+      [
+        "vandi",
+        "zye"
+      ],
+      [
+        "vandi",
+        "tArO"
+      ],
+      [
+        "vandi",
+        "tAraH"
+      ],
+      [
+        "vandi",
+        "tADve"
+      ],
+      [
+        "vandi",
+        "zyAmahe"
+      ],
+      [
+        "vandi",
+        "zyAvahe"
+      ],
+      [
+        "vandi",
+        "zyeTe"
+      ],
+      [
+        "vandi",
+        "tAhe"
+      ],
+      [
+        "vandi",
+        "tAse"
+      ],
+      [
+        "vandi",
+        "zIvahi"
+      ],
+      [
+        "vandi",
+        "zIya"
+      ],
+      [
+        "vandi",
+        "zImahi"
+      ],
+      [
+        "vandi",
+        "zIzWAH"
+      ],
+      [
+        "vandi",
+        "zIzwa"
+      ],
+      [
+        "vandi",
+        "zyate"
+      ],
+      [
+        "vandi",
+        "zyase"
+      ],
+      [
+        "vandi",
+        "zyaDve"
+      ],
+      [
+        "vandi",
+        "zyete"
+      ],
+      [
+        "vandi",
+        "tAsvahe"
+      ],
+      [
+        "vandi",
+        "tAsmahe"
+      ],
+      [
+        "vandi",
+        "tAsATe"
+      ],
+      [
+        "vandi",
+        "zyante"
+      ],
+      [
+        "vandi",
+        "zIyAstAm"
+      ],
+      [
+        "vandi",
+        "zIyAsTAm"
+      ],
+      [
+        "vandi",
+        "zIran"
+      ],
+      [
+        "vandi",
+        "zIDvam"
+      ],
+      [
+        "skundi",
+        "tA"
+      ],
+      [
+        "skundi",
+        "zye"
+      ],
+      [
+        "skundi",
+        "tArO"
+      ],
+      [
+        "skundi",
+        "tAraH"
+      ],
+      [
+        "skundi",
+        "tADve"
+      ],
+      [
+        "skundi",
+        "zyAmahe"
+      ],
+      [
+        "skundi",
+        "zyAvahe"
+      ],
+      [
+        "skundi",
+        "zyeTe"
+      ],
+      [
+        "skundi",
+        "tAhe"
+      ],
+      [
+        "skundi",
+        "tAse"
+      ],
+      [
+        "skundi",
+        "zIvahi"
+      ],
+      [
+        "skundi",
+        "zIya"
+      ],
+      [
+        "skundi",
+        "zImahi"
+      ],
+      [
+        "skundi",
+        "zIzWAH"
+      ],
+      [
+        "skundi",
+        "zIzwa"
+      ],
+      [
+        "skundi",
+        "zyate"
+      ],
+      [
+        "skundi",
+        "zyase"
+      ],
+      [
+        "skundi",
+        "zyaDve"
+      ],
+      [
+        "skundi",
+        "zyete"
+      ],
+      [
+        "skundi",
+        "tAsvahe"
+      ],
+      [
+        "skundi",
+        "tAsmahe"
+      ],
+      [
+        "skundi",
+        "tAsATe"
+      ],
+      [
+        "skundi",
+        "zyante"
+      ],
+      [
+        "skundi",
+        "zIyAstAm"
+      ],
+      [
+        "skundi",
+        "zIyAsTAm"
+      ],
+      [
+        "skundi",
+        "zIran"
+      ],
+      [
+        "skundi",
+        "zIDvam"
+      ],
+      [
+        "sparDi",
+        "tA"
+      ],
+      [
+        "sparDi",
+        "zye"
+      ],
+      [
+        "sparDi",
+        "tArO"
+      ],
+      [
+        "sparDi",
+        "tAraH"
+      ],
+      [
+        "sparDi",
+        "tADve"
+      ],
+      [
+        "sparDi",
+        "zyAmahe"
+      ],
+      [
+        "sparDi",
+        "zyAvahe"
+      ],
+      [
+        "sparDi",
+        "zyeTe"
+      ],
+      [
+        "sparDi",
+        "tAhe"
+      ],
+      [
+        "sparDi",
+        "tAse"
+      ],
+      [
+        "sparDi",
+        "zIvahi"
+      ],
+      [
+        "sparDi",
+        "zIya"
+      ],
+      [
+        "sparDi",
+        "zImahi"
+      ],
+      [
+        "sparDi",
+        "zIzWAH"
+      ],
+      [
+        "sparDi",
+        "zIzwa"
+      ],
+      [
+        "sparDi",
+        "zyate"
+      ],
+      [
+        "sparDi",
+        "zyase"
+      ],
+      [
+        "sparDi",
+        "zyaDve"
+      ],
+      [
+        "sparDi",
+        "zyete"
+      ],
+      [
+        "sparDi",
+        "tAsvahe"
+      ],
+      [
+        "sparDi",
+        "tAsmahe"
+      ],
+      [
+        "sparDi",
+        "tAsATe"
+      ],
+      [
+        "sparDi",
+        "zyante"
+      ],
+      [
+        "sparDi",
+        "zIyAstAm"
+      ],
+      [
+        "sparDi",
+        "zIyAsTAm"
+      ],
+      [
+        "sparDi",
+        "zIran"
+      ],
+      [
+        "sparDi",
+        "zIDvam"
+      ],
+      [
+        "Bandi",
+        "tA"
+      ],
+      [
+        "Bandi",
+        "zye"
+      ],
+      [
+        "Bandi",
+        "tArO"
+      ],
+      [
+        "Bandi",
+        "tAraH"
+      ],
+      [
+        "Bandi",
+        "tADve"
+      ],
+      [
+        "Bandi",
+        "zyAmahe"
+      ],
+      [
+        "Bandi",
+        "zyAvahe"
+      ],
+      [
+        "Bandi",
+        "zyeTe"
+      ],
+      [
+        "Bandi",
+        "tAhe"
+      ],
+      [
+        "Bandi",
+        "tAse"
+      ],
+      [
+        "Bandi",
+        "zIvahi"
+      ],
+      [
+        "Bandi",
+        "zIya"
+      ],
+      [
+        "Bandi",
+        "zImahi"
+      ],
+      [
+        "Bandi",
+        "zIzWAH"
+      ],
+      [
+        "Bandi",
+        "zIzwa"
+      ],
+      [
+        "Bandi",
+        "zyate"
+      ],
+      [
+        "Bandi",
+        "zyase"
+      ],
+      [
+        "Bandi",
+        "zyaDve"
+      ],
+      [
+        "Bandi",
+        "zyete"
+      ],
+      [
+        "Bandi",
+        "tAsvahe"
+      ],
+      [
+        "Bandi",
+        "tAsmahe"
+      ],
+      [
+        "Bandi",
+        "tAsATe"
+      ],
+      [
+        "Bandi",
+        "zyante"
+      ],
+      [
+        "Bandi",
+        "zIyAstAm"
+      ],
+      [
+        "Bandi",
+        "zIyAsTAm"
+      ],
+      [
+        "Bandi",
+        "zIran"
+      ],
+      [
+        "Bandi",
+        "zIDvam"
+      ],
+      [
+        "Svindi",
+        "tA"
+      ],
+      [
+        "Svindi",
+        "zye"
+      ],
+      [
+        "Svindi",
+        "tArO"
+      ],
+      [
+        "Svindi",
+        "tAraH"
+      ],
+      [
+        "Svindi",
+        "tADve"
+      ],
+      [
+        "Svindi",
+        "zyAmahe"
+      ],
+      [
+        "Svindi",
+        "zyAvahe"
+      ],
+      [
+        "Svindi",
+        "zyeTe"
+      ],
+      [
+        "Svindi",
+        "tAhe"
+      ],
+      [
+        "Svindi",
+        "tAse"
+      ],
+      [
+        "Svindi",
+        "zIvahi"
+      ],
+      [
+        "Svindi",
+        "zIya"
+      ],
+      [
+        "Svindi",
+        "zImahi"
+      ],
+      [
+        "Svindi",
+        "zIzWAH"
+      ],
+      [
+        "Svindi",
+        "zIzwa"
+      ],
+      [
+        "Svindi",
+        "zyate"
+      ],
+      [
+        "Svindi",
+        "zyase"
+      ],
+      [
+        "Svindi",
+        "zyaDve"
+      ],
+      [
+        "Svindi",
+        "zyete"
+      ],
+      [
+        "Svindi",
+        "tAsvahe"
+      ],
+      [
+        "Svindi",
+        "tAsmahe"
+      ],
+      [
+        "Svindi",
+        "tAsATe"
+      ],
+      [
+        "Svindi",
+        "zyante"
+      ],
+      [
+        "Svindi",
+        "zIyAstAm"
+      ],
+      [
+        "Svindi",
+        "zIyAsTAm"
+      ],
+      [
+        "Svindi",
+        "zIran"
+      ],
+      [
+        "Svindi",
+        "zIDvam"
+      ],
+      [
+        "daDi",
+        "tA"
+      ],
+      [
+        "daDi",
+        "zye"
+      ],
+      [
+        "daDi",
+        "tArO"
+      ],
+      [
+        "daDi",
+        "tAraH"
+      ],
+      [
+        "daDi",
+        "tADve"
+      ],
+      [
+        "daDi",
+        "zyAmahe"
+      ],
+      [
+        "daDi",
+        "zyAvahe"
+      ],
+      [
+        "daDi",
+        "zyeTe"
+      ],
+      [
+        "daDi",
+        "tAhe"
+      ],
+      [
+        "daDi",
+        "tAse"
+      ],
+      [
+        "daDi",
+        "zIvahi"
+      ],
+      [
+        "daDi",
+        "zIya"
+      ],
+      [
+        "daDi",
+        "zImahi"
+      ],
+      [
+        "daDi",
+        "zIzWAH"
+      ],
+      [
+        "daDi",
+        "zIzwa"
+      ],
+      [
+        "daDi",
+        "zyate"
+      ],
+      [
+        "daDi",
+        "zyase"
+      ],
+      [
+        "daDi",
+        "zyaDve"
+      ],
+      [
+        "daDi",
+        "zyete"
+      ],
+      [
+        "daDi",
+        "tAsvahe"
+      ],
+      [
+        "daDi",
+        "tAsmahe"
+      ],
+      [
+        "daDi",
+        "tAsATe"
+      ],
+      [
+        "daDi",
+        "zyante"
+      ],
+      [
+        "daDi",
+        "zIyAstAm"
+      ],
+      [
+        "daDi",
+        "zIyAsTAm"
+      ],
+      [
+        "daDi",
+        "zIran"
+      ],
+      [
+        "daDi",
+        "zIDvam"
+      ],
+      [
+        "eDi",
+        "tA"
+      ],
+      [
+        "eDi",
+        "zye"
+      ],
+      [
+        "eDi",
+        "tArO"
+      ],
+      [
+        "eDi",
+        "tAraH"
+      ],
+      [
+        "eDi",
+        "tADve"
+      ],
+      [
+        "eDi",
+        "zyAmahe"
+      ],
+      [
+        "eDi",
+        "zyAvahe"
+      ],
+      [
+        "eDi",
+        "zyeTe"
+      ],
+      [
+        "eDi",
+        "tAhe"
+      ],
+      [
+        "eDi",
+        "tAse"
+      ],
+      [
+        "eDi",
+        "zIvahi"
+      ],
+      [
+        "eDi",
+        "zIya"
+      ],
+      [
+        "eDi",
+        "zImahi"
+      ],
+      [
+        "eDi",
+        "zIzWAH"
+      ],
+      [
+        "eDi",
+        "zIzwa"
+      ],
+      [
+        "eDi",
+        "zyate"
+      ],
+      [
+        "eDi",
+        "zyase"
+      ],
+      [
+        "eDi",
+        "zyaDve"
+      ],
+      [
+        "eDi",
+        "zyete"
+      ],
+      [
+        "eDi",
+        "tAsvahe"
+      ],
+      [
+        "eDi",
+        "tAsmahe"
+      ],
+      [
+        "eDi",
+        "tAsATe"
+      ],
+      [
+        "eDi",
+        "zyante"
+      ],
+      [
+        "eDi",
+        "zIyAstAm"
+      ],
+      [
+        "eDi",
+        "zIyAsTAm"
+      ],
+      [
+        "eDi",
+        "zIran"
+      ],
+      [
+        "eDi",
+        "zIDvam"
+      ],
+      [
+        "nADi",
+        "tA"
+      ],
+      [
+        "nADi",
+        "zye"
+      ],
+      [
+        "nADi",
+        "tArO"
+      ],
+      [
+        "nADi",
+        "tAraH"
+      ],
+      [
+        "nADi",
+        "tADve"
+      ],
+      [
+        "nADi",
+        "zyAmahe"
+      ],
+      [
+        "nADi",
+        "zyAvahe"
+      ],
+      [
+        "nADi",
+        "zyeTe"
+      ],
+      [
+        "nADi",
+        "tAhe"
+      ],
+      [
+        "nADi",
+        "tAse"
+      ],
+      [
+        "nADi",
+        "zIvahi"
+      ],
+      [
+        "nADi",
+        "zIya"
+      ],
+      [
+        "nADi",
+        "zImahi"
+      ],
+      [
+        "nADi",
+        "zIzWAH"
+      ],
+      [
+        "nADi",
+        "zIzwa"
+      ],
+      [
+        "nADi",
+        "zyate"
+      ],
+      [
+        "nADi",
+        "zyase"
+      ],
+      [
+        "nADi",
+        "zyaDve"
+      ],
+      [
+        "nADi",
+        "zyete"
+      ],
+      [
+        "nADi",
+        "tAsvahe"
+      ],
+      [
+        "nADi",
+        "tAsmahe"
+      ],
+      [
+        "nADi",
+        "tAsATe"
+      ],
+      [
+        "nADi",
+        "zyante"
+      ],
+      [
+        "nADi",
+        "zIyAstAm"
+      ],
+      [
+        "nADi",
+        "zIyAsTAm"
+      ],
+      [
+        "nADi",
+        "zIran"
+      ],
+      [
+        "nADi",
+        "zIDvam"
+      ],
+      [
+        "nATi",
+        "tA"
+      ],
+      [
+        "nATi",
+        "tArO"
+      ],
+      [
+        "nATi",
+        "tAraH"
+      ],
+      [
+        "abADi",
+        "Dvam"
+      ],
+      [
+        "abADi",
+        "zye"
+      ],
+      [
+        "abADi",
+        "zWAH"
+      ],
+      [
+        "abADi",
+        "zyata"
+      ],
+      [
+        "abADi",
+        "zi"
+      ],
+      [
+        "abADi",
+        "zvahi"
+      ],
+      [
+        "abADi",
+        "zmahi"
+      ],
+      [
+        "abADi",
+        "zATAm"
+      ],
+      [
+        "abADi",
+        "zata"
+      ],
+      [
+        "abADi",
+        "zAtAm"
+      ],
+      [
+        "abADi",
+        "zyeTAm"
+      ],
+      [
+        "abADi",
+        "zyaTAH"
+      ],
+      [
+        "abADi",
+        "zyAmahi"
+      ],
+      [
+        "abADi",
+        "zyAvahi"
+      ],
+      [
+        "abADi",
+        "zyaDvam"
+      ],
+      [
+        "abADi",
+        "zyetAm"
+      ],
+      [
+        "abADi",
+        "zyanta"
+      ],
+      [
+        "agADi",
+        "Dvam"
+      ],
+      [
+        "agADi",
+        "zye"
+      ],
+      [
+        "agADi",
+        "zWAH"
+      ],
+      [
+        "agADi",
+        "zyata"
+      ],
+      [
+        "agADi",
+        "zi"
+      ],
+      [
+        "agADi",
+        "zvahi"
+      ],
+      [
+        "agADi",
+        "zmahi"
+      ],
+      [
+        "agADi",
+        "zATAm"
+      ],
+      [
+        "agADi",
+        "zata"
+      ],
+      [
+        "agADi",
+        "zAtAm"
+      ],
+      [
+        "agADi",
+        "zyeTAm"
+      ],
+      [
+        "agADi",
+        "zyaTAH"
+      ],
+      [
+        "agADi",
+        "zyAmahi"
+      ],
+      [
+        "agADi",
+        "zyAvahi"
+      ],
+      [
+        "agADi",
+        "zyaDvam"
+      ],
+      [
+        "agADi",
+        "zyetAm"
+      ],
+      [
+        "agADi",
+        "zyanta"
+      ],
+      [
+        "asparDi",
+        "Dvam"
+      ],
+      [
+        "asparDi",
+        "zye"
+      ],
+      [
+        "asparDi",
+        "zWAH"
+      ],
+      [
+        "asparDi",
+        "zyata"
+      ],
+      [
+        "asparDi",
+        "zi"
+      ],
+      [
+        "asparDi",
+        "zvahi"
+      ],
+      [
+        "asparDi",
+        "zmahi"
+      ],
+      [
+        "asparDi",
+        "zATAm"
+      ],
+      [
+        "asparDi",
+        "zata"
+      ],
+      [
+        "asparDi",
+        "zAtAm"
+      ],
+      [
+        "asparDi",
+        "zyeTAm"
+      ],
+      [
+        "asparDi",
+        "zyaTAH"
+      ],
+      [
+        "asparDi",
+        "zyAmahi"
+      ],
+      [
+        "asparDi",
+        "zyAvahi"
+      ],
+      [
+        "asparDi",
+        "zyaDvam"
+      ],
+      [
+        "asparDi",
+        "zyetAm"
+      ],
+      [
+        "asparDi",
+        "zyanta"
+      ],
+      [
+        "aBandi",
+        "Dvam"
+      ],
+      [
+        "aBandi",
+        "zye"
+      ],
+      [
+        "aBandi",
+        "zWAH"
+      ],
+      [
+        "aBandi",
+        "zyata"
+      ],
+      [
+        "aBandi",
+        "zi"
+      ],
+      [
+        "aBandi",
+        "zvahi"
+      ],
+      [
+        "aBandi",
+        "zmahi"
+      ],
+      [
+        "aBandi",
+        "zATAm"
+      ],
+      [
+        "aBandi",
+        "zata"
+      ],
+      [
+        "aBandi",
+        "zAtAm"
+      ],
+      [
+        "aBandi",
+        "zyeTAm"
+      ],
+      [
+        "aBandi",
+        "zyaTAH"
+      ],
+      [
+        "aBandi",
+        "zyAmahi"
+      ],
+      [
+        "aBandi",
+        "zyAvahi"
+      ],
+      [
+        "aBandi",
+        "zyaDvam"
+      ],
+      [
+        "aBandi",
+        "zyetAm"
+      ],
+      [
+        "aBandi",
+        "zyanta"
+      ],
+      [
+        "anADi",
+        "Dvam"
+      ],
+      [
+        "anADi",
+        "zye"
+      ],
+      [
+        "anADi",
+        "zWAH"
+      ],
+      [
+        "anADi",
+        "zyata"
+      ],
+      [
+        "anADi",
+        "zi"
+      ],
+      [
+        "anADi",
+        "zvahi"
+      ],
+      [
+        "anADi",
+        "zmahi"
+      ],
+      [
+        "anADi",
+        "zATAm"
+      ],
+      [
+        "anADi",
+        "zata"
+      ],
+      [
+        "anADi",
+        "zAtAm"
+      ],
+      [
+        "anADi",
+        "zyeTAm"
+      ],
+      [
+        "anADi",
+        "zyaTAH"
+      ],
+      [
+        "anADi",
+        "zyAmahi"
+      ],
+      [
+        "anADi",
+        "zyAvahi"
+      ],
+      [
+        "anADi",
+        "zyaDvam"
+      ],
+      [
+        "anADi",
+        "zyetAm"
+      ],
+      [
+        "anADi",
+        "zyanta"
+      ],
+      [
+        "anATi",
+        "zwa"
+      ],
+      [
+        "EDi",
+        "Dvam"
+      ],
+      [
+        "EDi",
+        "zye"
+      ],
+      [
+        "EDi",
+        "zWAH"
+      ],
+      [
+        "EDi",
+        "zyata"
+      ],
+      [
+        "EDi",
+        "zi"
+      ],
+      [
+        "EDi",
+        "zvahi"
+      ],
+      [
+        "EDi",
+        "zmahi"
+      ],
+      [
+        "EDi",
+        "zATAm"
+      ],
+      [
+        "EDi",
+        "zata"
+      ],
+      [
+        "EDi",
+        "zAtAm"
+      ],
+      [
+        "EDi",
+        "zyeTAm"
+      ],
+      [
+        "EDi",
+        "zyaTAH"
+      ],
+      [
+        "EDi",
+        "zyAmahi"
+      ],
+      [
+        "EDi",
+        "zyAvahi"
+      ],
+      [
+        "EDi",
+        "zyaDvam"
+      ],
+      [
+        "EDi",
+        "zyetAm"
+      ],
+      [
+        "EDi",
+        "zyanta"
+      ],
+      [
+        "avandi",
+        "Dvam"
+      ],
+      [
+        "avandi",
+        "zye"
+      ],
+      [
+        "avandi",
+        "zWAH"
+      ],
+      [
+        "avandi",
+        "zyata"
+      ],
+      [
+        "avandi",
+        "zi"
+      ],
+      [
+        "avandi",
+        "zvahi"
+      ],
+      [
+        "avandi",
+        "zmahi"
+      ],
+      [
+        "avandi",
+        "zATAm"
+      ],
+      [
+        "avandi",
+        "zata"
+      ],
+      [
+        "avandi",
+        "zAtAm"
+      ],
+      [
+        "avandi",
+        "zyeTAm"
+      ],
+      [
+        "avandi",
+        "zyaTAH"
+      ],
+      [
+        "avandi",
+        "zyAmahi"
+      ],
+      [
+        "avandi",
+        "zyAvahi"
+      ],
+      [
+        "avandi",
+        "zyaDvam"
+      ],
+      [
+        "avandi",
+        "zyetAm"
+      ],
+      [
+        "avandi",
+        "zyanta"
+      ],
+      [
+        "askundi",
+        "Dvam"
+      ],
+      [
+        "askundi",
+        "zye"
+      ],
+      [
+        "askundi",
+        "zWAH"
+      ],
+      [
+        "askundi",
+        "zyata"
+      ],
+      [
+        "askundi",
+        "zi"
+      ],
+      [
+        "askundi",
+        "zvahi"
+      ],
+      [
+        "askundi",
+        "zmahi"
+      ],
+      [
+        "askundi",
+        "zATAm"
+      ],
+      [
+        "askundi",
+        "zata"
+      ],
+      [
+        "askundi",
+        "zAtAm"
+      ],
+      [
+        "askundi",
+        "zyeTAm"
+      ],
+      [
+        "askundi",
+        "zyaTAH"
+      ],
+      [
+        "askundi",
+        "zyAmahi"
+      ],
+      [
+        "askundi",
+        "zyAvahi"
+      ],
+      [
+        "askundi",
+        "zyaDvam"
+      ],
+      [
+        "askundi",
+        "zyetAm"
+      ],
+      [
+        "askundi",
+        "zyanta"
+      ],
+      [
+        "aSvindi",
+        "Dvam"
+      ],
+      [
+        "aSvindi",
+        "zye"
+      ],
+      [
+        "aSvindi",
+        "zWAH"
+      ],
+      [
+        "aSvindi",
+        "zyata"
+      ],
+      [
+        "aSvindi",
+        "zi"
+      ],
+      [
+        "aSvindi",
+        "zvahi"
+      ],
+      [
+        "aSvindi",
+        "zmahi"
+      ],
+      [
+        "aSvindi",
+        "zATAm"
+      ],
+      [
+        "aSvindi",
+        "zata"
+      ],
+      [
+        "aSvindi",
+        "zAtAm"
+      ],
+      [
+        "aSvindi",
+        "zyeTAm"
+      ],
+      [
+        "aSvindi",
+        "zyaTAH"
+      ],
+      [
+        "aSvindi",
+        "zyAmahi"
+      ],
+      [
+        "aSvindi",
+        "zyAvahi"
+      ],
+      [
+        "aSvindi",
+        "zyaDvam"
+      ],
+      [
+        "aSvindi",
+        "zyetAm"
+      ],
+      [
+        "aSvindi",
+        "zyanta"
+      ],
+      [
+        "adaDi",
+        "Dvam"
+      ],
+      [
+        "adaDi",
+        "zye"
+      ],
+      [
+        "adaDi",
+        "zWAH"
+      ],
+      [
+        "adaDi",
+        "zyata"
+      ],
+      [
+        "adaDi",
+        "zi"
+      ],
+      [
+        "adaDi",
+        "zvahi"
+      ],
+      [
+        "adaDi",
+        "zmahi"
+      ],
+      [
+        "adaDi",
+        "zATAm"
+      ],
+      [
+        "adaDi",
+        "zata"
+      ],
+      [
+        "adaDi",
+        "zAtAm"
+      ],
+      [
+        "adaDi",
+        "zyeTAm"
+      ],
+      [
+        "adaDi",
+        "zyaTAH"
+      ],
+      [
+        "adaDi",
+        "zyAmahi"
+      ],
+      [
+        "adaDi",
+        "zyAvahi"
+      ],
+      [
+        "adaDi",
+        "zyaDvam"
+      ],
+      [
+        "adaDi",
+        "zyetAm"
+      ],
+      [
+        "adaDi",
+        "zyanta"
+      ],
+      [
+        "babADi",
+        "vahe"
+      ],
+      [
+        "babADi",
+        "Dve"
+      ],
+      [
+        "babADi",
+        "mahe"
+      ],
+      [
+        "babADi",
+        "re"
+      ],
+      [
+        "babADi",
+        "ze"
+      ],
+      [
+        "baBandi",
+        "vahe"
+      ],
+      [
+        "baBandi",
+        "Dve"
+      ],
+      [
+        "baBandi",
+        "mahe"
+      ],
+      [
+        "baBandi",
+        "re"
+      ],
+      [
+        "baBandi",
+        "ze"
+      ],
+      [
+        "deDi",
+        "vahe"
+      ],
+      [
+        "deDi",
+        "Dve"
+      ],
+      [
+        "deDi",
+        "mahe"
+      ],
+      [
+        "deDi",
+        "re"
+      ],
+      [
+        "deDi",
+        "ze"
+      ],
+      [
+        "jagADi",
+        "vahe"
+      ],
+      [
+        "jagADi",
+        "Dve"
+      ],
+      [
+        "jagADi",
+        "mahe"
+      ],
+      [
+        "jagADi",
+        "re"
+      ],
+      [
+        "jagADi",
+        "ze"
+      ],
+      [
+        "nanADi",
+        "vahe"
+      ],
+      [
+        "nanADi",
+        "Dve"
+      ],
+      [
+        "nanADi",
+        "mahe"
+      ],
+      [
+        "nanADi",
+        "re"
+      ],
+      [
+        "nanADi",
+        "ze"
+      ],
+      [
+        "pasparDi",
+        "vahe"
+      ],
+      [
+        "pasparDi",
+        "Dve"
+      ],
+      [
+        "pasparDi",
+        "mahe"
+      ],
+      [
+        "pasparDi",
+        "re"
+      ],
+      [
+        "pasparDi",
+        "ze"
+      ],
+      [
+        "vavandi",
+        "vahe"
+      ],
+      [
+        "vavandi",
+        "Dve"
+      ],
+      [
+        "vavandi",
+        "mahe"
+      ],
+      [
+        "vavandi",
+        "re"
+      ],
+      [
+        "vavandi",
+        "ze"
+      ],
+      [
+        "SiSvindi",
+        "vahe"
+      ],
+      [
+        "SiSvindi",
+        "Dve"
+      ],
+      [
+        "SiSvindi",
+        "mahe"
+      ],
+      [
+        "SiSvindi",
+        "re"
+      ],
+      [
+        "SiSvindi",
+        "ze"
+      ],
+      [
+        "cuskundi",
+        "vahe"
+      ],
+      [
+        "cuskundi",
+        "Dve"
+      ],
+      [
+        "cuskundi",
+        "mahe"
+      ],
+      [
+        "cuskundi",
+        "re"
+      ],
+      [
+        "cuskundi",
+        "ze"
+      ],
+      [
+        "deD",
+        "Ate"
+      ],
+      [
+        "deD",
+        "ATe"
+      ],
+      [
+        "jagAD",
+        "Ate"
+      ],
+      [
+        "jagAD",
+        "ATe"
+      ],
+      [
+        "nanAD",
+        "Ate"
+      ],
+      [
+        "nanAD",
+        "ATe"
+      ],
+      [
+        "pasparD",
+        "Ate"
+      ],
+      [
+        "pasparD",
+        "ATe"
+      ],
+      [
+        "vavand",
+        "Ate"
+      ],
+      [
+        "vavand",
+        "ATe"
+      ],
+      [
+        "SiSvind",
+        "Ate"
+      ],
+      [
+        "SiSvind",
+        "ATe"
+      ],
+      [
+        "cuskund",
+        "Ate"
+      ],
+      [
+        "cuskund",
+        "ATe"
+      ],
+      [
+        "babAD",
+        "Ate"
+      ],
+      [
+        "babAD",
+        "ATe"
+      ],
+      [
+        "baBand",
+        "Ate"
+      ],
+      [
+        "baBand",
+        "ATe"
+      ],
+      [
+        "mamand",
+        "Ate"
+      ],
+      [
+        "a",
+        "vanda"
+      ],
+      [
+        "a",
+        "skunda"
+      ],
+      [
+        "a",
+        "Banda"
+      ],
+      [
+        "a",
+        "Svinda"
+      ],
+      [
+        "n",
+        "i"
+      ],
+      [
+        "t",
+        "u"
+      ],
+      [
+        "v",
+        "uH"
+      ],
+      [
+        "ma",
+        "H"
+      ],
+      [
+        "va",
+        "H"
+      ],
+      [
+        "zy",
+        "Ama"
+      ],
+      [
+        "zy",
+        "Ava"
+      ],
+      [
+        "nAT",
+        "an"
+      ],
+      [
+        "nAT",
+        "AT"
+      ],
+      [
+        "nAT",
+        "eta"
+      ],
+      [
+        "nAT",
+        "Ami"
+      ],
+      [
+        "Ba",
+        "vaT"
+      ],
+      [
+        "zI",
+        "Qvam"
+      ],
+      [
+        "Ama",
+        "H"
+      ],
+      [
+        "zya",
+        "ti"
+      ],
+      [
+        "zya",
+        "si"
+      ],
+      [
+        "anAT",
+        "I"
+      ],
+      [
+        "anAT",
+        "ata"
+      ],
+      [
+        "anAT",
+        "yAvahi"
+      ],
+      [
+        "bADy",
+        "e"
+      ],
+      [
+        "bADy",
+        "eTAm"
+      ],
+      [
+        "bADy",
+        "eTe"
+      ],
+      [
+        "bADy",
+        "etAm"
+      ],
+      [
+        "bADy",
+        "ADve"
+      ],
+      [
+        "bADy",
+        "aDvam"
+      ],
+      [
+        "bADy",
+        "ete"
+      ],
+      [
+        "bADy",
+        "eta"
+      ],
+      [
+        "bADy",
+        "eya"
+      ],
+      [
+        "bADy",
+        "Ete"
+      ],
+      [
+        "bADy",
+        "ETe"
+      ],
+      [
+        "bADy",
+        "eDvam"
+      ],
+      [
+        "bADy",
+        "evahi"
+      ],
+      [
+        "bADy",
+        "emahi"
+      ],
+      [
+        "bADy",
+        "eran"
+      ],
+      [
+        "bADy",
+        "ante"
+      ],
+      [
+        "bADy",
+        "AmahE"
+      ],
+      [
+        "bADy",
+        "eTAH"
+      ],
+      [
+        "bADy",
+        "eyATAm"
+      ],
+      [
+        "bADy",
+        "eyAtAm"
+      ],
+      [
+        "bADy",
+        "antAm"
+      ],
+      [
+        "bADy",
+        "Ase"
+      ],
+      [
+        "bADy",
+        "AvahE"
+      ],
+      [
+        "bADy",
+        "ate"
+      ],
+      [
+        "bADy",
+        "ase"
+      ],
+      [
+        "bADy",
+        "atAm"
+      ],
+      [
+        "bADy",
+        "aDve"
+      ],
+      [
+        "bADy",
+        "asva"
+      ],
+      [
+        "gADy",
+        "e"
+      ],
+      [
+        "gADy",
+        "eTAm"
+      ],
+      [
+        "gADy",
+        "eTe"
+      ],
+      [
+        "gADy",
+        "etAm"
+      ],
+      [
+        "gADy",
+        "ADve"
+      ],
+      [
+        "gADy",
+        "aDvam"
+      ],
+      [
+        "gADy",
+        "ete"
+      ],
+      [
+        "gADy",
+        "eta"
+      ],
+      [
+        "gADy",
+        "eya"
+      ],
+      [
+        "gADy",
+        "Ete"
+      ],
+      [
+        "gADy",
+        "ETe"
+      ],
+      [
+        "gADy",
+        "eDvam"
+      ],
+      [
+        "gADy",
+        "evahi"
+      ],
+      [
+        "gADy",
+        "emahi"
+      ],
+      [
+        "gADy",
+        "eran"
+      ],
+      [
+        "gADy",
+        "ante"
+      ],
+      [
+        "gADy",
+        "AmahE"
+      ],
+      [
+        "gADy",
+        "eTAH"
+      ],
+      [
+        "gADy",
+        "eyATAm"
+      ],
+      [
+        "gADy",
+        "eyAtAm"
+      ],
+      [
+        "gADy",
+        "antAm"
+      ],
+      [
+        "gADy",
+        "Ase"
+      ],
+      [
+        "gADy",
+        "AvahE"
+      ],
+      [
+        "gADy",
+        "ate"
+      ],
+      [
+        "gADy",
+        "ase"
+      ],
+      [
+        "gADy",
+        "atAm"
+      ],
+      [
+        "gADy",
+        "aDve"
+      ],
+      [
+        "gADy",
+        "asva"
+      ],
+      [
+        "BAvi",
+        "tA"
+      ],
+      [
+        "BAvi",
+        "zye"
+      ],
+      [
+        "BAvi",
+        "tArO"
+      ],
+      [
+        "BAvi",
+        "tAraH"
+      ],
+      [
+        "BAvi",
+        "tADve"
+      ],
+      [
+        "BAvi",
+        "zyAmahe"
+      ],
+      [
+        "BAvi",
+        "zyAvahe"
+      ],
+      [
+        "BAvi",
+        "zyeTe"
+      ],
+      [
+        "BAvi",
+        "tAhe"
+      ],
+      [
+        "BAvi",
+        "tAse"
+      ],
+      [
+        "BAvi",
+        "zIvahi"
+      ],
+      [
+        "BAvi",
+        "zIya"
+      ],
+      [
+        "BAvi",
+        "zImahi"
+      ],
+      [
+        "BAvi",
+        "zIzWAH"
+      ],
+      [
+        "BAvi",
+        "zIzwa"
+      ],
+      [
+        "BAvi",
+        "zyate"
+      ],
+      [
+        "BAvi",
+        "zyase"
+      ],
+      [
+        "BAvi",
+        "zyaDve"
+      ],
+      [
+        "BAvi",
+        "zyete"
+      ],
+      [
+        "BAvi",
+        "tAsvahe"
+      ],
+      [
+        "BAvi",
+        "tAsmahe"
+      ],
+      [
+        "BAvi",
+        "tAsATe"
+      ],
+      [
+        "BAvi",
+        "zyante"
+      ],
+      [
+        "BAvi",
+        "zIyAstAm"
+      ],
+      [
+        "BAvi",
+        "zIyAsTAm"
+      ],
+      [
+        "BAvi",
+        "zIran"
+      ],
+      [
+        "BAvi",
+        "zIQvam"
+      ],
+      [
+        "vandy",
+        "e"
+      ],
+      [
+        "vandy",
+        "eTAm"
+      ],
+      [
+        "vandy",
+        "eTe"
+      ],
+      [
+        "vandy",
+        "etAm"
+      ],
+      [
+        "vandy",
+        "ADve"
+      ],
+      [
+        "vandy",
+        "aDvam"
+      ],
+      [
+        "vandy",
+        "ete"
+      ],
+      [
+        "vandy",
+        "eta"
+      ],
+      [
+        "vandy",
+        "eya"
+      ],
+      [
+        "vandy",
+        "Ete"
+      ],
+      [
+        "vandy",
+        "ETe"
+      ],
+      [
+        "vandy",
+        "eDvam"
+      ],
+      [
+        "vandy",
+        "evahi"
+      ],
+      [
+        "vandy",
+        "emahi"
+      ],
+      [
+        "vandy",
+        "eran"
+      ],
+      [
+        "vandy",
+        "ante"
+      ],
+      [
+        "vandy",
+        "AmahE"
+      ],
+      [
+        "vandy",
+        "eTAH"
+      ],
+      [
+        "vandy",
+        "eyATAm"
+      ],
+      [
+        "vandy",
+        "eyAtAm"
+      ],
+      [
+        "vandy",
+        "antAm"
+      ],
+      [
+        "vandy",
+        "Ase"
+      ],
+      [
+        "vandy",
+        "AvahE"
+      ],
+      [
+        "vandy",
+        "ate"
+      ],
+      [
+        "vandy",
+        "ase"
+      ],
+      [
+        "vandy",
+        "atAm"
+      ],
+      [
+        "vandy",
+        "aDve"
+      ],
+      [
+        "vandy",
+        "asva"
+      ],
+      [
+        "daDy",
+        "e"
+      ],
+      [
+        "daDy",
+        "eTAm"
+      ],
+      [
+        "daDy",
+        "eTe"
+      ],
+      [
+        "daDy",
+        "etAm"
+      ],
+      [
+        "daDy",
+        "ADve"
+      ],
+      [
+        "daDy",
+        "aDvam"
+      ],
+      [
+        "daDy",
+        "ete"
+      ],
+      [
+        "daDy",
+        "eta"
+      ],
+      [
+        "daDy",
+        "eya"
+      ],
+      [
+        "daDy",
+        "Ete"
+      ],
+      [
+        "daDy",
+        "ETe"
+      ],
+      [
+        "daDy",
+        "eDvam"
+      ],
+      [
+        "daDy",
+        "evahi"
+      ],
+      [
+        "daDy",
+        "emahi"
+      ],
+      [
+        "daDy",
+        "eran"
+      ],
+      [
+        "daDy",
+        "ante"
+      ],
+      [
+        "daDy",
+        "AmahE"
+      ],
+      [
+        "daDy",
+        "eTAH"
+      ],
+      [
+        "daDy",
+        "eyATAm"
+      ],
+      [
+        "daDy",
+        "eyAtAm"
+      ],
+      [
+        "daDy",
+        "antAm"
+      ],
+      [
+        "daDy",
+        "Ase"
+      ],
+      [
+        "daDy",
+        "AvahE"
+      ],
+      [
+        "daDy",
+        "ate"
+      ],
+      [
+        "daDy",
+        "ase"
+      ],
+      [
+        "daDy",
+        "atAm"
+      ],
+      [
+        "daDy",
+        "aDve"
+      ],
+      [
+        "daDy",
+        "asva"
+      ],
+      [
+        "skundy",
+        "e"
+      ],
+      [
+        "skundy",
+        "eTAm"
+      ],
+      [
+        "skundy",
+        "eTe"
+      ],
+      [
+        "skundy",
+        "etAm"
+      ],
+      [
+        "skundy",
+        "ADve"
+      ],
+      [
+        "skundy",
+        "aDvam"
+      ],
+      [
+        "skundy",
+        "ete"
+      ],
+      [
+        "skundy",
+        "eta"
+      ],
+      [
+        "skundy",
+        "eya"
+      ],
+      [
+        "skundy",
+        "Ete"
+      ],
+      [
+        "skundy",
+        "ETe"
+      ],
+      [
+        "skundy",
+        "eDvam"
+      ],
+      [
+        "skundy",
+        "evahi"
+      ],
+      [
+        "skundy",
+        "emahi"
+      ],
+      [
+        "skundy",
+        "eran"
+      ],
+      [
+        "skundy",
+        "ante"
+      ],
+      [
+        "skundy",
+        "AmahE"
+      ],
+      [
+        "skundy",
+        "eTAH"
+      ],
+      [
+        "skundy",
+        "eyATAm"
+      ],
+      [
+        "skundy",
+        "eyAtAm"
+      ],
+      [
+        "skundy",
+        "antAm"
+      ],
+      [
+        "skundy",
+        "Ase"
+      ],
+      [
+        "skundy",
+        "AvahE"
+      ],
+      [
+        "skundy",
+        "ate"
+      ],
+      [
+        "skundy",
+        "ase"
+      ],
+      [
+        "skundy",
+        "atAm"
+      ],
+      [
+        "skundy",
+        "aDve"
+      ],
+      [
+        "skundy",
+        "asva"
+      ],
+      [
+        "sparDy",
+        "e"
+      ],
+      [
+        "sparDy",
+        "eTAm"
+      ],
+      [
+        "sparDy",
+        "eTe"
+      ],
+      [
+        "sparDy",
+        "etAm"
+      ],
+      [
+        "sparDy",
+        "ADve"
+      ],
+      [
+        "sparDy",
+        "aDvam"
+      ],
+      [
+        "sparDy",
+        "ete"
+      ],
+      [
+        "sparDy",
+        "eta"
+      ],
+      [
+        "sparDy",
+        "eya"
+      ],
+      [
+        "sparDy",
+        "Ete"
+      ],
+      [
+        "sparDy",
+        "ETe"
+      ],
+      [
+        "sparDy",
+        "eDvam"
+      ],
+      [
+        "sparDy",
+        "evahi"
+      ],
+      [
+        "sparDy",
+        "emahi"
+      ],
+      [
+        "sparDy",
+        "eran"
+      ],
+      [
+        "sparDy",
+        "ante"
+      ],
+      [
+        "sparDy",
+        "AmahE"
+      ],
+      [
+        "sparDy",
+        "eTAH"
+      ],
+      [
+        "sparDy",
+        "eyATAm"
+      ],
+      [
+        "sparDy",
+        "eyAtAm"
+      ],
+      [
+        "sparDy",
+        "antAm"
+      ],
+      [
+        "sparDy",
+        "Ase"
+      ],
+      [
+        "sparDy",
+        "AvahE"
+      ],
+      [
+        "sparDy",
+        "ate"
+      ],
+      [
+        "sparDy",
+        "ase"
+      ],
+      [
+        "sparDy",
+        "atAm"
+      ],
+      [
+        "sparDy",
+        "aDve"
+      ],
+      [
+        "sparDy",
+        "asva"
+      ],
+      [
+        "Bandy",
+        "e"
+      ],
+      [
+        "Bandy",
+        "eTAm"
+      ],
+      [
+        "Bandy",
+        "eTe"
+      ],
+      [
+        "Bandy",
+        "etAm"
+      ],
+      [
+        "Bandy",
+        "ADve"
+      ],
+      [
+        "Bandy",
+        "aDvam"
+      ],
+      [
+        "Bandy",
+        "ete"
+      ],
+      [
+        "Bandy",
+        "eta"
+      ],
+      [
+        "Bandy",
+        "eya"
+      ],
+      [
+        "Bandy",
+        "Ete"
+      ],
+      [
+        "Bandy",
+        "ETe"
+      ],
+      [
+        "Bandy",
+        "eDvam"
+      ],
+      [
+        "Bandy",
+        "evahi"
+      ],
+      [
+        "Bandy",
+        "emahi"
+      ],
+      [
+        "Bandy",
+        "eran"
+      ],
+      [
+        "Bandy",
+        "ante"
+      ],
+      [
+        "Bandy",
+        "AmahE"
+      ],
+      [
+        "Bandy",
+        "eTAH"
+      ],
+      [
+        "Bandy",
+        "eyATAm"
+      ],
+      [
+        "Bandy",
+        "eyAtAm"
+      ],
+      [
+        "Bandy",
+        "antAm"
+      ],
+      [
+        "Bandy",
+        "Ase"
+      ],
+      [
+        "Bandy",
+        "AvahE"
+      ],
+      [
+        "Bandy",
+        "ate"
+      ],
+      [
+        "Bandy",
+        "ase"
+      ],
+      [
+        "Bandy",
+        "atAm"
+      ],
+      [
+        "Bandy",
+        "aDve"
+      ],
+      [
+        "Bandy",
+        "asva"
+      ],
+      [
+        "Svindy",
+        "e"
+      ],
+      [
+        "Svindy",
+        "eTAm"
+      ],
+      [
+        "Svindy",
+        "eTe"
+      ],
+      [
+        "Svindy",
+        "etAm"
+      ],
+      [
+        "Svindy",
+        "ADve"
+      ],
+      [
+        "Svindy",
+        "aDvam"
+      ],
+      [
+        "Svindy",
+        "ete"
+      ],
+      [
+        "Svindy",
+        "eta"
+      ],
+      [
+        "Svindy",
+        "eya"
+      ],
+      [
+        "Svindy",
+        "Ete"
+      ],
+      [
+        "Svindy",
+        "ETe"
+      ],
+      [
+        "Svindy",
+        "eDvam"
+      ],
+      [
+        "Svindy",
+        "evahi"
+      ],
+      [
+        "Svindy",
+        "emahi"
+      ],
+      [
+        "Svindy",
+        "eran"
+      ],
+      [
+        "Svindy",
+        "ante"
+      ],
+      [
+        "Svindy",
+        "AmahE"
+      ],
+      [
+        "Svindy",
+        "eTAH"
+      ],
+      [
+        "Svindy",
+        "eyATAm"
+      ],
+      [
+        "Svindy",
+        "eyAtAm"
+      ],
+      [
+        "Svindy",
+        "antAm"
+      ],
+      [
+        "Svindy",
+        "Ase"
+      ],
+      [
+        "Svindy",
+        "AvahE"
+      ],
+      [
+        "Svindy",
+        "ate"
+      ],
+      [
+        "Svindy",
+        "ase"
+      ],
+      [
+        "Svindy",
+        "atAm"
+      ],
+      [
+        "Svindy",
+        "aDve"
+      ],
+      [
+        "Svindy",
+        "asva"
+      ],
+      [
+        "aBU",
+        "va"
+      ],
+      [
+        "aBU",
+        "yAvahi"
+      ],
+      [
+        "eDy",
+        "e"
+      ],
+      [
+        "eDy",
+        "eTAm"
+      ],
+      [
+        "eDy",
+        "eTe"
+      ],
+      [
+        "eDy",
+        "etAm"
+      ],
+      [
+        "eDy",
+        "ADve"
+      ],
+      [
+        "eDy",
+        "aDvam"
+      ],
+      [
+        "eDy",
+        "ete"
+      ],
+      [
+        "eDy",
+        "eta"
+      ],
+      [
+        "eDy",
+        "eya"
+      ],
+      [
+        "eDy",
+        "Ete"
+      ],
+      [
+        "eDy",
+        "ETe"
+      ],
+      [
+        "eDy",
+        "eDvam"
+      ],
+      [
+        "eDy",
+        "evahi"
+      ],
+      [
+        "eDy",
+        "emahi"
+      ],
+      [
+        "eDy",
+        "eran"
+      ],
+      [
+        "eDy",
+        "ante"
+      ],
+      [
+        "eDy",
+        "AmahE"
+      ],
+      [
+        "eDy",
+        "eTAH"
+      ],
+      [
+        "eDy",
+        "eyATAm"
+      ],
+      [
+        "eDy",
+        "eyAtAm"
+      ],
+      [
+        "eDy",
+        "antAm"
+      ],
+      [
+        "eDy",
+        "Ase"
+      ],
+      [
+        "eDy",
+        "AvahE"
+      ],
+      [
+        "eDy",
+        "ate"
+      ],
+      [
+        "eDy",
+        "ase"
+      ],
+      [
+        "eDy",
+        "atAm"
+      ],
+      [
+        "eDy",
+        "aDve"
+      ],
+      [
+        "eDy",
+        "asva"
+      ],
+      [
+        "nADy",
+        "e"
+      ],
+      [
+        "nADy",
+        "eTAm"
+      ],
+      [
+        "nADy",
+        "eTe"
+      ],
+      [
+        "nADy",
+        "etAm"
+      ],
+      [
+        "nADy",
+        "ADve"
+      ],
+      [
+        "nADy",
+        "aDvam"
+      ],
+      [
+        "nADy",
+        "ete"
+      ],
+      [
+        "nADy",
+        "eta"
+      ],
+      [
+        "nADy",
+        "eya"
+      ],
+      [
+        "nADy",
+        "Ete"
+      ],
+      [
+        "nADy",
+        "ETe"
+      ],
+      [
+        "nADy",
+        "eDvam"
+      ],
+      [
+        "nADy",
+        "evahi"
+      ],
+      [
+        "nADy",
+        "emahi"
+      ],
+      [
+        "nADy",
+        "eran"
+      ],
+      [
+        "nADy",
+        "ante"
+      ],
+      [
+        "nADy",
+        "AmahE"
+      ],
+      [
+        "nADy",
+        "eTAH"
+      ],
+      [
+        "nADy",
+        "eyATAm"
+      ],
+      [
+        "nADy",
+        "eyAtAm"
+      ],
+      [
+        "nADy",
+        "antAm"
+      ],
+      [
+        "nADy",
+        "Ase"
+      ],
+      [
+        "nADy",
+        "AvahE"
+      ],
+      [
+        "nADy",
+        "ate"
+      ],
+      [
+        "nADy",
+        "ase"
+      ],
+      [
+        "nADy",
+        "atAm"
+      ],
+      [
+        "nADy",
+        "aDve"
+      ],
+      [
+        "nADy",
+        "asva"
+      ],
+      [
+        "zyan",
+        "ti"
+      ],
+      [
+        "nATi",
+        "zye"
+      ],
+      [
+        "nATi",
+        "tADve"
+      ],
+      [
+        "nATi",
+        "zyAmahe"
+      ],
+      [
+        "nATi",
+        "zyAvahe"
+      ],
+      [
+        "nATi",
+        "zyeTe"
+      ],
+      [
+        "nATi",
+        "tAhe"
+      ],
+      [
+        "nATi",
+        "tAse"
+      ],
+      [
+        "nATi",
+        "zIvahi"
+      ],
+      [
+        "nATi",
+        "zIya"
+      ],
+      [
+        "nATi",
+        "zImahi"
+      ],
+      [
+        "nATi",
+        "zIzWAH"
+      ],
+      [
+        "nATi",
+        "zIzwa"
+      ],
+      [
+        "nATi",
+        "zyate"
+      ],
+      [
+        "nATi",
+        "zyase"
+      ],
+      [
+        "nATi",
+        "zyaDve"
+      ],
+      [
+        "nATi",
+        "zyete"
+      ],
+      [
+        "nATi",
+        "tAsvahe"
+      ],
+      [
+        "nATi",
+        "tAsmahe"
+      ],
+      [
+        "nATi",
+        "tAsATe"
+      ],
+      [
+        "nATi",
+        "zyante"
+      ],
+      [
+        "nATi",
+        "zIyAstAm"
+      ],
+      [
+        "nATi",
+        "zIyAsTAm"
+      ],
+      [
+        "nATi",
+        "zIran"
+      ],
+      [
+        "nATi",
+        "zIDvam"
+      ],
+      [
+        "abADi",
+        "zwa"
+      ],
+      [
+        "agADi",
+        "zwa"
+      ],
+      [
+        "asparDi",
+        "zwa"
+      ],
+      [
+        "aBandi",
+        "zwa"
+      ],
+      [
+        "anADi",
+        "zwa"
+      ],
+      [
+        "eD",
+        "E"
+      ],
+      [
+        "eD",
+        "Amahe"
+      ],
+      [
+        "eD",
+        "Avahe"
+      ],
+      [
+        "eD",
+        "Ate"
+      ],
+      [
+        "anATi",
+        "Dvam"
+      ],
+      [
+        "anATi",
+        "zye"
+      ],
+      [
+        "anATi",
+        "zWAH"
+      ],
+      [
+        "anATi",
+        "zi"
+      ],
+      [
+        "anATi",
+        "zvahi"
+      ],
+      [
+        "anATi",
+        "zmahi"
+      ],
+      [
+        "anATi",
+        "zATAm"
+      ],
+      [
+        "anATi",
+        "zata"
+      ],
+      [
+        "anATi",
+        "zAtAm"
+      ],
+      [
+        "anATi",
+        "zyeTAm"
+      ],
+      [
+        "anATi",
+        "zyaTAH"
+      ],
+      [
+        "anATi",
+        "zyAmahi"
+      ],
+      [
+        "anATi",
+        "zyAvahi"
+      ],
+      [
+        "anATi",
+        "zyaDvam"
+      ],
+      [
+        "anATi",
+        "zyetAm"
+      ],
+      [
+        "anATi",
+        "zyanta"
+      ],
+      [
+        "bAD",
+        "E"
+      ],
+      [
+        "bAD",
+        "Amahe"
+      ],
+      [
+        "bAD",
+        "Avahe"
+      ],
+      [
+        "bAD",
+        "Ate"
+      ],
+      [
+        "gAD",
+        "E"
+      ],
+      [
+        "gAD",
+        "Amahe"
+      ],
+      [
+        "gAD",
+        "Avahe"
+      ],
+      [
+        "gAD",
+        "Ate"
+      ],
+      [
+        "EDi",
+        "zwa"
+      ],
+      [
+        "avandi",
+        "zwa"
+      ],
+      [
+        "askundi",
+        "zwa"
+      ],
+      [
+        "aSvindi",
+        "zwa"
+      ],
+      [
+        "adaDi",
+        "zwa"
+      ],
+      [
+        "vand",
+        "E"
+      ],
+      [
+        "vand",
+        "Amahe"
+      ],
+      [
+        "vand",
+        "Avahe"
+      ],
+      [
+        "vand",
+        "Ate"
+      ],
+      [
+        "skund",
+        "E"
+      ],
+      [
+        "skund",
+        "Amahe"
+      ],
+      [
+        "skund",
+        "Avahe"
+      ],
+      [
+        "skund",
+        "Ate"
+      ],
+      [
+        "nATy",
+        "e"
+      ],
+      [
+        "nATy",
+        "eTAm"
+      ],
+      [
+        "nATy",
+        "eTe"
+      ],
+      [
+        "nATy",
+        "etAm"
+      ],
+      [
+        "nATy",
+        "ADve"
+      ],
+      [
+        "nATy",
+        "ete"
+      ],
+      [
+        "nATy",
+        "eta"
+      ],
+      [
+        "nATy",
+        "eya"
+      ],
+      [
+        "nATy",
+        "Ete"
+      ],
+      [
+        "nATy",
+        "ETe"
+      ],
+      [
+        "nATy",
+        "eDvam"
+      ],
+      [
+        "nATy",
+        "evahi"
+      ],
+      [
+        "nATy",
+        "emahi"
+      ],
+      [
+        "nATy",
+        "eran"
+      ],
+      [
+        "nATy",
+        "ante"
+      ],
+      [
+        "nATy",
+        "AmahE"
+      ],
+      [
+        "nATy",
+        "eTAH"
+      ],
+      [
+        "nATy",
+        "eyATAm"
+      ],
+      [
+        "nATy",
+        "eyAtAm"
+      ],
+      [
+        "nATy",
+        "antAm"
+      ],
+      [
+        "BUy",
+        "e"
+      ],
+      [
+        "BUy",
+        "eTAm"
+      ],
+      [
+        "BUy",
+        "eTe"
+      ],
+      [
+        "BUy",
+        "etAm"
+      ],
+      [
+        "BUy",
+        "ADve"
+      ],
+      [
+        "BUy",
+        "ete"
+      ],
+      [
+        "BUy",
+        "eta"
+      ],
+      [
+        "BUy",
+        "eya"
+      ],
+      [
+        "BUy",
+        "Ete"
+      ],
+      [
+        "BUy",
+        "ETe"
+      ],
+      [
+        "BUy",
+        "eDvam"
+      ],
+      [
+        "BUy",
+        "evahi"
+      ],
+      [
+        "BUy",
+        "emahi"
+      ],
+      [
+        "BUy",
+        "eran"
+      ],
+      [
+        "BUy",
+        "ante"
+      ],
+      [
+        "BUy",
+        "AmahE"
+      ],
+      [
+        "BUy",
+        "eTAH"
+      ],
+      [
+        "BUy",
+        "eyATAm"
+      ],
+      [
+        "BUy",
+        "eyAtAm"
+      ],
+      [
+        "BUy",
+        "antAm"
+      ],
+      [
+        "Band",
+        "E"
+      ],
+      [
+        "Band",
+        "Amahe"
+      ],
+      [
+        "Band",
+        "Avahe"
+      ],
+      [
+        "Band",
+        "Ate"
+      ],
+      [
+        "Svind",
+        "E"
+      ],
+      [
+        "Svind",
+        "Amahe"
+      ],
+      [
+        "Svind",
+        "Avahe"
+      ],
+      [
+        "Svind",
+        "Ate"
+      ],
+      [
+        "sparD",
+        "E"
+      ],
+      [
+        "sparD",
+        "Amahe"
+      ],
+      [
+        "sparD",
+        "Avahe"
+      ],
+      [
+        "sparD",
+        "Ate"
+      ],
+      [
+        "zyata",
+        "H"
+      ],
+      [
+        "aBAvi",
+        "zye"
+      ],
+      [
+        "aBAvi",
+        "zWAH"
+      ],
+      [
+        "aBAvi",
+        "zyata"
+      ],
+      [
+        "aBAvi",
+        "zi"
+      ],
+      [
+        "aBAvi",
+        "zvahi"
+      ],
+      [
+        "aBAvi",
+        "zmahi"
+      ],
+      [
+        "aBAvi",
+        "zATAm"
+      ],
+      [
+        "aBAvi",
+        "zata"
+      ],
+      [
+        "aBAvi",
+        "zAtAm"
+      ],
+      [
+        "aBAvi",
+        "zyeTAm"
+      ],
+      [
+        "aBAvi",
+        "zyaTAH"
+      ],
+      [
+        "aBAvi",
+        "zyAmahi"
+      ],
+      [
+        "aBAvi",
+        "zyAvahi"
+      ],
+      [
+        "aBAvi",
+        "zyaDvam"
+      ],
+      [
+        "aBAvi",
+        "zyetAm"
+      ],
+      [
+        "aBAvi",
+        "zyanta"
+      ],
+      [
+        "aBAvi",
+        "Qvam"
+      ],
+      [
+        "nAD",
+        "E"
+      ],
+      [
+        "nAD",
+        "Amahe"
+      ],
+      [
+        "nAD",
+        "Avahe"
+      ],
+      [
+        "nAD",
+        "Ate"
+      ],
+      [
+        "daD",
+        "E"
+      ],
+      [
+        "daD",
+        "Amahe"
+      ],
+      [
+        "daD",
+        "Avahe"
+      ],
+      [
+        "daD",
+        "Ate"
+      ],
+      [
+        "baBU",
+        "vAte"
+      ],
+      [
+        "baBU",
+        "vATe"
+      ],
+      [
+        "eDAmbaBU",
+        "vAte"
+      ],
+      [
+        "eDAmbaBU",
+        "vATe"
+      ],
+      [
+        "EDy",
+        "e"
+      ],
+      [
+        "EDy",
+        "eTAm"
+      ],
+      [
+        "EDy",
+        "etAm"
+      ],
+      [
+        "EDy",
+        "aTAH"
+      ],
+      [
+        "EDy",
+        "Amahi"
+      ],
+      [
+        "EDy",
+        "Avahi"
+      ],
+      [
+        "EDy",
+        "ata"
+      ],
+      [
+        "EDy",
+        "aDvam"
+      ],
+      [
+        "EDy",
+        "anta"
+      ],
+      [
+        "abADy",
+        "e"
+      ],
+      [
+        "abADy",
+        "eTAm"
+      ],
+      [
+        "abADy",
+        "etAm"
+      ],
+      [
+        "abADy",
+        "aTAH"
+      ],
+      [
+        "abADy",
+        "Amahi"
+      ],
+      [
+        "abADy",
+        "Avahi"
+      ],
+      [
+        "abADy",
+        "ata"
+      ],
+      [
+        "abADy",
+        "aDvam"
+      ],
+      [
+        "abADy",
+        "anta"
+      ],
+      [
+        "agADy",
+        "e"
+      ],
+      [
+        "agADy",
+        "eTAm"
+      ],
+      [
+        "agADy",
+        "etAm"
+      ],
+      [
+        "agADy",
+        "aTAH"
+      ],
+      [
+        "agADy",
+        "Amahi"
+      ],
+      [
+        "agADy",
+        "Avahi"
+      ],
+      [
+        "agADy",
+        "ata"
+      ],
+      [
+        "agADy",
+        "aDvam"
+      ],
+      [
+        "agADy",
+        "anta"
+      ],
+      [
+        "avandy",
+        "e"
+      ],
+      [
+        "avandy",
+        "eTAm"
+      ],
+      [
+        "avandy",
+        "etAm"
+      ],
+      [
+        "avandy",
+        "aTAH"
+      ],
+      [
+        "avandy",
+        "Amahi"
+      ],
+      [
+        "avandy",
+        "Avahi"
+      ],
+      [
+        "avandy",
+        "ata"
+      ],
+      [
+        "avandy",
+        "aDvam"
+      ],
+      [
+        "avandy",
+        "anta"
+      ],
+      [
+        "adaDy",
+        "e"
+      ],
+      [
+        "adaDy",
+        "eTAm"
+      ],
+      [
+        "adaDy",
+        "etAm"
+      ],
+      [
+        "adaDy",
+        "aTAH"
+      ],
+      [
+        "adaDy",
+        "Amahi"
+      ],
+      [
+        "adaDy",
+        "Avahi"
+      ],
+      [
+        "adaDy",
+        "ata"
+      ],
+      [
+        "adaDy",
+        "aDvam"
+      ],
+      [
+        "adaDy",
+        "anta"
+      ],
+      [
+        "askundy",
+        "e"
+      ],
+      [
+        "askundy",
+        "eTAm"
+      ],
+      [
+        "askundy",
+        "etAm"
+      ],
+      [
+        "askundy",
+        "aTAH"
+      ],
+      [
+        "askundy",
+        "Amahi"
+      ],
+      [
+        "askundy",
+        "Avahi"
+      ],
+      [
+        "askundy",
+        "ata"
+      ],
+      [
+        "askundy",
+        "aDvam"
+      ],
+      [
+        "askundy",
+        "anta"
+      ],
+      [
+        "asparDy",
+        "e"
+      ],
+      [
+        "asparDy",
+        "eTAm"
+      ],
+      [
+        "asparDy",
+        "etAm"
+      ],
+      [
+        "asparDy",
+        "aTAH"
+      ],
+      [
+        "asparDy",
+        "Amahi"
+      ],
+      [
+        "asparDy",
+        "Avahi"
+      ],
+      [
+        "asparDy",
+        "ata"
+      ],
+      [
+        "asparDy",
+        "aDvam"
+      ],
+      [
+        "asparDy",
+        "anta"
+      ],
+      [
+        "aBandy",
+        "e"
+      ],
+      [
+        "aBandy",
+        "eTAm"
+      ],
+      [
+        "aBandy",
+        "etAm"
+      ],
+      [
+        "aBandy",
+        "aTAH"
+      ],
+      [
+        "aBandy",
+        "Amahi"
+      ],
+      [
+        "aBandy",
+        "Avahi"
+      ],
+      [
+        "aBandy",
+        "ata"
+      ],
+      [
+        "aBandy",
+        "aDvam"
+      ],
+      [
+        "aBandy",
+        "anta"
+      ],
+      [
+        "aSvindy",
+        "e"
+      ],
+      [
+        "aSvindy",
+        "eTAm"
+      ],
+      [
+        "aSvindy",
+        "etAm"
+      ],
+      [
+        "aSvindy",
+        "aTAH"
+      ],
+      [
+        "aSvindy",
+        "Amahi"
+      ],
+      [
+        "aSvindy",
+        "Avahi"
+      ],
+      [
+        "aSvindy",
+        "ata"
+      ],
+      [
+        "aSvindy",
+        "aDvam"
+      ],
+      [
+        "aSvindy",
+        "anta"
+      ],
+      [
+        "mandy",
+        "e"
+      ],
+      [
+        "mandy",
+        "Amahe"
+      ],
+      [
+        "mandy",
+        "Avahe"
+      ],
+      [
+        "mandy",
+        "eTe"
+      ],
+      [
+        "mandy",
+        "ete"
+      ],
+      [
+        "mandy",
+        "ante"
+      ],
+      [
+        "mandy",
+        "ate"
+      ],
+      [
+        "mandy",
+        "ase"
+      ],
+      [
+        "mandy",
+        "aDve"
+      ],
+      [
+        "anADy",
+        "e"
+      ],
+      [
+        "anADy",
+        "eTAm"
+      ],
+      [
+        "anADy",
+        "etAm"
+      ],
+      [
+        "anADy",
+        "aTAH"
+      ],
+      [
+        "anADy",
+        "Amahi"
+      ],
+      [
+        "anADy",
+        "Avahi"
+      ],
+      [
+        "anADy",
+        "ata"
+      ],
+      [
+        "anADy",
+        "aDvam"
+      ],
+      [
+        "anADy",
+        "anta"
+      ],
+      [
+        "BavA",
+        "mi"
+      ],
+      [
+        "Bava",
+        "tAt"
+      ],
+      [
+        "nanAT",
+        "Ate"
+      ],
+      [
+        "nanAT",
+        "ATe"
+      ],
+      [
+        "nanATi",
+        "vahe"
+      ],
+      [
+        "nanATi",
+        "Dve"
+      ],
+      [
+        "nanATi",
+        "mahe"
+      ],
+      [
+        "nanATi",
+        "re"
+      ],
+      [
+        "nanATi",
+        "ze"
+      ],
+      [
+        "nATyA",
+        "se"
+      ],
+      [
+        "nATyA",
+        "vahE"
+      ],
+      [
+        "BUyA",
+        "se"
+      ],
+      [
+        "BUyA",
+        "vahE"
+      ],
+      [
+        "baBUvi",
+        "vahe"
+      ],
+      [
+        "baBUvi",
+        "mahe"
+      ],
+      [
+        "baBUvi",
+        "re"
+      ],
+      [
+        "baBUvi",
+        "ze"
+      ],
+      [
+        "baBUvi",
+        "Qve"
+      ],
+      [
+        "eDAmbaBUvi",
+        "vahe"
+      ],
+      [
+        "eDAmbaBUvi",
+        "mahe"
+      ],
+      [
+        "eDAmbaBUvi",
+        "re"
+      ],
+      [
+        "eDAmbaBUvi",
+        "ze"
+      ],
+      [
+        "eDAmbaBUvi",
+        "Qve"
+      ],
+      [
+        "nATya",
+        "te"
+      ],
+      [
+        "nATya",
+        "se"
+      ],
+      [
+        "nATya",
+        "tAm"
+      ],
+      [
+        "nATya",
+        "Dvam"
+      ],
+      [
+        "nATya",
+        "Dve"
+      ],
+      [
+        "nATya",
+        "sva"
+      ],
+      [
+        "BUya",
+        "te"
+      ],
+      [
+        "BUya",
+        "se"
+      ],
+      [
+        "BUya",
+        "tAm"
+      ],
+      [
+        "BUya",
+        "Dvam"
+      ],
+      [
+        "BUya",
+        "Dve"
+      ],
+      [
+        "BUya",
+        "sva"
+      ],
+      [
+        "anATy",
+        "e"
+      ],
+      [
+        "anATy",
+        "eTAm"
+      ],
+      [
+        "anATy",
+        "etAm"
+      ],
+      [
+        "anATy",
+        "aTAH"
+      ],
+      [
+        "anATy",
+        "Amahi"
+      ],
+      [
+        "anATy",
+        "anta"
+      ],
+      [
+        "aBUy",
+        "e"
+      ],
+      [
+        "aBUy",
+        "eTAm"
+      ],
+      [
+        "aBUy",
+        "etAm"
+      ],
+      [
+        "aBUy",
+        "aTAH"
+      ],
+      [
+        "aBUy",
+        "Amahi"
+      ],
+      [
+        "aBUy",
+        "anta"
+      ],
+      [
+        "mamandi",
+        "vahe"
+      ],
+      [
+        "mamandi",
+        "Dve"
+      ],
+      [
+        "mamandi",
+        "mahe"
+      ],
+      [
+        "mamandi",
+        "re"
+      ],
+      [
+        "mamandi",
+        "ze"
+      ],
+      [
+        "mamand",
+        "ATe"
+      ],
+      [
+        "aBavi",
+        "zyata"
+      ],
+      [
+        "Ava",
+        "H"
+      ],
+      [
+        "vaT",
+        "uH"
+      ],
+      [
+        "nATa",
+        "tAt"
+      ],
+      [
+        "anATya",
+        "ta"
+      ],
+      [
+        "anATya",
+        "Dvam"
+      ],
+      [
+        "aBUya",
+        "ta"
+      ],
+      [
+        "aBUya",
+        "Dvam"
+      ],
+      [
+        "a",
+        "d"
+      ],
+      [
+        "a",
+        "t"
+      ],
+      [
+        "a",
+        "Ba"
+      ],
+      [
+        "a",
+        "BavAma"
+      ],
+      [
+        "a",
+        "BavAva"
+      ],
+      [
+        "n",
+        "tu"
+      ],
+      [
+        "y",
+        "uH"
+      ],
+      [
+        "aT",
+        "uH"
+      ],
+      [
+        "nAT",
+        "etAm"
+      ],
+      [
+        "nAT",
+        "ey"
+      ],
+      [
+        "nAT",
+        "eya"
+      ],
+      [
+        "nAT",
+        "atAm"
+      ],
+      [
+        "nAT",
+        "aTa"
+      ],
+      [
+        "nAT",
+        "aTaH"
+      ],
+      [
+        "daDa",
+        "te"
+      ],
+      [
+        "daDa",
+        "se"
+      ],
+      [
+        "daDa",
+        "tAm"
+      ],
+      [
+        "daDa",
+        "Dvam"
+      ],
+      [
+        "daDa",
+        "Dve"
+      ],
+      [
+        "daDa",
+        "sva"
+      ],
+      [
+        "daDa",
+        "nte"
+      ],
+      [
+        "daDa",
+        "ntAm"
+      ],
+      [
+        "sparDa",
+        "te"
+      ],
+      [
+        "sparDa",
+        "se"
+      ],
+      [
+        "sparDa",
+        "tAm"
+      ],
+      [
+        "sparDa",
+        "Dvam"
+      ],
+      [
+        "sparDa",
+        "Dve"
+      ],
+      [
+        "sparDa",
+        "sva"
+      ],
+      [
+        "sparDa",
+        "nte"
+      ],
+      [
+        "sparDa",
+        "ntAm"
+      ],
+      [
+        "eDa",
+        "te"
+      ],
+      [
+        "eDa",
+        "se"
+      ],
+      [
+        "eDa",
+        "tAm"
+      ],
+      [
+        "eDa",
+        "Dvam"
+      ],
+      [
+        "eDa",
+        "Dve"
+      ],
+      [
+        "eDa",
+        "sva"
+      ],
+      [
+        "eDa",
+        "nte"
+      ],
+      [
+        "eDa",
+        "ntAm"
+      ],
+      [
+        "anAT",
+        "an"
+      ],
+      [
+        "anAT",
+        "Ama"
+      ],
+      [
+        "anAT",
+        "aH"
+      ],
+      [
+        "anAT",
+        "atAm"
+      ],
+      [
+        "anAT",
+        "Ava"
+      ],
+      [
+        "anAT",
+        "am"
+      ],
+      [
+        "anAT",
+        "at"
+      ],
+      [
+        "ya",
+        "m"
+      ],
+      [
+        "aBU",
+        "H"
+      ],
+      [
+        "aBU",
+        "t"
+      ],
+      [
+        "aBU",
+        "ma"
+      ],
+      [
+        "aBU",
+        "tAm"
+      ],
+      [
+        "aBU",
+        "ta"
+      ],
+      [
+        "aBU",
+        "vam"
+      ],
+      [
+        "aBU",
+        "tam"
+      ],
+      [
+        "nATi",
+        "zyati"
+      ],
+      [
+        "nATi",
+        "zyasi"
+      ],
+      [
+        "nATi",
+        "zyanti"
+      ],
+      [
+        "nATi",
+        "zyataH"
+      ],
+      [
+        "eD",
+        "e"
+      ],
+      [
+        "eD",
+        "eTAm"
+      ],
+      [
+        "eD",
+        "eTe"
+      ],
+      [
+        "eD",
+        "etAm"
+      ],
+      [
+        "eD",
+        "ADve"
+      ],
+      [
+        "eD",
+        "ete"
+      ],
+      [
+        "eD",
+        "eta"
+      ],
+      [
+        "eD",
+        "eya"
+      ],
+      [
+        "eD",
+        "Ete"
+      ],
+      [
+        "eD",
+        "ETe"
+      ],
+      [
+        "eD",
+        "eDvam"
+      ],
+      [
+        "eD",
+        "evahi"
+      ],
+      [
+        "eD",
+        "emahi"
+      ],
+      [
+        "eD",
+        "eran"
+      ],
+      [
+        "eD",
+        "AmahE"
+      ],
+      [
+        "eD",
+        "eTAH"
+      ],
+      [
+        "eD",
+        "eyATAm"
+      ],
+      [
+        "eD",
+        "eyAtAm"
+      ],
+      [
+        "eD",
+        "Ase"
+      ],
+      [
+        "eD",
+        "AvahE"
+      ],
+      [
+        "anATi",
+        "zyan"
+      ],
+      [
+        "anATi",
+        "zw"
+      ],
+      [
+        "anATi",
+        "zyAma"
+      ],
+      [
+        "anATi",
+        "zyAva"
+      ],
+      [
+        "bAD",
+        "e"
+      ],
+      [
+        "bAD",
+        "eTAm"
+      ],
+      [
+        "bAD",
+        "eTe"
+      ],
+      [
+        "bAD",
+        "etAm"
+      ],
+      [
+        "bAD",
+        "ADve"
+      ],
+      [
+        "bAD",
+        "aDvam"
+      ],
+      [
+        "bAD",
+        "ete"
+      ],
+      [
+        "bAD",
+        "eta"
+      ],
+      [
+        "bAD",
+        "eya"
+      ],
+      [
+        "bAD",
+        "Ete"
+      ],
+      [
+        "bAD",
+        "ETe"
+      ],
+      [
+        "bAD",
+        "eDvam"
+      ],
+      [
+        "bAD",
+        "evahi"
+      ],
+      [
+        "bAD",
+        "emahi"
+      ],
+      [
+        "bAD",
+        "eran"
+      ],
+      [
+        "bAD",
+        "ante"
+      ],
+      [
+        "bAD",
+        "AmahE"
+      ],
+      [
+        "bAD",
+        "eTAH"
+      ],
+      [
+        "bAD",
+        "eyATAm"
+      ],
+      [
+        "bAD",
+        "eyAtAm"
+      ],
+      [
+        "bAD",
+        "antAm"
+      ],
+      [
+        "bAD",
+        "Ase"
+      ],
+      [
+        "bAD",
+        "AvahE"
+      ],
+      [
+        "bAD",
+        "ate"
+      ],
+      [
+        "bAD",
+        "ase"
+      ],
+      [
+        "bAD",
+        "atAm"
+      ],
+      [
+        "bAD",
+        "aDve"
+      ],
+      [
+        "bAD",
+        "asva"
+      ],
+      [
+        "gAD",
+        "e"
+      ],
+      [
+        "gAD",
+        "eTAm"
+      ],
+      [
+        "gAD",
+        "eTe"
+      ],
+      [
+        "gAD",
+        "etAm"
+      ],
+      [
+        "gAD",
+        "ADve"
+      ],
+      [
+        "gAD",
+        "aDvam"
+      ],
+      [
+        "gAD",
+        "ete"
+      ],
+      [
+        "gAD",
+        "eta"
+      ],
+      [
+        "gAD",
+        "eya"
+      ],
+      [
+        "gAD",
+        "Ete"
+      ],
+      [
+        "gAD",
+        "ETe"
+      ],
+      [
+        "gAD",
+        "eDvam"
+      ],
+      [
+        "gAD",
+        "evahi"
+      ],
+      [
+        "gAD",
+        "emahi"
+      ],
+      [
+        "gAD",
+        "eran"
+      ],
+      [
+        "gAD",
+        "ante"
+      ],
+      [
+        "gAD",
+        "AmahE"
+      ],
+      [
+        "gAD",
+        "eTAH"
+      ],
+      [
+        "gAD",
+        "eyATAm"
+      ],
+      [
+        "gAD",
+        "eyAtAm"
+      ],
+      [
+        "gAD",
+        "antAm"
+      ],
+      [
+        "gAD",
+        "Ase"
+      ],
+      [
+        "gAD",
+        "AvahE"
+      ],
+      [
+        "gAD",
+        "ate"
+      ],
+      [
+        "gAD",
+        "ase"
+      ],
+      [
+        "gAD",
+        "atAm"
+      ],
+      [
+        "gAD",
+        "aDve"
+      ],
+      [
+        "gAD",
+        "asva"
+      ],
+      [
+        "vand",
+        "e"
+      ],
+      [
+        "vand",
+        "eTAm"
+      ],
+      [
+        "vand",
+        "eTe"
+      ],
+      [
+        "vand",
+        "etAm"
+      ],
+      [
+        "vand",
+        "ADve"
+      ],
+      [
+        "vand",
+        "ete"
+      ],
+      [
+        "vand",
+        "eta"
+      ],
+      [
+        "vand",
+        "eya"
+      ],
+      [
+        "vand",
+        "Ete"
+      ],
+      [
+        "vand",
+        "ETe"
+      ],
+      [
+        "vand",
+        "eDvam"
+      ],
+      [
+        "vand",
+        "evahi"
+      ],
+      [
+        "vand",
+        "emahi"
+      ],
+      [
+        "vand",
+        "eran"
+      ],
+      [
+        "vand",
+        "ante"
+      ],
+      [
+        "vand",
+        "AmahE"
+      ],
+      [
+        "vand",
+        "eTAH"
+      ],
+      [
+        "vand",
+        "eyATAm"
+      ],
+      [
+        "vand",
+        "eyAtAm"
+      ],
+      [
+        "vand",
+        "antAm"
+      ],
+      [
+        "vand",
+        "Ase"
+      ],
+      [
+        "vand",
+        "AvahE"
+      ],
+      [
+        "skund",
+        "e"
+      ],
+      [
+        "skund",
+        "eTAm"
+      ],
+      [
+        "skund",
+        "eTe"
+      ],
+      [
+        "skund",
+        "etAm"
+      ],
+      [
+        "skund",
+        "ADve"
+      ],
+      [
+        "skund",
+        "ete"
+      ],
+      [
+        "skund",
+        "eta"
+      ],
+      [
+        "skund",
+        "eya"
+      ],
+      [
+        "skund",
+        "Ete"
+      ],
+      [
+        "skund",
+        "ETe"
+      ],
+      [
+        "skund",
+        "eDvam"
+      ],
+      [
+        "skund",
+        "evahi"
+      ],
+      [
+        "skund",
+        "emahi"
+      ],
+      [
+        "skund",
+        "eran"
+      ],
+      [
+        "skund",
+        "ante"
+      ],
+      [
+        "skund",
+        "AmahE"
+      ],
+      [
+        "skund",
+        "eTAH"
+      ],
+      [
+        "skund",
+        "eyATAm"
+      ],
+      [
+        "skund",
+        "eyAtAm"
+      ],
+      [
+        "skund",
+        "antAm"
+      ],
+      [
+        "skund",
+        "Ase"
+      ],
+      [
+        "skund",
+        "AvahE"
+      ],
+      [
+        "nATy",
+        "AH"
+      ],
+      [
+        "BUy",
+        "AH"
+      ],
+      [
+        "Band",
+        "e"
+      ],
+      [
+        "Band",
+        "eTAm"
+      ],
+      [
+        "Band",
+        "eTe"
+      ],
+      [
+        "Band",
+        "etAm"
+      ],
+      [
+        "Band",
+        "ADve"
+      ],
+      [
+        "Band",
+        "ete"
+      ],
+      [
+        "Band",
+        "eta"
+      ],
+      [
+        "Band",
+        "eya"
+      ],
+      [
+        "Band",
+        "Ete"
+      ],
+      [
+        "Band",
+        "ETe"
+      ],
+      [
+        "Band",
+        "eDvam"
+      ],
+      [
+        "Band",
+        "evahi"
+      ],
+      [
+        "Band",
+        "emahi"
+      ],
+      [
+        "Band",
+        "eran"
+      ],
+      [
+        "Band",
+        "ante"
+      ],
+      [
+        "Band",
+        "AmahE"
+      ],
+      [
+        "Band",
+        "eTAH"
+      ],
+      [
+        "Band",
+        "eyATAm"
+      ],
+      [
+        "Band",
+        "eyAtAm"
+      ],
+      [
+        "Band",
+        "antAm"
+      ],
+      [
+        "Band",
+        "Ase"
+      ],
+      [
+        "Band",
+        "AvahE"
+      ],
+      [
+        "Svind",
+        "e"
+      ],
+      [
+        "Svind",
+        "eTAm"
+      ],
+      [
+        "Svind",
+        "eTe"
+      ],
+      [
+        "Svind",
+        "etAm"
+      ],
+      [
+        "Svind",
+        "ADve"
+      ],
+      [
+        "Svind",
+        "ete"
+      ],
+      [
+        "Svind",
+        "eta"
+      ],
+      [
+        "Svind",
+        "eya"
+      ],
+      [
+        "Svind",
+        "Ete"
+      ],
+      [
+        "Svind",
+        "ETe"
+      ],
+      [
+        "Svind",
+        "eDvam"
+      ],
+      [
+        "Svind",
+        "evahi"
+      ],
+      [
+        "Svind",
+        "emahi"
+      ],
+      [
+        "Svind",
+        "eran"
+      ],
+      [
+        "Svind",
+        "ante"
+      ],
+      [
+        "Svind",
+        "AmahE"
+      ],
+      [
+        "Svind",
+        "eTAH"
+      ],
+      [
+        "Svind",
+        "eyATAm"
+      ],
+      [
+        "Svind",
+        "eyAtAm"
+      ],
+      [
+        "Svind",
+        "antAm"
+      ],
+      [
+        "Svind",
+        "Ase"
+      ],
+      [
+        "Svind",
+        "AvahE"
+      ],
+      [
+        "sparD",
+        "e"
+      ],
+      [
+        "sparD",
+        "eTAm"
+      ],
+      [
+        "sparD",
+        "eTe"
+      ],
+      [
+        "sparD",
+        "etAm"
+      ],
+      [
+        "sparD",
+        "ADve"
+      ],
+      [
+        "sparD",
+        "ete"
+      ],
+      [
+        "sparD",
+        "eta"
+      ],
+      [
+        "sparD",
+        "eya"
+      ],
+      [
+        "sparD",
+        "Ete"
+      ],
+      [
+        "sparD",
+        "ETe"
+      ],
+      [
+        "sparD",
+        "eDvam"
+      ],
+      [
+        "sparD",
+        "evahi"
+      ],
+      [
+        "sparD",
+        "emahi"
+      ],
+      [
+        "sparD",
+        "eran"
+      ],
+      [
+        "sparD",
+        "AmahE"
+      ],
+      [
+        "sparD",
+        "eTAH"
+      ],
+      [
+        "sparD",
+        "eyATAm"
+      ],
+      [
+        "sparD",
+        "eyAtAm"
+      ],
+      [
+        "sparD",
+        "Ase"
+      ],
+      [
+        "sparD",
+        "AvahE"
+      ],
+      [
+        "aBAvi",
+        "zwa"
+      ],
+      [
+        "nAD",
+        "e"
+      ],
+      [
+        "nAD",
+        "eTAm"
+      ],
+      [
+        "nAD",
+        "eTe"
+      ],
+      [
+        "nAD",
+        "etAm"
+      ],
+      [
+        "nAD",
+        "ADve"
+      ],
+      [
+        "nAD",
+        "aDvam"
+      ],
+      [
+        "nAD",
+        "ete"
+      ],
+      [
+        "nAD",
+        "eta"
+      ],
+      [
+        "nAD",
+        "eya"
+      ],
+      [
+        "nAD",
+        "Ete"
+      ],
+      [
+        "nAD",
+        "ETe"
+      ],
+      [
+        "nAD",
+        "eDvam"
+      ],
+      [
+        "nAD",
+        "evahi"
+      ],
+      [
+        "nAD",
+        "emahi"
+      ],
+      [
+        "nAD",
+        "eran"
+      ],
+      [
+        "nAD",
+        "ante"
+      ],
+      [
+        "nAD",
+        "AmahE"
+      ],
+      [
+        "nAD",
+        "eTAH"
+      ],
+      [
+        "nAD",
+        "eyATAm"
+      ],
+      [
+        "nAD",
+        "eyAtAm"
+      ],
+      [
+        "nAD",
+        "antAm"
+      ],
+      [
+        "nAD",
+        "Ase"
+      ],
+      [
+        "nAD",
+        "AvahE"
+      ],
+      [
+        "nAD",
+        "ate"
+      ],
+      [
+        "nAD",
+        "ase"
+      ],
+      [
+        "nAD",
+        "atAm"
+      ],
+      [
+        "nAD",
+        "aDve"
+      ],
+      [
+        "nAD",
+        "asva"
+      ],
+      [
+        "daD",
+        "e"
+      ],
+      [
+        "daD",
+        "eTAm"
+      ],
+      [
+        "daD",
+        "eTe"
+      ],
+      [
+        "daD",
+        "etAm"
+      ],
+      [
+        "daD",
+        "ADve"
+      ],
+      [
+        "daD",
+        "ete"
+      ],
+      [
+        "daD",
+        "eta"
+      ],
+      [
+        "daD",
+        "eya"
+      ],
+      [
+        "daD",
+        "Ete"
+      ],
+      [
+        "daD",
+        "ETe"
+      ],
+      [
+        "daD",
+        "eDvam"
+      ],
+      [
+        "daD",
+        "evahi"
+      ],
+      [
+        "daD",
+        "emahi"
+      ],
+      [
+        "daD",
+        "eran"
+      ],
+      [
+        "daD",
+        "AmahE"
+      ],
+      [
+        "daD",
+        "eTAH"
+      ],
+      [
+        "daD",
+        "eyATAm"
+      ],
+      [
+        "daD",
+        "eyAtAm"
+      ],
+      [
+        "daD",
+        "Ase"
+      ],
+      [
+        "daD",
+        "AvahE"
+      ],
+      [
+        "baBU",
+        "vuH"
+      ],
+      [
+        "baBU",
+        "vaTuH"
+      ],
+      [
+        "Bavi",
+        "tA"
+      ],
+      [
+        "Bavi",
+        "tArO"
+      ],
+      [
+        "Bavi",
+        "tAraH"
+      ],
+      [
+        "Bavi",
+        "zyati"
+      ],
+      [
+        "Bavi",
+        "zyasi"
+      ],
+      [
+        "Bavi",
+        "zyanti"
+      ],
+      [
+        "Bavi",
+        "zyataH"
+      ],
+      [
+        "eDAmbaBU",
+        "vuH"
+      ],
+      [
+        "eDAmbaBU",
+        "vaTuH"
+      ],
+      [
+        "agAD",
+        "e"
+      ],
+      [
+        "agAD",
+        "eTAm"
+      ],
+      [
+        "agAD",
+        "etAm"
+      ],
+      [
+        "agAD",
+        "aTAH"
+      ],
+      [
+        "agAD",
+        "Amahi"
+      ],
+      [
+        "agAD",
+        "Avahi"
+      ],
+      [
+        "agAD",
+        "ata"
+      ],
+      [
+        "agAD",
+        "aDvam"
+      ],
+      [
+        "agAD",
+        "anta"
+      ],
+      [
+        "anAD",
+        "e"
+      ],
+      [
+        "anAD",
+        "eTAm"
+      ],
+      [
+        "anAD",
+        "etAm"
+      ],
+      [
+        "anAD",
+        "aTAH"
+      ],
+      [
+        "anAD",
+        "Amahi"
+      ],
+      [
+        "anAD",
+        "Avahi"
+      ],
+      [
+        "anAD",
+        "ata"
+      ],
+      [
+        "anAD",
+        "aDvam"
+      ],
+      [
+        "anAD",
+        "anta"
+      ],
+      [
+        "asparD",
+        "e"
+      ],
+      [
+        "asparD",
+        "eTAm"
+      ],
+      [
+        "asparD",
+        "etAm"
+      ],
+      [
+        "asparD",
+        "aTAH"
+      ],
+      [
+        "asparD",
+        "Amahi"
+      ],
+      [
+        "asparD",
+        "Avahi"
+      ],
+      [
+        "BavA",
+        "ti"
+      ],
+      [
+        "BavA",
+        "Ta"
+      ],
+      [
+        "BavA",
+        "si"
+      ],
+      [
+        "BavA",
+        "TaH"
+      ],
+      [
+        "BavA",
+        "nti"
+      ],
+      [
+        "BavA",
+        "taH"
+      ],
+      [
+        "BavA",
+        "ni"
+      ],
+      [
+        "Bava",
+        "tAm"
+      ],
+      [
+        "Bava",
+        "ta"
+      ],
+      [
+        "Bava",
+        "ti"
+      ],
+      [
+        "Bava",
+        "si"
+      ],
+      [
+        "Bava",
+        "tam"
+      ],
+      [
+        "Bava",
+        "nti"
+      ],
+      [
+        "Bava",
+        "taH"
+      ],
+      [
+        "Bava",
+        "ntu"
+      ],
+      [
+        "nanAT",
+        "uH"
+      ],
+      [
+        "nanAT",
+        "aTuH"
+      ],
+      [
+        "nanATi",
+        "ma"
+      ],
+      [
+        "nanATi",
+        "va"
+      ],
+      [
+        "nanATi",
+        "Ta"
+      ],
+      [
+        "nATyA",
+        "t"
+      ],
+      [
+        "BUyA",
+        "t"
+      ],
+      [
+        "baBUvi",
+        "ma"
+      ],
+      [
+        "baBUvi",
+        "va"
+      ],
+      [
+        "baBUvi",
+        "Ta"
+      ],
+      [
+        "eDAmbaBUvi",
+        "ma"
+      ],
+      [
+        "eDAmbaBUvi",
+        "va"
+      ],
+      [
+        "eDAmbaBUvi",
+        "Ta"
+      ],
+      [
+        "abAD",
+        "e"
+      ],
+      [
+        "abAD",
+        "eTAm"
+      ],
+      [
+        "abAD",
+        "etAm"
+      ],
+      [
+        "abAD",
+        "aTAH"
+      ],
+      [
+        "abAD",
+        "Amahi"
+      ],
+      [
+        "abAD",
+        "Avahi"
+      ],
+      [
+        "abAD",
+        "ata"
+      ],
+      [
+        "abAD",
+        "aDvam"
+      ],
+      [
+        "abAD",
+        "anta"
+      ],
+      [
+        "aBavi",
+        "zyan"
+      ],
+      [
+        "aBavi",
+        "zyAma"
+      ],
+      [
+        "aBavi",
+        "zyAva"
+      ],
+      [
+        "Bave",
+        "H"
+      ],
+      [
+        "Bave",
+        "t"
+      ],
+      [
+        "Bave",
+        "ma"
+      ],
+      [
+        "Bave",
+        "va"
+      ],
+      [
+        "Bave",
+        "tAm"
+      ],
+      [
+        "Bave",
+        "ta"
+      ],
+      [
+        "Bave",
+        "tam"
+      ],
+      [
+        "Bave",
+        "yuH"
+      ],
+      [
+        "Bave",
+        "yam"
+      ],
+      [
+        "vanda",
+        "te"
+      ],
+      [
+        "vanda",
+        "se"
+      ],
+      [
+        "vanda",
+        "tAm"
+      ],
+      [
+        "vanda",
+        "Dvam"
+      ],
+      [
+        "vanda",
+        "Dve"
+      ],
+      [
+        "vanda",
+        "sva"
+      ],
+      [
+        "skunda",
+        "te"
+      ],
+      [
+        "skunda",
+        "se"
+      ],
+      [
+        "skunda",
+        "tAm"
+      ],
+      [
+        "skunda",
+        "Dvam"
+      ],
+      [
+        "skunda",
+        "Dve"
+      ],
+      [
+        "skunda",
+        "sva"
+      ],
+      [
+        "Banda",
+        "te"
+      ],
+      [
+        "Banda",
+        "se"
+      ],
+      [
+        "Banda",
+        "tAm"
+      ],
+      [
+        "Banda",
+        "Dvam"
+      ],
+      [
+        "Banda",
+        "Dve"
+      ],
+      [
+        "Banda",
+        "sva"
+      ],
+      [
+        "Svinda",
+        "te"
+      ],
+      [
+        "Svinda",
+        "se"
+      ],
+      [
+        "Svinda",
+        "tAm"
+      ],
+      [
+        "Svinda",
+        "Dvam"
+      ],
+      [
+        "Svinda",
+        "Dve"
+      ],
+      [
+        "Svinda",
+        "sva"
+      ],
+      [
+        "avand",
+        "e"
+      ],
+      [
+        "avand",
+        "eTAm"
+      ],
+      [
+        "avand",
+        "etAm"
+      ],
+      [
+        "avand",
+        "aTAH"
+      ],
+      [
+        "avand",
+        "Amahi"
+      ],
+      [
+        "avand",
+        "Avahi"
+      ],
+      [
+        "avand",
+        "anta"
+      ],
+      [
+        "askund",
+        "e"
+      ],
+      [
+        "askund",
+        "eTAm"
+      ],
+      [
+        "askund",
+        "etAm"
+      ],
+      [
+        "askund",
+        "aTAH"
+      ],
+      [
+        "askund",
+        "Amahi"
+      ],
+      [
+        "askund",
+        "Avahi"
+      ],
+      [
+        "askund",
+        "anta"
+      ],
+      [
+        "aBand",
+        "e"
+      ],
+      [
+        "aBand",
+        "eTAm"
+      ],
+      [
+        "aBand",
+        "etAm"
+      ],
+      [
+        "aBand",
+        "aTAH"
+      ],
+      [
+        "aBand",
+        "Amahi"
+      ],
+      [
+        "aBand",
+        "Avahi"
+      ],
+      [
+        "aBand",
+        "anta"
+      ],
+      [
+        "aSvind",
+        "e"
+      ],
+      [
+        "aSvind",
+        "eTAm"
+      ],
+      [
+        "aSvind",
+        "etAm"
+      ],
+      [
+        "aSvind",
+        "aTAH"
+      ],
+      [
+        "aSvind",
+        "Amahi"
+      ],
+      [
+        "aSvind",
+        "Avahi"
+      ],
+      [
+        "aSvind",
+        "anta"
+      ],
+      [
+        "nATyAs",
+        "ma"
+      ],
+      [
+        "nATyAs",
+        "va"
+      ],
+      [
+        "nATyAs",
+        "tAm"
+      ],
+      [
+        "nATyAs",
+        "ta"
+      ],
+      [
+        "nATyAs",
+        "uH"
+      ],
+      [
+        "nATyAs",
+        "tam"
+      ],
+      [
+        "nATyAs",
+        "am"
+      ],
+      [
+        "BUyAs",
+        "ma"
+      ],
+      [
+        "BUyAs",
+        "va"
+      ],
+      [
+        "BUyAs",
+        "tAm"
+      ],
+      [
+        "BUyAs",
+        "ta"
+      ],
+      [
+        "BUyAs",
+        "uH"
+      ],
+      [
+        "BUyAs",
+        "tam"
+      ],
+      [
+        "BUyAs",
+        "am"
+      ],
+      [
+        "ED",
+        "e"
+      ],
+      [
+        "ED",
+        "eTAm"
+      ],
+      [
+        "ED",
+        "etAm"
+      ],
+      [
+        "ED",
+        "aTAH"
+      ],
+      [
+        "ED",
+        "Amahi"
+      ],
+      [
+        "ED",
+        "Avahi"
+      ],
+      [
+        "adaD",
+        "e"
+      ],
+      [
+        "adaD",
+        "eTAm"
+      ],
+      [
+        "adaD",
+        "etAm"
+      ],
+      [
+        "adaD",
+        "aTAH"
+      ],
+      [
+        "adaD",
+        "Amahi"
+      ],
+      [
+        "adaD",
+        "Avahi"
+      ],
+      [
+        "aBava",
+        "H"
+      ],
+      [
+        "aBava",
+        "n"
+      ],
+      [
+        "aBava",
+        "t"
+      ],
+      [
+        "aBava",
+        "tAm"
+      ],
+      [
+        "aBava",
+        "ta"
+      ],
+      [
+        "aBava",
+        "tam"
+      ],
+      [
+        "mand",
+        "e"
+      ],
+      [
+        "mand",
+        "Amahe"
+      ],
+      [
+        "mand",
+        "Avahe"
+      ],
+      [
+        "mand",
+        "eTe"
+      ],
+      [
+        "mand",
+        "ete"
+      ],
+      [
+        "mand",
+        "ante"
+      ],
+      [
+        "nATitAs",
+        "i"
+      ],
+      [
+        "nATitAs",
+        "Ta"
+      ],
+      [
+        "nATitAs",
+        "mi"
+      ],
+      [
+        "nATitAs",
+        "TaH"
+      ],
+      [
+        "nATitAs",
+        "maH"
+      ],
+      [
+        "nATitAs",
+        "vaH"
+      ],
+      [
+        "BavitAs",
+        "i"
+      ],
+      [
+        "BavitAs",
+        "Ta"
+      ],
+      [
+        "BavitAs",
+        "mi"
+      ],
+      [
+        "BavitAs",
+        "TaH"
+      ],
+      [
+        "BavitAs",
+        "maH"
+      ],
+      [
+        "BavitAs",
+        "vaH"
+      ],
+      [
+        "nATA",
+        "ti"
+      ],
+      [
+        "nATA",
+        "si"
+      ],
+      [
+        "nATA",
+        "nti"
+      ],
+      [
+        "nATA",
+        "taH"
+      ],
+      [
+        "nATA",
+        "ni"
+      ],
+      [
+        "nATizy",
+        "Ami"
+      ],
+      [
+        "nATizy",
+        "aTa"
+      ],
+      [
+        "nATizy",
+        "aTaH"
+      ],
+      [
+        "nATizy",
+        "AmaH"
+      ],
+      [
+        "nATizy",
+        "AvaH"
+      ],
+      [
+        "Bavizy",
+        "Ami"
+      ],
+      [
+        "Bavizy",
+        "aTa"
+      ],
+      [
+        "Bavizy",
+        "aTaH"
+      ],
+      [
+        "Bavizy",
+        "AmaH"
+      ],
+      [
+        "Bavizy",
+        "AvaH"
+      ],
+      [
+        "nATa",
+        "ti"
+      ],
+      [
+        "nATa",
+        "si"
+      ],
+      [
+        "nATe",
+        "H"
+      ],
+      [
+        "nATe",
+        "t"
+      ],
+      [
+        "nATe",
+        "ma"
+      ],
+      [
+        "nATe",
+        "va"
+      ],
+      [
+        "anATiz",
+        "ma"
+      ],
+      [
+        "anATiz",
+        "va"
+      ],
+      [
+        "anATiz",
+        "uH"
+      ],
+      [
+        "anATiz",
+        "am"
+      ],
+      [
+        "anATizya",
+        "H"
+      ],
+      [
+        "anATizya",
+        "m"
+      ],
+      [
+        "anATizya",
+        "t"
+      ],
+      [
+        "anATizya",
+        "tAm"
+      ],
+      [
+        "anATizyata",
+        "m"
+      ],
+      [
+        "baBUva",
+        "tuH"
+      ],
+      [
+        "eDAmbaBUva",
+        "tuH"
+      ],
+      [
+        "BavAma",
+        "H"
+      ],
+      [
+        "BavAva",
+        "H"
+      ],
+      [
+        "nanATa",
+        "tuH"
+      ],
+      [
+        "aBavizya",
+        "H"
+      ],
+      [
+        "aBavizya",
+        "m"
+      ],
+      [
+        "aBavizya",
+        "t"
+      ],
+      [
+        "aBavizya",
+        "tAm"
+      ],
+      [
+        "EDa",
+        "ta"
+      ],
+      [
+        "EDa",
+        "Dvam"
+      ],
+      [
+        "EDa",
+        "nta"
+      ],
+      [
+        "adaDa",
+        "ta"
+      ],
+      [
+        "adaDa",
+        "Dvam"
+      ],
+      [
+        "adaDa",
+        "nta"
+      ],
+      [
+        "asparDa",
+        "ta"
+      ],
+      [
+        "asparDa",
+        "Dvam"
+      ],
+      [
+        "asparDa",
+        "nta"
+      ],
+      [
+        "manda",
+        "te"
+      ],
+      [
+        "manda",
+        "se"
+      ],
+      [
+        "manda",
+        "Dve"
+      ],
+      [
+        "nATAma",
+        "H"
+      ],
+      [
+        "nATata",
+        "H"
+      ],
+      [
+        "nATata",
+        "m"
+      ],
+      [
+        "nATAva",
+        "H"
+      ],
+      [
+        "anATizwa",
+        "m"
+      ],
+      [
+        "avanda",
+        "ta"
+      ],
+      [
+        "avanda",
+        "Dvam"
+      ],
+      [
+        "askunda",
+        "ta"
+      ],
+      [
+        "askunda",
+        "Dvam"
+      ],
+      [
+        "aBanda",
+        "ta"
+      ],
+      [
+        "aBanda",
+        "Dvam"
+      ],
+      [
+        "aSvinda",
+        "ta"
+      ],
+      [
+        "aSvinda",
+        "Dvam"
+      ],
+      [
+        "nATan",
+        "ti"
+      ],
+      [
+        "nATan",
+        "tu"
+      ],
+      [
+        "nATAT",
+        "a"
+      ],
+      [
+        "nATAT",
+        "aH"
+      ],
+      [
+        "nATeta",
+        "m"
+      ],
+      [
+        "BavaT",
+        "a"
+      ],
+      [
+        "BavaT",
+        "aH"
+      ],
+      [
+        "anATI",
+        "H"
+      ],
+      [
+        "anATI",
+        "t"
+      ],
+      [
+        "anATata",
+        "m"
+      ],
+      [
+        "aBUva",
+        "n"
+      ],
+      [
+        "aBavizyata",
+        "m"
+      ],
+      [
+        "ad",
+        "ADi"
+      ],
+      [
+        "aBa",
+        "vam"
+      ],
+      [
+        "nATey",
+        "uH"
+      ],
+      [
+        "nATeya",
+        "m"
+      ],
+      [
+        "anATizw",
+        "Am"
+      ]
+    ]
+  }
+}

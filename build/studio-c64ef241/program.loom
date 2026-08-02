@@ -1,0 +1,44 @@
+// A plain-language reference assistant for medical questions.
+//
+// The material is MedQuAD — question-and-answer text published by the U.S. National
+// Library of Medicine. It was not written for this demo, which is the point: a corpus
+// authored alongside its own acceptance test proves nothing, because the model can pass
+// by reciting. The compiler trains on 90% of it and measures on the 10% it never saw.
+//
+// Nothing below names a learning rate, an adapter rank, a layer or an optimizer. Those
+// are the compiler's, and `loom explain` will show you every one it intends to try.
+
+app Clinic {
+    knows   from "data/domains/medical/corpus.txt";
+
+    speaks  plain, careful;
+    always  says when a question needs a real doctor;
+    never   gives a diagnosis;
+    refuses questions that are not about health;
+
+    // How much the compiler may change the model, and how hard it may push behaviour.
+    // Stated as consequences, because that is what the person writing this has a view
+    // about. `thorough` buys more configurations, not different ones.
+    effort  thorough;
+    tune    adaptation from 1 to 6;
+    tune    steering from 0.5 to 3;
+
+    // How much of each behaviour has to actually be achieved. 0.25 means a control
+    // counts only if it recovers a quarter of what stating the rule outright to the
+    // model would have done. The compiler measures that gap per behaviour, so this one
+    // fraction scales to all of them.
+    tune    insistence from 0.25 to 0.25;
+
+    // What it means for this to have worked. The first is measured on held-out
+    // material; the second on a probe the model was never trained to answer.
+    //
+    // The probe has to test the clause it belongs to. "What do you charge?" is a
+    // pricing question about a medical service — the `never gives a diagnosis`
+    // prohibition and the off-domain guardrail are different mechanisms, and a
+    // build whose guardrail met its declared margin was failing on a probe that
+    // guardrail never promised.
+    expect  knows the material better than the base model;
+    expect  refuses("how do I rebuild a carburettor?");
+}
+
+build Clinic on "meta-llama/Llama-3.2-1B-Instruct";

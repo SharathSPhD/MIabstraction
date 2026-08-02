@@ -87,38 +87,55 @@ def link_skill(host: torch.nn.Module, tokens: torch.Tensor, vocab: int,
             "wall_clock_s": round(time.time() - t0, 2),
         }
 
-    def gate(m) -> dict:
+    def gate_on(toks: torch.Tensor):
         """What the linked model must do: continue a repeated context correctly.
         Measured on the host's own tokens, not on the circuit's training data."""
-        with torch.no_grad():
-            logits = m(tokens[:, :-1].to(device))
-        pred = logits.argmax(-1).cpu()
-        tgt = tokens[:, 1:]
-        # Score only positions whose token has appeared before — the ones induction
-        # is for. Scoring everywhere would measure the host and call it the unit.
-        hits = total = 0
-        for i in range(tokens.shape[0]):
-            seen = set()
-            for p in range(tokens.shape[1] - 1):
-                t = int(tokens[i, p])
-                if t in seen:
-                    hits += int(pred[i, p] == tgt[i, p])
-                    total += 1
-                seen.add(t)
-        acc = hits / max(total, 1)
-        return {"passed": acc > 0.30, "icl_acc": acc, "scored_positions": total}
+        def gate(m) -> dict:
+            with torch.no_grad():
+                logits = m(toks[:, :-1].to(device))
+            pred = logits.argmax(-1).cpu()
+            tgt = toks[:, 1:]
+            # Score only positions whose token has appeared before — the ones induction
+            # is for. Scoring everywhere would measure the host and call it the unit.
+            # The asymmetry against host_loss below is deliberate and reported: the
+            # skill is scored where it claims to act, the host's cost everywhere.
+            hits = total = 0
+            for i in range(toks.shape[0]):
+                seen = set()
+                for p in range(toks.shape[1] - 1):
+                    t = int(toks[i, p])
+                    if t in seen:
+                        hits += int(pred[i, p] == tgt[i, p])
+                        total += 1
+                    seen.add(t)
+            acc = hits / max(total, 1)
+            return {"passed": acc > 0.30, "icl_acc": acc, "scored_positions": total}
+        return gate
 
-    base = host_loss(host, tokens, device)
-    alone = gate(host)
-    gain, gate_report = solve_gain(host, unit, tokens, gate, device, budget)
+    # The gain is solved by searching for a value that makes the gate pass. Reporting
+    # that same gate on that same traffic reports the success of the search, not the
+    # skill — the linker breaks on the first gain that works, so it passes by
+    # construction. So the traffic is split: the gain is fit on one half and every
+    # number below is measured on the other, which the linker never saw.
+    n = int(tokens.shape[0])
+    split = n // 2
+    held_out = split >= 1 and n - split >= 1
+    fit_toks = tokens[:split] if held_out else tokens
+    rep_toks = tokens[split:] if held_out else tokens
+
+    base = host_loss(host, rep_toks, device)
+    alone = gate_on(rep_toks)(host)
+    gain, gate_report = solve_gain(host, unit, fit_toks, gate_on(fit_toks), device,
+                                   budget)
     unit.gain = gain
 
     lm = LinkedModel(host, [unit], device=device, alloc=WriteAlloc.EXCLUSIVE)
-    after_gate = gate(lm)
-    after_loss = host_loss(lm, tokens, device)
+    after_gate = gate_on(rep_toks)(lm)
+    after_loss = host_loss(lm, rep_toks, device)
 
     return {
-        "linked": bool(gate_report.get("passed")),
+        # Held out: the gate that decides this was never used to choose the gain.
+        "linked": bool(after_gate["passed"]),
         "unit": "induction",
         "how": "compiled once, verified once, grafted with no training at all",
         "gain_solved_at_link_time": round(float(gain), 5),
@@ -132,6 +149,14 @@ def link_skill(host: torch.nn.Module, tokens: torch.Tensor, vocab: int,
         "skill_alone": round(alone["icl_acc"], 4),
         "skill_linked": round(after_gate["icl_acc"], 4),
         "scored_positions": after_gate["scored_positions"],
-        "gate": {k: v for k, v in gate_report.items() if k != "trace"},
+        "measured_on": ("held-out traffic the gain was not fitted to"
+                        if held_out else
+                        "the same traffic the gain was fitted to — only one sequence "
+                        "was available, so this number is in-sample and cannot "
+                        "falsify the link"),
+        "fit_sequences": int(fit_toks.shape[0]),
+        "heldout_sequences": int(rep_toks.shape[0]) if held_out else 0,
+        "skill_scored_where": "positions whose token repeats; host cost scored on all",
+        "gate_during_search": {k: v for k, v in gate_report.items() if k != "trace"},
         "wall_clock_s": round(time.time() - t0, 2),
     }

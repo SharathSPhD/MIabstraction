@@ -103,8 +103,19 @@ class PolicyGate:
     # handful of contrast sentences, is what tells scope: a legal question's content
     # words appear in a corpus of court opinions and a sourdough question's do not.
     corpus_vocab: set = field(default_factory=set)
+    # Calibrated per build from the domain's own material, never a shipped constant.
+    # It was 0.34 — a number that separated a legal question from a sourdough question
+    # on one domain and was then applied to all of them. Swept across the eight domains
+    # that have contrast material (results/policy_gate_resolution.json) it gets 31 of 76
+    # requests wrong, and on the grammar corpus it gates every in-subject question the
+    # app exists to answer. A threshold fitted to one case is not a threshold.
     coverage_floor: float = 0.34
     margin: float = 0.0
+    # A gate whose material cannot separate in-subject from off-subject requests does
+    # not get to guess. It allows everything and says why, which is the same asymmetry
+    # the rest of this class is built on.
+    enabled: bool = True
+    calibration: dict = field(default_factory=dict)
 
     @classmethod
     def from_artifact(cls, report: dict, corpus_pattern: str = "") -> "PolicyGate":
@@ -130,8 +141,68 @@ class PolicyGate:
                 if f.is_file():
                     # A few megabytes is plenty to learn which words a subject uses.
                     vocab |= set(_content(f.read_text(errors="ignore")[:4_000_000]))
-        return cls(clauses=clauses, corpus_vocab=vocab,
-                   in_profile=_profile(in_texts), out_profile=_profile(out_texts))
+        g = cls(clauses=clauses, corpus_vocab=vocab,
+                in_profile=_profile(in_texts), out_profile=_profile(out_texts))
+        # Questions, not declarative corpus sentences: a sentence lifted from the corpus
+        # shares its vocabulary by construction and would calibrate the floor against
+        # traffic no app ever meets.
+        qs = list((json.loads((Path(pattern).parent / "contrast.json").read_text())
+                   .get("in_domain_questions") or [])) if pattern and (
+                       Path(pattern).parent / "contrast.json").exists() else []
+        g.calibrate(qs or in_texts, out_texts)
+        return g
+
+    def calibrate(self, in_requests: list[str], out_requests: list[str]) -> dict:
+        """Find a floor this domain's own material supports, or switch the gate off.
+
+        The floor sits midway between the highest-scoring off-subject request and the
+        lowest-scoring in-subject one. When those cross — an off-subject request that
+        looks more like the corpus than some in-subject request does — no floor exists
+        that is right on both, and the honest outcome is a gate that does not fire.
+        """
+        ins = [s for s in (self._coverage(r) for r in in_requests) if s is not None]
+        outs = [s for s in (self._coverage(r) for r in out_requests) if s is not None]
+        if not self.corpus_vocab or not ins or not outs:
+            self.enabled = bool(self.clauses) and bool(self.in_profile)
+            self.calibration = {
+                "calibrated": False,
+                "reason": "no corpus vocabulary or no scored requests on one side, so "
+                          "no floor could be measured"}
+            return self.calibration
+        lo_in, hi_out = min(ins), max(outs)
+        if lo_in > hi_out:
+            self.coverage_floor = (lo_in + hi_out) / 2.0
+            self.enabled = True
+            self.calibration = {
+                "calibrated": True, "floor": round(self.coverage_floor, 4),
+                "lowest_in_subject": round(lo_in, 4),
+                "highest_off_subject": round(hi_out, 4),
+                "margin": round(lo_in - hi_out, 4),
+                "n_in": len(ins), "n_out": len(outs),
+                "reason": (f"in-subject requests score at least {lo_in:.2f} and "
+                           f"off-subject ones at most {hi_out:.2f}, so a floor between "
+                           f"them is right on every request measured")}
+        else:
+            self.enabled = False
+            self.calibration = {
+                "calibrated": False, "gate_disabled": True,
+                "lowest_in_subject": round(lo_in, 4),
+                "highest_off_subject": round(hi_out, 4),
+                "margin": round(lo_in - hi_out, 4),
+                "n_in": len(ins), "n_out": len(outs),
+                "reason": (f"an off-subject request scored {hi_out:.2f} while an "
+                           f"in-subject one scored {lo_in:.2f}, so no floor is right on "
+                           f"both. Word overlap cannot tell this domain's scope, and a "
+                           f"gate that fired anyway would refuse the app's own users")}
+        return self.calibration
+
+    def _coverage(self, request: str) -> float | None:
+        """The gate's raw score, before any threshold. None when the request carries
+        too little subject material for the gate to act on at all."""
+        content = _content(request)
+        if not self.corpus_vocab or len(content) < 3:
+            return None
+        return sum(1 for w in content if w in self.corpus_vocab) / len(content)
 
     def decide(self, request: str) -> Decision:
         """Allow unless the request is measurably closer to what this app declared
@@ -151,6 +222,10 @@ class PolicyGate:
         """
         if not self.clauses:
             return Decision(True, "this program declared no policy")
+        if not self.enabled:
+            return Decision(True, "this model's material cannot separate in-subject "
+                                  "from off-subject requests, so the gate does not "
+                                  "fire: " + str(self.calibration.get("reason", "")))
         if not self.in_profile or not self.out_profile:
             return Decision(True, "no contrast material to judge scope against, so "
                                   "the gate does not guess")

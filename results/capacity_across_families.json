@@ -1,0 +1,128 @@
+{
+  "question": "does a linear write deliver the same across model families?",
+  "program": "examples/clinic.loom",
+  "models": [
+    "meta-llama/Llama-3.2-1B-Instruct",
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "google/gemma-2-2b-it",
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+  ],
+  "rows": [
+    {
+      "model": "meta-llama/Llama-3.2-1B-Instruct",
+      "capability": "speak plain, careful",
+      "kind": "style",
+      "gap_nats": 0.0121,
+      "delivered_nats": 0.004,
+      "recovered": 0.3287,
+      "target_met": true,
+      "admissible": 3,
+      "trials": 16
+    },
+    {
+      "model": "meta-llama/Llama-3.2-1B-Instruct",
+      "capability": "always says when a question needs a real doctor",
+      "kind": "invariant",
+      "gap_nats": 0.0453,
+      "delivered_nats": null,
+      "recovered": null,
+      "target_met": false,
+      "admissible": 0,
+      "trials": 16
+    },
+    {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "capability": "speak plain, careful",
+      "kind": "style",
+      "gap_nats": 0.0881,
+      "delivered_nats": 0.014,
+      "recovered": 0.1591,
+      "target_met": false,
+      "admissible": 3,
+      "trials": 16
+    },
+    {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "capability": "always says when a question needs a real doctor",
+      "kind": "invariant",
+      "gap_nats": 0.0673,
+      "delivered_nats": null,
+      "recovered": null,
+      "target_met": false,
+      "admissible": 0,
+      "trials": 16
+    },
+    {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "capability": "speak plain, careful",
+      "kind": "style",
+      "gap_nats": 0.1206,
+      "delivered_nats": 0.0039,
+      "recovered": 0.0326,
+      "target_met": false,
+      "admissible": 3,
+      "trials": 16
+    },
+    {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "capability": "always says when a question needs a real doctor",
+      "kind": "invariant",
+      "gap_nats": 0.0303,
+      "delivered_nats": null,
+      "recovered": null,
+      "target_met": false,
+      "admissible": 0,
+      "trials": 16
+    },
+    {
+      "model": "google/gemma-2-2b-it",
+      "capability": "speak plain, careful",
+      "kind": "style",
+      "gap_nats": 0.1058,
+      "delivered_nats": 0.0142,
+      "recovered": 0.1344,
+      "target_met": false,
+      "admissible": 8,
+      "trials": 16
+    },
+    {
+      "model": "google/gemma-2-2b-it",
+      "capability": "always says when a question needs a real doctor",
+      "kind": "invariant",
+      "gap_nats": 0.2714,
+      "delivered_nats": 0.0154,
+      "recovered": 0.0569,
+      "target_met": false,
+      "admissible": 10,
+      "trials": 16
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+      "capability": "speak plain, careful",
+      "kind": "style",
+      "gap_nats": 0.0556,
+      "delivered_nats": 0.0149,
+      "recovered": 0.2674,
+      "target_met": true,
+      "admissible": 1,
+      "trials": 16
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+      "capability": "always says when a question needs a real doctor",
+      "kind": "invariant",
+      "gap_nats": 0.0186,
+      "delivered_nats": 0.0003,
+      "recovered": 0.014,
+      "target_met": false,
+      "admissible": 1,
+      "trials": 16
+    }
+  ],
+  "delivered_min": 0.0003,
+  "delivered_max": 0.0154,
+  "spread_ratio": 51.33,
+  "verdict": "the ledger is substrate-specific and the compiler is right to refuse a ceiling measured on another base model",
+  "note": "Measured with the same functions a build uses (measure_gap, autotune_control), so this is the compiler's own instrument pointed at several substrates rather than a separate estimate."
+}

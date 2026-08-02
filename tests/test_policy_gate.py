@@ -10,6 +10,9 @@ motion to dismiss test?".
 from __future__ import annotations
 
 import json
+from pathlib import Path
+
+import pytest
 
 from loom.app.policy import PolicyGate
 
@@ -91,6 +94,39 @@ def test_the_decision_cites_how_much_of_the_request_the_model_knows(tmp_path):
     assert not d.allowed
     assert "appear anywhere in the material" in d.reason
     assert d.in_score < 0.34
+
+
+def _real(domain: str) -> PolicyGate:
+    return PolicyGate.from_artifact(
+        {"policy": CLAUSES}, corpus_pattern=f"data/domains/{domain}/corpus.txt")
+
+
+@pytest.mark.skipif(not Path("data/domains/legal/corpus.txt").exists(),
+                    reason="domain corpora are not present in this checkout")
+def test_the_floor_is_calibrated_from_the_domain_not_shipped_as_a_constant():
+    """0.34 was fitted to one domain and applied to eight. On the real corpora it gets
+    31 of 76 requests wrong (results/policy_gate_resolution.json). The floor now comes
+    from the domain's own material, and the record says what it was measured on."""
+    g = _real("legal")
+    assert g.calibration.get("calibrated"), g.calibration
+    assert g.calibration["margin"] > 0
+    assert g.calibration["highest_off_subject"] < g.coverage_floor < \
+        g.calibration["lowest_in_subject"]
+
+
+@pytest.mark.skipif(not Path("data/domains/grammar/corpus.txt").exists(),
+                    reason="domain corpora are not present in this checkout")
+def test_a_domain_whose_material_cannot_separate_switches_the_gate_off():
+    """The grammar corpus holds 1,422 distinct subject words, and its own in-subject
+    questions score as low as 0.00 against it. A gate at the old constant refused every
+    question the app exists to answer — the exact over-refusal that removing refusal
+    from the weights was meant to end. Unable to tell scope, it now allows and says so.
+    """
+    g = _real("grammar")
+    assert not g.enabled, g.calibration
+    d = g.decide("What is the difference between a gerund and a participle?")
+    assert d.allowed
+    assert "cannot separate" in d.reason
 
 
 def test_a_program_without_policy_gates_nothing():
