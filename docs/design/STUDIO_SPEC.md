@@ -27,7 +27,7 @@ build, public under qbz506.
 | # | Gate | Check | Status |
 |---|------|-------|--------|
 | G1 | Four industrial programs compile end-to-end locally | 4 build reports, all expectations pass, committed under results/ | open |
-| G2 | Artifacts on HF | 4+ public repos under qbz506 with adapter + report + .loom source; round-trip load verified | first repo live (clinic-llama); 4+ pending domain builds |
+| G2 | Artifacts on HF | 4+ public repos under qbz506 with adapter + report + .loom source; round-trip load verified | CLOSED 2026-08-02 — clinic/desk/foreman/stylist repos public; clinic's two adapters downloaded from HF and reapplied onto a fresh base, both verified applied |
 | G3 | Studio scaffold runs locally | `npm run dev` serves editor; explain round-trips against worker | CLOSED 2026-08-02 — proxy → worker verified on :3112 |
 | G4 | Supabase schema live | migrations applied; RLS verified (anon can read showcase, cannot write) | CLOSED 2026-08-02 — project lupnomulqaifhqcdwqsd, anon insert refused by RLS, 5 showcase programs seeded |
 | G5 | Worker executes a queued build | row in builds → worker picks up → events stream → report row written | CLOSED 2026-08-02 — build 9a18cd32 submitted via the deployed /api/build, row created by rpc_submit_build, status and events updated by the worker's secret-gated RPCs |
