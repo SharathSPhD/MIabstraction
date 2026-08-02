@@ -114,14 +114,44 @@ Each clause has a defined meaning at L2:
 The output is a directory containing weights, hooks, the plan that produced them, and the
 measurements. `loom run <app>` gives you a prompt.
 
+## What each substrate actually does
+
+Stated plainly, because the two are not the same claim and only one of them is
+"creating a language model".
+
+**From scratch** (`scratch(demo)`, `scratch(flagship)`) — no downloaded weights are
+involved. The compiler chooses the architecture from the program's declared demands,
+trains a tokenizer on the program's own corpus, pretrains, and can build the host
+*inside a compiled circuit's verified envelope* so the circuit can be grafted. The
+artifact carries the weights, because there is no upstream repository to fetch them
+from later. This is the substrate the project's central claim is about.
+
+**Open weight** (any cached model) — the architecture and tokenizer were fixed by
+whoever trained the weights. What the compiler does here is choose, per capability,
+between a LoRA adapter and a calibrated steering write, having first measured what
+the capability is worth in nats and consulted a ledger of what a write has actually
+delivered on this base model. That is fine-tuning and inference-time steering, and
+calling it anything else would be untrue. What is not standard is the decision
+procedure: measure the gap before choosing the lever, refuse a lever the measurement
+says is too small, verify on the composed model, and refuse to ship a control that
+only moves the probes it was derived from.
+
+**Both** carry declared policy without compiling it. See below.
+
 ## Why this is not a wrapper
 
-A wrapper would map each clause to one fixed recipe. The compiler chooses, per substrate,
-per capability, and reports what it chose — which is the difference between a build system
-and a compiler. And because L1 is the mech-interp layer, the compiler can realize behaviour
-by *editing the model's internals* — installing a verified circuit, steering a measured
-feature — not only by throwing data at it. That is the capability no existing tool has,
-and it is why the abstraction layer had to be validated before the language could exist.
+A wrapper maps each clause to one fixed recipe. The compiler measures first and
+chooses, per substrate and per capability, and reports what it chose and why. Two
+things it does that a training script does not: it **links a separately compiled
+circuit** through the ABI — the induction unit is grafted with no gradient taken
+anywhere, fires only where its condition holds, and is refused outright when the host
+falls outside the envelope it was verified on — and it **declines to build refusal
+into weights at all**, because every dose strong enough to refuse off-subject
+questions also refused in-subject ones.
+
+Circuits, the ABI and the linker were research components for most of this project's
+life; `src/loom/app/linking.py` is where a build path finally calls them, and the
+numbers it produces are in the build reports rather than in an experiment folder.
 
 ## Composition, on both substrates
 
@@ -138,7 +168,8 @@ composition is measured on both substrates rather than assumed:
   code annihilates it; where the two skills disagree, the declared arbitration wins; a
   random model fails both gates at chance.
 
-- **Open-weight**: a clinic build composes a knowledge adapter, steering controls and an
-  escalated guardrail adapter in one model. Controls are calibrated jointly (three
+- **Open-weight**: a clinic build composes a knowledge adapter and calibrated
+  steering controls in one model. It no longer composes a guardrail adapter: refusal
+  is not compiled here. Controls are calibrated jointly (three
   controls each measuring zero side-effect alone destroyed generation once composed), and
   every expectation is verified on the composed artifact, not on any capability alone.

@@ -242,3 +242,59 @@ compilation into a shared output can preserve one unit exactly, and the allocati
 priority-ordered, not symmetric.** Whether both units survive depends on whether their
 firing conditions are genuinely disjoint — which is a property of the programs, not of
 the linker, and is now something a program can be written to satisfy.
+
+## Refusal removed from the compiler (2026-08-02)
+
+The compiler used to realize `never` and `refuses` clauses by suppressing a topic
+direction, amplifying a refusal direction, and escalating to a LoRA on refusal
+demonstrations when the searched dose could not reach the declared margin. All of it
+worked, and that was the problem. Counsel, built to recover 0.5 of what stating the
+rule outright achieves, declined *"what does a motion to dismiss test?"* — a legal
+question, from a legal assistant. Its behavioural gate reported `refused_in_domain:
+0.0` and was not lying: its in-domain probes were declarative sentences from the
+corpus, so it measured whether the model refuses to *continue a case-law passage*
+(never) while real traffic is *questions about law* (increasingly refused).
+
+Asked to resolve *the same output must refuse when off-subject and must not refuse
+when in-subject*, the TRIZ engine ranked separation on **condition** (0.85) and
+**time** (0.90) above space and system-level, and returned **Principle 2, Taking Out**
+with **Principle 24, Intermediary**. The reading is direct: a model never trained to
+refuse cannot refuse a legal question, so the failure disappears by construction
+rather than by tuning.
+
+`PROHIBITION` and `GUARDRAIL` are therefore absent from the lowering catalogue, and
+~215 lines of refusal machinery are deleted. The clauses survive as **policy**:
+declared by the program, carried in the artifact, evaluated by `loom/app/policy.py`
+before the model is invoked. Measured live: legal questions reach the model, baking
+and film questions are answered by the gate with the model not consulted at all.
+
+Two estimators for that gate were wrong and are recorded rather than quietly
+replaced. Profile cosine over word frequencies admitted a sourdough question to a
+legal assistant at 0.0398 against 0.0364, because the words every English sentence
+contains dominate the score. Gating on a single unfamiliar content word turned
+*"what about this one"* into a refusal. What works is coverage of content words
+against the vocabulary of the corpus the model was actually built on, with three
+words of evidence required before the gate acts: legal questions score 100%, baking
+and film 0%.
+
+**The honest limit**: this gate is word overlap. It will pass an off-subject question
+phrased in in-subject vocabulary and gate an in-subject question written in jargon
+the corpus lacks. Its false-positive and false-negative rates are not measured. It is
+the interface that matters here — prabodha implements recognition at the activation
+level behind the same call, and until that is wired in, the gate is a placeholder
+that says so.
+
+## Linking, used by a build (2026-08-02)
+
+`src/loom/app/linking.py` is the first build-path caller of the ABI, the linker and
+the hand-compiled circuits, which had lived in `experiments/` since they were
+written. On a host the compiler built inside the induction circuit's verified
+envelope, the graft takes the skill from 0.048 to 0.350 **with no gradient taken
+anywhere**, the unit fires on 71% of the host's traffic rather than on every token,
+and the host does not pay — it gains 0.42 nats.
+
+That last number needs a caveat the measurement itself invites: the host loss is
+measured on the same repeated-context sequences the unit is good at, so "the host
+gained" means "on this traffic". A host outside the envelope is refused with the
+numbers that refused it, which is information about the host rather than a tooling
+failure.
