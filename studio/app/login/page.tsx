@@ -48,7 +48,11 @@ function LoginContent() {
       // Full navigation, deliberately: router.push would reuse the client router
       // cache, which may hold the pre-login redirect for guarded routes.
       setTimeout(() => {
-        const next = searchParams.get("next") || "/";
+        const raw = searchParams.get("next") || "/";
+        const next =
+          raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\")
+            ? raw
+            : "/";
         window.location.assign(next);
       }, 400);
     }
